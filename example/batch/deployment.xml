@@ -1,0 +1,32 @@
+<?xml version='1.0'?>
+<!DOCTYPE platform_description SYSTEM "surfxml.dtd">
+<platform_description version="1">
+  <!-- The Client process (with some arguments) -->
+  <!-- process host="Client" function="client" -->
+     <!-- argument value="0" / -->  
+     <!-- argument value="0" / -->   
+     <!-- argument value="0" / --> 
+     <!-- argument value="Batch1" / -->	  <!-- First slave -->
+  <!-- /process -->
+  <!-- The Scheduler process (with some arguments) -->
+  <process host="Batch1" function="SB_batch">
+     <argument value="0" />	  <!-- Number of tasks -->
+     <argument value="0" />	  <!-- Computation size of tasks -->
+     <argument value="0" />	  <!-- Communication s1ize of tasks -->
+     <argument value="Node1" />	  <!-- First slave -->
+     <argument value="Node2" />
+     <argument value="Node3" />
+     <argument value="Node4" />
+     <argument value="Node5" />
+	  <argument value="Node6" />
+	  <argument value="Node7" />
+  </process> 
+  <process host="Node1" function="SB_node"/>
+  <process host="Node2" function="SB_node"/>
+  <process host="Node3" function="SB_node"/>
+  <process host="Node4" function="SB_node"/>
+  <process host="Node5" function="SB_node"/>
+  <process host="Node6" function="SB_node"/>
+  <process host="Node7" function="SB_node"/>
+</platform_description>
+

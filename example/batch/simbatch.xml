@@ -1,0 +1,24 @@
+<config>
+	
+	<global>
+		<!-- Global definition of the batch -->
+		<file type="platform">platform.xml</file>
+		<file type="deployment">deployment.xml</file>
+		<!-- Decomment this line if you want a Paje compliant ouput -->
+		<!-- <file type="trace">simbatch.trace</file> -->
+	</global>
+
+	<!-- Several batch could be defined, 
+	each one has to have its own section -->
+	<batch host="Batch1">
+		<!-- Choose the plugin in rrobin/fcfs/cbf -->
+		<plugin>libcbf.so</plugin>
+		<!-- Use this line as a client or to simulate a
+		dedicated platform. Otherwise comment it -->
+		<wld>./input/std/1.wld</wld>
+		<priority_queue>
+			<number>3</number>
+		</priority_queue>
+	</batch>
+
+</config>
