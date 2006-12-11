@@ -34,6 +34,8 @@
 #include "plugin_scheduler.h"
 
 
+double NOISE=0.0;
+
 /********** Here it starts *************/
 int SB_batch(int argc, char ** argv)
 {
@@ -191,6 +193,8 @@ int SB_batch(int argc, char ** argv)
 		job->priority = cluster->priority - 1;
 	    
 	    job->entry_time = MSG_get_clock();
+	    /* Noise */
+	    job->run_time += NOISE;
 	    job->mapping = xbt_malloc(job->nb_procs * sizeof(int));
 	    xbt_dynar_push(cluster->queues[job->priority], &job); 
 	    
@@ -242,8 +246,8 @@ int SB_batch(int argc, char ** argv)
 
 #ifdef OUTPUT
 	    fprintf(fout, "%-15s\t%lf\t%lf\t%lf\t%lf\t\n",
-		    job->name, job->entry_time, job->start_time, 
-		    MSG_get_clock(), MSG_get_clock() - job->start_time);
+		    job->name, job->entry_time, job->start_time + NOISE, 
+		    MSG_get_clock(), MSG_get_clock() - job->start_time - NOISE);
 #endif
 
 	    xbt_free(job->mapping);
