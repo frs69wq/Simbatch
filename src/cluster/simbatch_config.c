@@ -8,8 +8,12 @@
 #include <xbt/asserts.h>
 #include <xbt/dict.h>
 
+#include "optparse.h" 
 #include "simbatch_config.h"
 
+/* DIET integration */
+unsigned long int DIET_PARAM[4];
+int DIET_MODE = 0;
 
 /* Nb Batch in the system */
 static int nbBatch;
@@ -23,6 +27,42 @@ static xbt_dict_t book_of_plugin;
 /* Dictionnary to shared log file handlers */
 #ifdef LOG
 static xbt_dict_t book_of_log;
+
+/*** Private functions ***/ 
+static int parseCmdLine(int argc, char * argv[]);
+static void close_log_file(void * data);
+
+
+static int parseCmdLine(int argc, char * argv[]) {
+    char * allowed[] = {"-f", "-o", "-tw", "-tp", "-sw", "-sp", NULL};
+    char * needed[] = {"-f", NULL};
+    char * neededWithDIET[] = {"-o", "-tw", "-tp", NULL};
+    char * withParams[] = {"-f", "-o", "-tw", "-tp", "-sw", "-sp", NULL};
+    
+    if (controlParams(argv, withParams, needed, allowed)) {
+	fprintf (stderr, "Usage: %s -f config.xml\n", argv[0]);
+	return -1;
+    }
+    
+    if (isPresent(argv, "-o")) {
+	if (controlParams(argv, withParams, neededWithDIET, allowed)) {
+	    fprintf (stderr, 
+		     "Usage: %s -f config.xml -o diet_file -tw uint -tp uint [-sw uint -tw uint]\n", argv[0]);
+	    return -1;
+	}     
+	DIET_PARAM[0] = secureStr2ul(getParam(argv, "-tw"));
+	DIET_PARAM[1] = secureStr2ul(getParam(argv, "-tp"));
+	if (!DIET_PARAM[0] || !DIET_PARAM[1]) {
+	    fprintf (stderr, "tw && tp must be an uint > 0\n");
+	    return -1;
+	}
+	DIET_PARAM[2] = (secureStr2ul(getParam(argv, "-sw")))? : 60;
+	DIET_PARAM[3] = (secureStr2ul(getParam(argv, "-sp")))? : DIET_PARAM[0];
+	DIET_MODE = 1;
+    }    
+    
+    return 0;
+}
 
 
 static void close_log_file(void * data)
@@ -98,7 +138,7 @@ FILE * config_get_log_file(const char * hostname)
 
 
 
-config_t * config_load(const char * filename)
+config_t * config_load(const char * config_file)
 {
     config_t * c;
     
@@ -107,7 +147,7 @@ config_t * config_load(const char * filename)
         return NULL;
     
     /* Analyse du fichier */
-    c->doc = xmlParseFile(filename);
+    c->doc = xmlParseFile(config_file);
     if (c->doc == NULL)
     {
         free(c);
@@ -309,13 +349,14 @@ void simbatch_init(int * argc, char ** argv)
 {
     const char * deployment_file; 
     int nbBatchDeployed = 0;
-    
+    char * config_file = argv[1];
+
 #ifdef VERBOSE
     fprintf(stderr, "*** Global init ***\n");
-    fprintf(stderr, "Loading config file %s... ", argv[1]);
+    fprintf(stderr, "Loading config file %s... ", config_file);
 #endif
     
-    config = config_load(argv[1]);
+    config = config_load(config_file);
     if (config == NULL)
     {
 	
