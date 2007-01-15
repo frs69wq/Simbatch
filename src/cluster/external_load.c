@@ -14,6 +14,7 @@
 
 #include "external_load.h"
 
+extern int DIET_MODE;
 
 const char * SB_request_external_load(void)
 {
@@ -82,6 +83,12 @@ int SB_external_load(int argc, char ** argv)
 	    time = job->submit_time;
 	}
 	xbt_fifo_free(bag_of_tasks);
+    }
+
+    /* When everuthing has been submitted - ask question for DIET */ 
+    if (DIET_MODE) {
+	MSG_task_put(MSG_task_create("DIET_REQUEST", 0, 0, NULL), 
+		     MSG_host_self(), CLIENT_PORT);
     }
     
     return EXIT_SUCCESS;  

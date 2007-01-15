@@ -23,6 +23,7 @@
 #include "ports.h"
 #include "cluster.h"
 #include "job.h"
+#include "scheduling.h"
 
 /* Process definitions */
 #include "external_load.h"
@@ -33,12 +34,14 @@
 #include "plugin.h"
 #include "plugin_scheduler.h"
 
+extern unsigned long int DIET_PARAM[4];
+extern const char * DIET_FILE; 
+extern int DIET_MODE;
 
 double NOISE=0.0;
 
 /********** Here it starts *************/
-int SB_batch(int argc, char ** argv)
-{
+int SB_batch(int argc, char ** argv) {
     const char * wld_filename;
     int jobCounter = 0;
     m_process_t resource_manager = NULL;
@@ -63,8 +66,7 @@ int SB_batch(int argc, char ** argv)
     
     /*** Plug in ***/
     plugin = SB_request_plugin("init", sizeof(plugin_scheduler));
-    if (plugin == NULL)
-    {
+    if (plugin == NULL) {
         simbatch_clean();
         xbt_die("Failed to load a plugin");
     }
@@ -78,21 +80,18 @@ int SB_batch(int argc, char ** argv)
     fprintf(stderr, "*** %s init *** \n", HOST_NAME());
 #endif
     cluster = SB_request_cluster(argc, argv);
-    if (cluster == NULL)
-    {
+    if (cluster == NULL) {
         simbatch_clean();
         xbt_die("Failed to create the cluster");
     }
+    
     MSG_host_set_data(MSG_host_self(), cluster);
-
     
     /*** External Load ***/
     wld_filename = SB_request_external_load();
     
-    
     /* Test if config is still needed */
     config_close();
-    
     
     /*** Output file ***/
 #ifdef OUTPUT
@@ -102,9 +101,9 @@ int SB_batch(int argc, char ** argv)
 #ifdef VERBOSE
     fprintf(stderr,"Open outptut file : ");
 #endif 
-
+    
     fout = fopen(out_file, "w");
-  
+    
 #ifdef VERBOSE
     if (fout == NULL)
         fprintf(stderr,"failed\n");
@@ -115,8 +114,7 @@ int SB_batch(int argc, char ** argv)
     
 
     /****************** Create load ******************/
-    if (wld_filename != NULL)
-    {
+    if (wld_filename != NULL) {
 #ifdef VERBOSE
 	fprintf(stderr, "Create load... \n");
 #endif
@@ -135,7 +133,7 @@ int SB_batch(int argc, char ** argv)
 					  SB_resource_manager,
 					  NULL, 
 					  MSG_host_self());	
-
+    
 
     /************* start schedule ***************/  
 #ifdef LOG
@@ -145,25 +143,22 @@ int SB_batch(int argc, char ** argv)
     
  
     /* Receiving task from the client */
-    while (1) 
-    {
+    while (1) {
 	m_task_t task = NULL;
 	MSG_error_t err = MSG_OK;
-
+	
 	err = MSG_task_get_with_time_out(&task, CLIENT_PORT, DBL_MAX);
-	 
-	if (err != MSG_OK) // Error
-	{
+	
+	if (err != MSG_OK) {
 	    break;
 	}
-
+	
 	if (task == NULL) // Normal exit (DBL_MAX timeout)
 	    break;
 	
 	    
 	/************ Schedule ************/
-	if (!strcmp(task->name, "SB_TASK")) 
-	{
+	if (!strcmp(task->name, "SB_TASK")) {
 	    job_t job = NULL;
 	    
 	    job = MSG_task_get_data(task);
@@ -178,8 +173,7 @@ int SB_batch(int argc, char ** argv)
 	    /* We manage too big jobs here to avoid useless memory
 	     * operation and to simplify the plugin writing 
 	     */
-	    if (job->nb_procs > cluster->nb_nodes)
-	    {
+	    if (job->nb_procs > cluster->nb_nodes) {
 #ifdef LOG	
 		fprintf(flog,
 			"[%lf]\t%20s\t%s canceled: not enough ressource\n",
@@ -219,13 +213,12 @@ int SB_batch(int argc, char ** argv)
 	
 
 	/*** A task has been done ***/
-	if (!strcmp(task->name, "ACK"))
-	{
+	if (!strcmp(task->name, "ACK")) {
 	    job_t job = NULL;
 	    int it;
-
+	    
 	    job = MSG_task_get_data(task);
-
+	    
 #ifdef LOG	
 	    fprintf(flog, "[%lf]\t%20s\tReceive \"%s\" from \"%s\" \n",
 		    MSG_get_clock(), PROCESS_NAME(), task->name,
@@ -261,12 +254,40 @@ int SB_batch(int argc, char ** argv)
 	    //MSG_process_resume(resource_manager);
 	    continue;
 	}
+    
+	/* Diet request - to do with */
+	if (!strcmp(task->name, "DIET_REQUEST")) {
+	    FILE * fdiet = fopen(DIET_FILE, "a"); 
+	    slot_t * slots = NULL;
+	    int i = 0;
+	    
+	    if (!fdiet) {
+		DIET_MODE = 0;
+#ifdef VERBOSE
+		fprintf(stderr, "%s: %s\n", DIET_FILE, strerror(errno));
+#endif
+		continue;
+	    }
+
+	    MSG_task_destroy(task), task = NULL;
+
+	    for (i=0; i<=2; i+=2) {
+		 if (DIET_PARAM[i+1] > cluster->nb_nodes) 
+		     DIET_PARAM[i+1] = cluster->nb_nodes;
+		 slots = find_a_slot(cluster, DIET_PARAM[i+1],
+				     MSG_get_clock(), DIET_PARAM[i]);
+		 fprintf(fdiet, "[%lf] DIET answer : %lf\n", MSG_get_clock(), 
+			 slots[0]->start_time);
+		 xbt_free(slots), slots = NULL;
+	    }
+	    
+	    fclose(fdiet);
+	    continue;
+	}
     }
     
-    // MSG_process_kill(resource_manager);
 
     /* Clean */  
-
 #ifdef OUTPUT
 #ifdef VERBOSE
     fclose(fout);

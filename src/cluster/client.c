@@ -81,7 +81,6 @@ int SB_client(int argc, char ** argv)
 			 sched, CLIENT_PORT);
 	    time = job->submit_time;
 	}
-	
 	xbt_fifo_free(bag_of_tasks);
     }
     
