@@ -1,5 +1,10 @@
 New release of simbatch
 
+Changelog 20/02/2007:
+    - Bug fixes with new CVS version (error code)
+    - Replace MSG_parallel_task_execute with a MSG_process_sleep 
+    (far less realistic but works better and do just what I need, sorry)
+
 Changelog :
 	
 	- Break law 1 of the Martin's laws aka "Avoid dependencies"
@@ -9,7 +14,6 @@ Changelog :
 	- Simbatch now compile on macosX and allows "make -j nb_procs" thanks to cmake
 	
 	- Clean the code :
-		- No more nested functions (sic) - not allowed on gcc 4.1 v. macosx
 		- Just one lib now (and plugins) : libsimbatch.so
 		- Just one file for scheduling utilities (scheduling.c)
 		- No more client (it's just an example)
@@ -18,16 +22,6 @@ Changelog :
 		the client.c provided)
 		- No need to send a "end task" to well terminate a simulation
 		- some bug fixes
-
-
-Todo :
-
-	- Test with simgrid 3.02  
-	- here is certainly the last version before I rewrite the communication process.
-	I am working on a communication stack that should easily include the future possibility 
-	of MSG. Simulation with communication should be more realistic and more stable.
-	- Better CMakeList.txt
-
 
 Install:
 	- I suggest to create a build directory and to go in it.

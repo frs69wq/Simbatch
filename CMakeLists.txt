@@ -78,11 +78,14 @@ ENDIF (PARANOID)
 IF (OPT OR WARN)
 	SET(CFLAGS "${O_FLAGS} ${W_FLAGS}")
 ENDIF (OPT OR WARN)
+IF (APPLE)
+    SET(CFLAGS " -fnested-functions")
+ENDIF (APPLE)
 
 # Add flags (only for gcc user)
-IF(${CMAKE_C_COMPILER} STREQUAL "gcc" )
-	MESSAGE(STATUS "flags used : ${CFLAGS}")
-ENDIF(${CMAKE_C_COMPILER} STREQUAL "gcc" )
+#IF(${CMAKE_C_COMPILER} STREQUAL "gcc" )
+MESSAGE(STATUS "flags used : ${CFLAGS}")
+#ENDIF(${CMAKE_C_COMPILER} STREQUAL "gcc" )
 										
 #----------------------- DEFINE PATHES ---------------------------
 INCLUDE_DIRECTORIES(/usr/include/libxml2 ${SIMBATCH_SOURCE_DIR}/include/simbatch ${SIMGRID_HOME}/include)

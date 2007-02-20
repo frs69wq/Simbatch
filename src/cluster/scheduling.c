@@ -13,52 +13,46 @@
 /* no reschedule: generic function 
  * (i.e. works for all scheduing algorithm) 
  */ 
-void generic_no_reschedule (cluster_t cluster, scheduling_fct schedule)
-{
+void generic_no_reschedule (cluster_t cluster, scheduling_fct schedule) {
     return ;
 }
 
 
 /* Old nested function defining in generic_reschedule */
-static inline void reschedule(cluster_t cluster, job_t job, 
-			      scheduling_fct schedule)
-{   
-    if (job->state == WAITING)
+static inline 
+void reschedule(cluster_t cluster, job_t job, scheduling_fct schedule) {   
+    if (job->state == WAITING) {
 	schedule(cluster, job);
+    }
 }
 
 
 /* Generic reschedule version 2 Nested functions are moved outside */
-void generic_reschedule (cluster_t cluster, scheduling_fct schedule)
-{
+void generic_reschedule (cluster_t cluster, scheduling_fct schedule) {
     int i = 0;
     
     /* remove waiting jobs */
     cluster_clean(cluster);
     
     /* Reschedule the tasks (just those tat are not processing) */
-    for (i = cluster->priority - 1; i>=0; i--)
-    {
+    for (i = cluster->priority - 1; i>=0; i--) {
 	int cpt;
 	job_t job = NULL;
 	
 	/* xbt_dynar_map(cluster->queues[i], reschedule); */
-	xbt_dynar_foreach(cluster->queues[i], cpt, job)
-	    {	
-		reschedule(cluster, job, schedule);
-	    }
+	xbt_dynar_foreach(cluster->queues[i], cpt, job) {	
+	    reschedule(cluster, job, schedule);
+	}
     }
 }
 
 
-inline void free_slot(void * d)
-{
+inline void free_slot(void * d) {
     xbt_free((*(slot_t *)d));
 }
 
 
-slot_t new_slot(int node_id, int it, double start_time, double duration)
-{
+slot_t new_slot(int node_id, int it, double start_time, double duration) {
     slot_t s = NULL;
     
     s = xbt_malloc(sizeof(*s));
@@ -72,8 +66,7 @@ slot_t new_slot(int node_id, int it, double start_time, double duration)
 
 
 /* Compare 2 slots - needed for qsort */
-int comp(const void * slot1, const void * slot2)
-{
+int comp(const void * slot1, const void * slot2) {
     slot_t h1 = *((slot_t *) slot1), h2 = *((slot_t *) slot2);
     
     if (h1->start_time == h2->start_time) 
@@ -91,8 +84,7 @@ int check_matching_slot(slot_t * slots, int nb_nodes)
 {
     int i = 1;
     
-    while (i < nb_nodes) 
-    { 
+    while (i < nb_nodes) { 
 	if (slots[i-1]->start_time != slots[i]->start_time) 
 	    return i;
 	i++;
@@ -104,8 +96,7 @@ int check_matching_slot(slot_t * slots, int nb_nodes)
 
 /* search a slot with param start_time and duration */
 slot_t search_a_slot(cluster_t cluster, int node_id, int it, 
-		     double start_time, double end_time, double duration) 
-{
+		     double start_time, double end_time, double duration) {
     xbt_dynar_t queue = cluster->waiting_queue[node_id];
     
     /* start_time is in a task -> we go to the tasks'end */
@@ -114,22 +105,19 @@ slot_t search_a_slot(cluster_t cluster, int node_id, int it,
 			     end_time, duration);
     
     /* case : end of queue */ 
-    if (it == xbt_dynar_length(queue))
-    {
+    if (it == xbt_dynar_length(queue)) {
 #ifdef DEBUG
 	printf ("[Node %d] Case : end of queue\n", node_id + 1);
 #endif 
 	return new_slot(node_id, it, start_time, -1.0);
     }
-    else
-    {
+    else {
 	/* we retrieve infos */
 	job_t * job = NULL;
 	
 	job = (job_t *)xbt_dynar_get_ptr(queue, it);
 	
-	if (start_time < (*job)->start_time)
-	{
+	if (start_time < (*job)->start_time) {
 	    if ((*job)->start_time - start_time > duration)
 		return new_slot(node_id, it, start_time, 
 				(*job)->start_time - start_time);
@@ -151,8 +139,7 @@ slot_t search_a_slot(cluster_t cluster, int node_id, int it,
 
 /* Find  the first slot defined by a start_time, a duration and a nb_procs */
 slot_t * find_a_slot(cluster_t cluster, int nb_nodes, double start_time,
-		     double duration)
-{
+		     double duration) {
     slot_t * slots = NULL;
     int i = 0 , match = 0;
     
@@ -164,10 +151,8 @@ slot_t * find_a_slot(cluster_t cluster, int nb_nodes, double start_time,
 	slots[i] = search_a_slot(cluster, i, 0, start_time, 
 				 start_time, duration);
     
-    do
-    { 
-	for (i=0; i<match; i++)
-	{	
+    do { 
+	for (i=0; i<match; i++) {	
 	    slot_t temp = slots[i];
 #ifdef DEBUG
 	    printf("New slot search : %d; position : %d, start_time : %lf\n",
@@ -203,14 +188,12 @@ slot_t * find_a_slot(cluster_t cluster, int nb_nodes, double start_time,
 }
 
 
-slot_t get_last_slot(cluster_t cluster, int i)
-{
+slot_t get_last_slot(cluster_t cluster, int i) {
     slot_t s;
     
     s = new_slot(i, xbt_dynar_length(cluster->waiting_queue[i]), 0, -1);
     
-    if (xbt_dynar_length(cluster->waiting_queue[i]) != 0)
-    {
+    if (xbt_dynar_length(cluster->waiting_queue[i]) != 0) {
 	job_t  * last_job;
 	
 	last_job = (job_t *)xbt_dynar_get_ptr(cluster->waiting_queue[i], 
@@ -228,29 +211,24 @@ slot_t get_last_slot(cluster_t cluster, int i)
 
 
 /* Could be speed up with a quick sort (depends of the average of nb )*/
-slot_t * select_n_slots(cluster_t cluster, xbt_dynar_t slots, int nb)
-{
+slot_t * select_n_slots(cluster_t cluster, xbt_dynar_t slots, int nb) {
     int i;
     slot_t s; 
     slot_t * best_slots = NULL;
     
     best_slots = xbt_malloc(nb * sizeof(*best_slots));
     
-    for (i=0; i<nb; i++)
-    {
+    for (i=0; i<nb; i++) {
 	int cursor = 0, node = 0;
 	slot_t winning_slot = NULL;
 	
-	xbt_dynar_foreach(slots, cursor, s) 
-	    {
-		if (!winning_slot)
-		    winning_slot = s;
-		if (winning_slot->start_time > s->start_time)
-		{
+	xbt_dynar_foreach(slots, cursor, s) {
+		if (!winning_slot) winning_slot = s;
+		if (winning_slot->start_time > s->start_time) {
 		    winning_slot = s;
 		    node = cursor;
 		}
-	    }
+	}
 	/* we retrieve the best bid of the market */
 	xbt_dynar_remove_at(slots, node, &(best_slots[i]));
     }
@@ -259,8 +237,7 @@ slot_t * select_n_slots(cluster_t cluster, xbt_dynar_t slots, int nb)
 }
 
 
-double get_completion_time(cluster_t cluster)
-{
+double get_completion_time(cluster_t cluster) {
     int i;
     double start_time = 0.0;
     
@@ -281,8 +258,7 @@ double get_completion_time(cluster_t cluster)
 
 /* Print a tab of slots */
 #ifdef DEBUG2
-inline void print_slot(slot_t * slots, int size)
-{
+inline void print_slot(slot_t * slots, int size) {
     int i = 0;
     
     for (i=0 ; i<size; i++)
@@ -291,8 +267,7 @@ inline void print_slot(slot_t * slots, int size)
 }
 
 
-inline void print_slots(xbt_dynar_t slots)
-{
+inline void print_slots(xbt_dynar_t slots) {
     int cursor = 0;
     slot_t s;
     
@@ -304,8 +279,7 @@ inline void print_slots(xbt_dynar_t slots)
 
 
 /* Return the next job to schedule in the queue nb */
-job_t next_job_to_schedule_in_queue(xbt_dynar_t queue)
-{
+job_t next_job_to_schedule_in_queue(xbt_dynar_t queue) {
     int cpt;
     job_t job = NULL;
 
@@ -313,11 +287,10 @@ job_t next_job_to_schedule_in_queue(xbt_dynar_t queue)
     if (xbt_dynar_length(queue) == 0)
 	return NULL;
     
-    xbt_dynar_foreach(queue, cpt, job)
-	{	 
-	    if (job->state == WAITING)
-		return job;
-	}
+    xbt_dynar_foreach(queue, cpt, job) {	 
+	if (job->state == WAITING)
+	    return job;
+    }
 
     /* if there is just one job and it is scheduling */
     return NULL;
@@ -325,28 +298,19 @@ job_t next_job_to_schedule_in_queue(xbt_dynar_t queue)
 
 
 /* Return the next job to schedule */
-job_t next_job_to_schedule(cluster_t cluster)
-{
+job_t next_job_to_schedule(cluster_t cluster) {
     int i = 0;
     job_t res = NULL;
-
-    for (i=0; i < cluster->nb_nodes; i++) 
-    {
+    
+    for (i=0; i < cluster->nb_nodes; i++) {
 	job_t job = next_job_to_schedule_in_queue(cluster->waiting_queue[i]);
-	
-	if (job != NULL) 
-	{
-	    if (res == NULL) 
-	    {
+
+	if ((res) && (job)) {
+	    if (job->start_time < res->start_time)
 		res = job;
-	    }
-	    else 
-	    {
-		if (res !=  NULL)
-		    if (job->start_time < res->start_time)
-			res = job;
-	    }
 	}
+	else
+	    res = (res)? res : job;
     }
 
     return res;

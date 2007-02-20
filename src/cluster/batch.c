@@ -34,6 +34,11 @@
 #include "plugin.h"
 #include "plugin_scheduler.h"
 
+#define UPDATE_RSC_MNG()  ({\
+    MSG_task_put(MSG_task_create("UPDATE", 0.0, 0.0, NULL),\
+		 MSG_host_self(), RSC_MNG_PORT);\
+})
+
 extern unsigned long int DIET_PARAM[4];
 extern const char * DIET_FILE; 
 extern int DIET_MODE;
@@ -45,7 +50,9 @@ int SB_batch(int argc, char ** argv) {
     const char * wld_filename;
     int jobCounter = 0;
     m_process_t resource_manager = NULL;
-   
+    m_task_t task = NULL;
+    MSG_error_t err = MSG_OK;   
+
 #ifdef OUTPUT
     char * out_file;
     FILE * fout;
@@ -144,150 +151,122 @@ int SB_batch(int argc, char ** argv) {
  
     /* Receiving task from the client */
     while (1) {
-	m_task_t task = NULL;
-	MSG_error_t err = MSG_OK;
-	
-	err = MSG_task_get_with_time_out(&task, CLIENT_PORT, DBL_MAX);
-	
-	if (err != MSG_OK) {
-	    break;
-	}
-	
-	if (task == NULL) // Normal exit (DBL_MAX timeout)
+	err = MSG_task_get_with_time_out(&task, CLIENT_PORT, DBL_MAX);	
+	if (err == MSG_TRANSFER_FAILURE)
 	    break;
 	
-	    
 	/************ Schedule ************/
-	if (!strcmp(task->name, "SB_TASK")) {
-	    job_t job = NULL;
-	    
-	    job = MSG_task_get_data(task);
-#ifdef LOG	
-	    fprintf(flog, "[%lf]\t%20s\tReceive \"%s\" from \"%s\"\n",
-		    MSG_get_clock(), PROCESS_NAME(), job->name,
-		    MSG_host_get_name(MSG_task_get_source(task)));
-#endif
-	    MSG_task_destroy(task), task = NULL;
-	    job->id = jobCounter++;
-	    
-	    /* We manage too big jobs here to avoid useless memory
-	     * operation and to simplify the plugin writing 
-	     */
-	    if (job->nb_procs > cluster->nb_nodes) {
-#ifdef LOG	
-		fprintf(flog,
-			"[%lf]\t%20s\t%s canceled: not enough ressource\n",
-			MSG_get_clock(), PROCESS_NAME(), job->name);
-#endif		
-		continue;
-	    }
+	if (err == MSG_OK) {
+	    if (!strcmp(task->name, "SB_TASK")) {
+		job_t job = NULL;
 		
-	    /* We keep a trace of the task */
-	    if (job->priority >= cluster->priority)
-		job->priority = cluster->priority - 1;
-	    
-	    job->entry_time = MSG_get_clock();
-	    /* Noise */
-	    job->run_time += NOISE;
-	    job->mapping = xbt_malloc(job->nb_procs * sizeof(int));
-	    xbt_dynar_push(cluster->queues[job->priority], &job); 
-	    
-	    /* Then we ask to the plugin to schedule this new task */
-//	    MSG_process_suspend(resource_manager);
-	    ((plugin_scheduler_t) plugin->content)->schedule(cluster, job);
-//	    MSG_process_resume(resource_manager);
-	    
-	    /* Notify the resource manager */
-#ifdef DEBUG
-	    fprintf(stderr, "[%lf]\t%20s\tSend an update to the RM\n", 
-		    MSG_get_clock(), PROCESS_NAME());
-#endif 
-	    MSG_task_put(MSG_task_create("UPDATE", 0.0, 0.0, NULL),
-			 MSG_host_self(), RSC_MNG_PORT);
-	    
-#ifdef GANTT
-	    cluster_print(cluster);
-#endif
-	    continue;
-	}
-	
+		job = MSG_task_get_data(task);
+		job->id = jobCounter++;
 
-	/*** A task has been done ***/
-	if (!strcmp(task->name, "ACK")) {
-	    job_t job = NULL;
-	    int it;
-	    
-	    job = MSG_task_get_data(task);
-	    
 #ifdef LOG	
-	    fprintf(flog, "[%lf]\t%20s\tReceive \"%s\" from \"%s\" \n",
-		    MSG_get_clock(), PROCESS_NAME(), task->name,
-		    MSG_process_get_name(MSG_task_get_sender(task)));
+		fprintf(flog, "[%lf]\t%20s\tReceive \"%s\" from \"%s\"\n",
+			MSG_get_clock(), PROCESS_NAME(), job->name,
+			MSG_host_get_name(MSG_task_get_source(task)));
 #endif
-	    MSG_task_destroy(task), task = NULL;
-
-#ifdef LOG
-	    fprintf(flog, "[%lf]\t%20s\t%s done\n", 
-		    MSG_get_clock(), PROCESS_NAME(), job->name);
+	
+		
+		if (job->nb_procs <= cluster->nb_nodes) {
+		    /* We keep a trace of the task */
+		    if (job->priority >= cluster->priority)
+			job->priority = cluster->priority - 1;
+		    
+		    job->entry_time = MSG_get_clock();
+		    /* Noise */
+		    job->run_time += NOISE;
+		    job->mapping = xbt_malloc(job->nb_procs * sizeof(int));
+		    xbt_dynar_push(cluster->queues[job->priority], &job); 
+		    
+		    /* Then we ask to the plugin to schedule this new task */
+		    ((plugin_scheduler_t) plugin->content)->schedule(cluster, job);
+		}
+#ifdef LOG	
+		else {
+		    fprintf(flog,
+			    "[%lf]\t%20s\t%s canceled: not enough ressource\n",
+			    MSG_get_clock(), PROCESS_NAME(), job->name);
+		}
+#endif		
+#ifdef GANTT
+		    cluster_print(cluster);
 #endif
-
-	    //MSG_process_suspend(resource_manager);
-	    job->state = DONE;
-	    cluster_delete_done_job(cluster, job);
-	    it = cluster_search_job(cluster, job->id, job->priority);
-	    xbt_dynar_remove_at (cluster->queues[job->priority], it, NULL);
-
+	    }
+	    
+	    
+	    /*** A task has been done ***/
+	    else if (!strcmp(task->name, "ACK")) {
+		job_t job = NULL;
+		int it;
+		
+		job = MSG_task_get_data(task);
+		
+#ifdef LOG	
+		fprintf(flog, "[%lf]\t%20s\tReceive \"%s\" from \"%s\" \n",
+			MSG_get_clock(), PROCESS_NAME(), task->name,
+			MSG_process_get_name(MSG_task_get_sender(task)));
+		fprintf(flog, "[%lf]\t%20s\t%s done\n", 
+			MSG_get_clock(), PROCESS_NAME(), job->name);
+#endif
+		
+		job->state = DONE;
+		cluster_delete_done_job(cluster, job);
+		it = cluster_search_job(cluster, job->id, job->priority);
+		xbt_dynar_remove_at (cluster->queues[job->priority], it, NULL);
+		
 #ifdef OUTPUT
-	    fprintf(fout, "%-15s\t%lf\t%lf\t%lf\t%lf\t\n",
-		    job->name, job->entry_time, job->start_time + NOISE, 
-		    MSG_get_clock(), MSG_get_clock() - job->start_time - NOISE);
+		fprintf(fout, "%-15s\t%lf\t%lf\t%lf\t%lf\t\n",
+			job->name, job->entry_time, job->start_time + NOISE, 
+			MSG_get_clock(), MSG_get_clock() - job->start_time - NOISE);
 #endif
-
-	    xbt_free(job->mapping);
-	    xbt_free(job);
-	    MSG_task_put(MSG_task_create("UPDATE", 0.0, 0.0, NULL),
-			 MSG_host_self(), RSC_MNG_PORT);
-	    /* The system becomes stable again, so we can now reschedule */
-	    ((plugin_scheduler_t) 
-	     plugin->content)->reschedule(cluster, ((plugin_scheduler_t) 
-						    plugin->content)->schedule );
-	    //MSG_process_resume(resource_manager);
-	    continue;
-	}
-    
-	/* Diet request - to do with */
-	if (!strcmp(task->name, "DIET_REQUEST")) {
-	    FILE * fdiet = fopen(DIET_FILE, "a"); 
-	    slot_t * slots = NULL;
-	    int i = 0;
+		
+		xbt_free(job->mapping);
+		xbt_free(job);
+		
+		/* The system becomes stable again, so we can now reschedule */
+		((plugin_scheduler_t) 
+		 plugin->content)->reschedule(cluster, ((plugin_scheduler_t) 
+							plugin->content)->schedule );
+	    }
 	    
-	    if (!fdiet) {
-		DIET_MODE = 0;
+
+	    /* Diet request - to do with */
+	    else if (!strcmp(task->name, "DIET_REQUEST")) {
+		FILE * fdiet = fopen(DIET_FILE, "a"); 
+		slot_t * slots = NULL;
+		int i = 0;
+		
+		if (!fdiet) {
+		    DIET_MODE = 0;
 #ifdef VERBOSE
-		fprintf(stderr, "%s: %s\n", DIET_FILE, strerror(errno));
+		    fprintf(stderr, "%s: %s\n", DIET_FILE, strerror(errno));
 #endif
-		continue;
-	    }
-
-	    MSG_task_destroy(task), task = NULL;
-
-	    for (i=0; i<=2; i+=2) {
-		 if (DIET_PARAM[i+1] > cluster->nb_nodes) 
-		     DIET_PARAM[i+1] = cluster->nb_nodes;
-		 slots = find_a_slot(cluster, DIET_PARAM[i+1],
-				     MSG_get_clock(), DIET_PARAM[i]);
-		 fprintf(fdiet, "[%lf] DIET answer : %lf\n", MSG_get_clock(), 
-			 slots[0]->start_time);
-		 xbt_free(slots), slots = NULL;
+		}
+		
+		for (i=0; i<=2; i+=2) {
+		    if (DIET_PARAM[i+1] > cluster->nb_nodes) 
+			DIET_PARAM[i+1] = cluster->nb_nodes;
+		    slots = find_a_slot(cluster, DIET_PARAM[i+1],
+					MSG_get_clock(), DIET_PARAM[i]);
+		    fprintf(fdiet, "[%lf] DIET answer : %lf\n", MSG_get_clock(), 
+			    slots[0]->start_time);
+		    xbt_free(slots), slots = NULL;
+		}
+		
+		fclose(fdiet);
 	    }
 	    
-	    fclose(fdiet);
-	    continue;
+	    MSG_task_destroy(task);
+	    task = NULL;
+	    UPDATE_RSC_MNG();    
 	}
     }
     
 
-    /* Clean */  
+    /* Clean */ 
 #ifdef OUTPUT
 #ifdef VERBOSE
     fclose(fout);
