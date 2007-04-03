@@ -79,7 +79,7 @@ IF (OPT OR WARN)
 	SET(CFLAGS "${O_FLAGS} ${W_FLAGS}")
 ENDIF (OPT OR WARN)
 IF (APPLE)
-    SET(CFLAGS " -fnested-functions")
+    SET(CFLAGS "-fnested-functions ${CFLAGS}")
 ENDIF (APPLE)
 
 # Add flags (only for gcc user)

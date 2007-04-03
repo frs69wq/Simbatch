@@ -12,8 +12,8 @@
 #include "simbatch_config.h"
 
 /* DIET integration */
-const char * DIET_FILE;
-unsigned long int DIET_PARAM[4];
+char * DIET_FILE = NULL;
+unsigned long int DIET_PARAM[4] = {0, 0, 0, 0};
 int DIET_MODE = 0;
 
 /* Nb Batch in the system */
@@ -338,7 +338,7 @@ void simbatch_init(int * argc, char ** argv) {
 	fprintf(stderr, "DIET MODE %s\n", (DIET_MODE)? "enabled": "disable");
 	fprintf(stderr, "DIET FILE %s\n", (DIET_FILE)? DIET_FILE: "disable");
 	for (i=0; i<4; ++i)
-	    fprintf(stderr, "DIET_PARAM[%d] = %ul\n", i, DIET_PARAM[i]);
+	    fprintf(stderr, "DIET_PARAM[%d] = %lu\n", i, DIET_PARAM[i]);
 	fprintf(stderr, "Loading config file %s... ", config_file);
     }
 #endif
