@@ -45,13 +45,36 @@ extern int DIET_MODE;
 
 double NOISE=0.0;
 
+void xbt_fifo_sort(xbt_fifo_t fifo);
+
+void xbt_fifo_sort(xbt_fifo_t fifo) {
+    auto int stringCmp(const void * t1, const void * t2);
+    int stringCmp(const void * t1, const void * t2) { 
+        return strcmp((*((m_task_t *) t1))->name, (*((m_task_t *) t2))->name);
+    }
+
+    int i = 0;
+    m_task_t * messages =  (m_task_t *)xbt_fifo_to_array(fifo);
+    
+    // fprintf(stderr, "qsort %d\n", xbt_fifo_size(fifo)); 
+    qsort(messages, xbt_fifo_size(fifo), sizeof(m_task_t), stringCmp);
+    for (i=0; i<xbt_fifo_size(fifo); ++i) {
+        // fprintf(stderr, "%s\t", messages[i]->name);
+        /* ok, it's a bit dirty */
+        xbt_fifo_shift(fifo);
+        xbt_fifo_push(fifo, messages[i]);
+    }
+    xbt_free(messages);
+}
+
 /********** Here it starts *************/
 int SB_batch(int argc, char ** argv) {
     const char * wld_filename;
     int jobCounter = 0;
-    m_process_t resource_manager = NULL;
     m_task_t task = NULL;
+    m_process_t resource_manager = NULL;
     MSG_error_t err = MSG_OK;   
+    xbt_fifo_t msg_stack = NULL;
 
 #ifdef OUTPUT
     char * out_file;
@@ -148,16 +171,33 @@ int SB_batch(int argc, char ** argv) {
 	    MSG_get_clock(), PROCESS_NAME());
 #endif
     
- 
-    /* Receiving task from the client */
+    msg_stack = xbt_fifo_new();
+    /* Receiving messages and put them in a stack */
     while (1) {
-	err = MSG_task_get_with_time_out(&task, CLIENT_PORT, DBL_MAX);	
-	if (err == MSG_TRANSFER_FAILURE)
-	    break;
-	
-	/************ Schedule ************/
-	if (err == MSG_OK) {
-	    if (!strcmp(task->name, "SB_TASK")) {
+        err = MSG_task_get_with_time_out(&task, CLIENT_PORT, DBL_MAX);	
+        if (err == MSG_TRANSFER_FAILURE) {
+            if (!msg_stack) xbt_fifo_free(msg_stack);
+            break;
+        }
+        if (err == MSG_OK) {
+            xbt_fifo_push(msg_stack, task);
+            while (MSG_task_Iprobe(CLIENT_PORT)) {
+                task = NULL;
+                MSG_task_get(&task, CLIENT_PORT);
+                xbt_fifo_push(msg_stack, task);
+            }
+        }
+        // fprintf(stderr, "%d\n", xbt_fifo_size(msg_stack));
+        xbt_fifo_sort(msg_stack);
+        // fprintf(stderr,"\n");
+
+        /* retrieve messages from the stack */
+        while (xbt_fifo_size(msg_stack)) {
+            task = xbt_fifo_shift(msg_stack);
+            // printf("\t%s\t%d\n", task->name, xbt_fifo_size(msg_stack)); 
+
+            /************ Schedule ************/
+            if (!strcmp(task->name, "SB_TASK")) {
 		job_t job = NULL;
 		
 		job = MSG_task_get_data(task);
@@ -168,8 +208,7 @@ int SB_batch(int argc, char ** argv) {
 			MSG_get_clock(), PROCESS_NAME(), job->name,
 			MSG_host_get_name(MSG_task_get_source(task)));
 #endif
-	
-		
+			
 		if (job->nb_procs <= cluster->nb_nodes) {
 		    /* We keep a trace of the task */
 		    if (job->priority >= cluster->priority)
@@ -192,80 +231,79 @@ int SB_batch(int argc, char ** argv) {
 		}
 #endif		
 #ifdef GANTT
-		    cluster_print(cluster);
+                cluster_print(cluster);
 #endif
-	    }
-	    
+            }	    
 	    
 	    /*** A task has been done ***/
-	    else if (!strcmp(task->name, "ACK")) {
-		job_t job = NULL;
-		int it;
-		
-		job = MSG_task_get_data(task);
+            else if (!strcmp(task->name, "ACK")) {
+                job_t job = NULL;
+                int it;
+                
+                job = MSG_task_get_data(task);
 		
 #ifdef LOG	
-		fprintf(flog, "[%lf]\t%20s\tReceive \"%s\" from \"%s\" \n",
-			MSG_get_clock(), PROCESS_NAME(), task->name,
-			MSG_process_get_name(MSG_task_get_sender(task)));
-		fprintf(flog, "[%lf]\t%20s\t%s done\n", 
-			MSG_get_clock(), PROCESS_NAME(), job->name);
+                fprintf(flog, "[%lf]\t%20s\tReceive \"%s\" from \"%s\" \n",
+                        MSG_get_clock(), PROCESS_NAME(), task->name,
+                        MSG_process_get_name(MSG_task_get_sender(task)));
+                fprintf(flog, "[%lf]\t%20s\t%s done\n", 
+                        MSG_get_clock(), PROCESS_NAME(), job->name);
 #endif
-		
-		job->state = DONE;
-		cluster_delete_done_job(cluster, job);
-		it = cluster_search_job(cluster, job->id, job->priority);
-		xbt_dynar_remove_at (cluster->queues[job->priority], it, NULL);
-		
+                
+                job->state = DONE;
+                cluster_delete_done_job(cluster, job);
+                it = cluster_search_job(cluster, job->id, job->priority);
+                xbt_dynar_remove_at (cluster->queues[job->priority], it, NULL);
+                
 #ifdef OUTPUT
-		fprintf(fout, "%-15s\t%lf\t%lf\t%lf\t%lf\t\n",
-			job->name, job->entry_time, job->start_time + NOISE, 
-			MSG_get_clock(), MSG_get_clock() - job->start_time - NOISE);
+                fprintf(fout, "%-15s\t%lf\t%lf\t%lf\t%lf\t\n",
+                        job->name, job->entry_time, 
+                        job->start_time + NOISE, MSG_get_clock(), 
+                        MSG_get_clock() - job->start_time - NOISE);
 #endif
-		
-		xbt_free(job->mapping);
-		xbt_free(job);
-		
-		/* The system becomes stable again, so we can now reschedule */
-		((plugin_scheduler_t) 
-		 plugin->content)->reschedule(cluster, ((plugin_scheduler_t) 
-							plugin->content)->schedule );
-	    }
+                
+                xbt_free(job->mapping);
+                xbt_free(job);
+                
+                /* The system becomes stable again, so we can now reschedule */
+                ((plugin_scheduler_t) 
+                 plugin->content)->reschedule(cluster, ((plugin_scheduler_t) 
+                                                        plugin->content)->schedule );
+            }
 	    
-
+            
 	    /* Diet request - to do with */
-	    else if (!strcmp(task->name, "DIET_REQUEST")) {
-		FILE * fdiet = fopen(DIET_FILE, "a"); 
-		slot_t * slots = NULL;
-		int i = 0;
-		
-		if (!fdiet) {
-		    DIET_MODE = 0;
+            else if (!strcmp(task->name, "DIET_REQUEST")) {
+                FILE * fdiet = fopen(DIET_FILE, "a"); 
+                slot_t * slots = NULL;
+                int i = 0;
+                
+                if (!fdiet) {
+                    DIET_MODE = 0;
 #ifdef VERBOSE
-		    fprintf(stderr, "%s: %s\n", DIET_FILE, strerror(errno));
+                    fprintf(stderr, "%s: %s\n", DIET_FILE, strerror(errno));
 #endif
-		}
-		
-		for (i=0; i<=2; i+=2) {
-		    if (DIET_PARAM[i+1] > cluster->nb_nodes) 
-			DIET_PARAM[i+1] = cluster->nb_nodes;
-		    slots = find_a_slot(cluster, DIET_PARAM[i+1],
-					MSG_get_clock(), DIET_PARAM[i]);
-		    fprintf(fdiet, "[%lf] DIET answer : %lf\n", MSG_get_clock(), 
-			    slots[0]->start_time);
-		    xbt_free(slots), slots = NULL;
-		}
-		
-		fclose(fdiet);
-	    }
-	    
-	    MSG_task_destroy(task);
-	    task = NULL;
-	    UPDATE_RSC_MNG();    
-	}
+                }
+                
+                for (i=0; i<=2; i+=2) {
+                    if (DIET_PARAM[i+1] > cluster->nb_nodes) 
+                        DIET_PARAM[i+1] = cluster->nb_nodes;
+                    slots = find_a_slot(cluster, DIET_PARAM[i+1],
+                                        MSG_get_clock(), DIET_PARAM[i]);
+                    fprintf(fdiet, "[%lf] DIET answer : %lf\n", 
+                            MSG_get_clock(), slots[0]->start_time);
+                    xbt_free(slots), slots = NULL;
+                }
+                
+                fclose(fdiet);
+            }
+            MSG_task_destroy(task);
+            task = NULL;
+        }
+        UPDATE_RSC_MNG();
     }
     
-
+    
     /* Clean */ 
 #ifdef OUTPUT
 #ifdef VERBOSE

@@ -12,10 +12,10 @@
 	each one has to have its own section -->
 	<batch host="Batch1">
 		<!-- Choose the plugin in rrobin/fcfs/cbf -->
-		<plugin>libcbf.so</plugin>
+        <plugin>libcbf.so</plugin>
 		<!-- Use this line as a client or to simulate a
 		dedicated platform. Otherwise comment it -->
-		<wld>./input/std/10.wld</wld>
+		<wld>./input/std/1.wld</wld>
 		<priority_queue>
 			<number>3</number>
 		</priority_queue>

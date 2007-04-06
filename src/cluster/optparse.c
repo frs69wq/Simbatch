@@ -17,6 +17,7 @@
 /* Utils */
 void shiftL(char * argv[]) {
     int i=0;
+    auto void _shiftL(char * s);
     void _shiftL(char * s) { argv[i]=argv[i+1];i++; }
     
     FOREACH(argv,_shiftL);
@@ -25,8 +26,9 @@ void shiftL(char * argv[]) {
 int indexOf(char * argv[], const char * arg) {
     //__label__ exit;
     int ret=-1, i=0;
+    auto void _search(const char * s);
     void _search(const char * s)
-	{ if (!strcmp(s,arg)) { ret=i; /*goto exit;*/} i++; }
+    { if (!strcmp(s,arg)) { ret=i; /*goto exit;*/} i++; }
     
     FOREACH(argv,_search);
     //exit :
@@ -36,7 +38,10 @@ int indexOf(char * argv[], const char * arg) {
 int belongs(char * argv[], const char * s) {
     //__label__ exit;
     int ret=0;
-    void _equal(const char * arg) { if(!strcmp(s,arg)) { ret=1; /*goto exit;*/ } }
+    auto void _equal(const char * arg);
+    void _equal(const char * arg) 
+    { if(!strcmp(s,arg)) { ret=1; /*goto exit;*/ } }
+    
     if (!s) return 0;
     FOREACH(argv,_equal);
     //exit :
@@ -67,6 +72,9 @@ char * getParam(char * argv[], const char * arg) {
 int controlParams(char * argv[], char * allparams[], char * needed[],
 		  char * allargs[]) {
     int ret=0;
+    auto void _needed(const char * s);
+    auto void _needsparam(const char * s);
+
     void _needed(const char * s) {
 	if (!belongs(argv,s)) {
 	    fprintf(stderr,"%s argument is needed.\n",s);
@@ -88,6 +96,7 @@ int controlParams(char * argv[], char * allparams[], char * needed[],
 
 int controlLeavingParams(char * argv[], char * allparams[], char * allargs[]) {
     int ret=0;
+    auto void _argorparam(const char * s);
     void _argorparam(const char * s) {
 	int ind=indexOf(argv,s);
 	if (!belongs(allargs, s) && !hasArg(argv,ind,allparams))
