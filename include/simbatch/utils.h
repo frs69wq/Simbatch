@@ -1,6 +1,7 @@
 #ifndef _UTILS_H_
 #define _UTILS_H_
 
+#include <xbt/fifo.h>
 #include <msg/msg.h>
 
 /* Return the tab's size */
@@ -11,5 +12,7 @@
 
 /* Return the name of the process calling the macro */
 #define PROCESS_NAME() MSG_process_get_name(MSG_process_self())
+
+void xbt_fifo_sort(xbt_fifo_t fifo);
 
 #endif

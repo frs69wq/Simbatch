@@ -15,7 +15,7 @@
         <plugin>libcbf.so</plugin>
 		<!-- Use this line as a client or to simulate a
 		dedicated platform. Otherwise comment it -->
-		<wld>./input/std/1.wld</wld>
+		<wld>./input/std/11.wld</wld>
 		<priority_queue>
 			<number>3</number>
 		</priority_queue>

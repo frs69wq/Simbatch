@@ -51,6 +51,7 @@ int SB_resource_manager(int argc, char ** argv) {
     double waiting_time = DBL_MAX;
     xbt_dynar_t pool_of_supervisors = xbt_dynar_new(sizeof(m_process_t), 
 						    NULL);
+    xbt_fifo_t msg_stack = xbt_fifo_new();
     job_t job;
     m_task_t task = NULL;
     MSG_error_t ok = MSG_OK;
@@ -68,17 +69,17 @@ int SB_resource_manager(int argc, char ** argv) {
 	/* 0.0 makes MSG_task_get_with_time_out blocking */
 	ok = (waiting_time == 0.0)? MSG_TRANSFER_FAILURE:
 	    MSG_task_get_with_time_out(&task, RSC_MNG_PORT, waiting_time);
-
+        
 	if (ok == MSG_TRANSFER_FAILURE) {
-
+            
 	    /* No tasks in DBL_MAX of time, that's too long, bye */	    
-	    if (waiting_time == DBL_MAX) { break; }
+	    if (waiting_time == DBL_MAX) { xbt_fifo_free(msg_stack); break; }
 	    
 	    /* Wake up because there is a job to send */
 	    if (waiting_time < DBL_MAX) {
 		m_process_t supervisor;
 		unsigned int  * port = NULL;		
-		
+                
 #ifdef DEBUG
 		fprintf(stderr, "[%lf]\t%20s\tIt's time, nb sup : %lu\n",
 			MSG_get_clock(), PROCESS_NAME(), 
@@ -98,7 +99,7 @@ int SB_resource_manager(int argc, char ** argv) {
 		    xbt_dynar_push(pool_of_supervisors, &supervisor);
 		    ++cpt_supervisors;
 		}
-	    
+                
 		xbt_dynar_shift(pool_of_supervisors, &supervisor);
 #ifdef LOG
 		fprintf(flog, "[%lf]\t%20s\tDetach %s\n", MSG_get_clock(),
@@ -117,36 +118,50 @@ int SB_resource_manager(int argc, char ** argv) {
 	    }
 	}
 	
-	 
+	
 	if (ok == MSG_OK) {
-	    if (!task) { fprintf(stderr, "\tPB\n"); break; }
-	    
-	    else if (!strcmp(task->name, "UPDATE")) {
+            /* using a stack for avoiding losses in case of 
+               multiple incoming messages */
+            xbt_fifo_push(msg_stack, task);
+	    while (MSG_task_Iprobe(RSC_MNG_PORT)) {
+                task = NULL;
+                MSG_task_get(&task, RSC_MNG_PORT);
+                xbt_fifo_push(msg_stack, task);
+            }
+            
+            // fprintf(stderr, "%d\n", xbt_fifo_size(msg_stack));        
+            xbt_fifo_sort(msg_stack);
+            
+            while (xbt_fifo_size(msg_stack)) {
+                task = xbt_fifo_shift(msg_stack);
+                // fprintf(stderr, "\t%s\n", task->name);
+                
+                if (!strcmp(task->name, "UPDATE")) {
 #ifdef DEBUG
-		fprintf(stderr, "[%lf]\t%20s\tUpdate\n", MSG_get_clock(), 
-			PROCESS_NAME());
+                    fprintf(stderr, "[%lf]\t%20s\tUpdate\n", MSG_get_clock(), 
+                            PROCESS_NAME());
 #endif
-	    }
-	    
-	    /* A Supervisor has finished and is available again */
-	    else if (!strcmp(task->name, "ATTACH")) {
-		m_process_t supervisor = MSG_task_get_data(task);
+                }
+                
+                /* A Supervisor has finished and is available again */
+                else if (!strcmp(task->name, "ATTACH")) {
+                    m_process_t supervisor = MSG_task_get_data(task);
 #ifdef LOG
-		fprintf(flog, "[%lf]\t%20s\tAttach %s\n", MSG_get_clock(),
-			PROCESS_NAME(), MSG_process_get_name(supervisor));
+                    fprintf(flog, "[%lf]\t%20s\tAttach %s\n", MSG_get_clock(),
+                            PROCESS_NAME(), MSG_process_get_name(supervisor));
 #endif
-		xbt_dynar_push(pool_of_supervisors, &supervisor);
+                    xbt_dynar_push(pool_of_supervisors, &supervisor);
 #ifdef DEBUG
-		fprintf(stderr, "[%lf]\t%20s\tnb supervisors : %lu\n", 
-			MSG_get_clock(), PROCESS_NAME(), 
-			xbt_dynar_length(pool_of_supervisors));
+                    fprintf(stderr, "[%lf]\t%20s\tnb supervisors : %lu\n", 
+                            MSG_get_clock(), PROCESS_NAME(), 
+                            xbt_dynar_length(pool_of_supervisors));
 #endif
-	    }
-
-	    MSG_task_destroy(task); 
-	    task = NULL;
-	}
-
+                }
+                MSG_task_destroy(task); 
+                task = NULL;
+            }
+        }
+        
 	waiting_time = get_next_wakeup_time(cluster, &job);
     }
     
@@ -206,8 +221,9 @@ static int supervise(int argc, char ** argv) {
 					     comp, comm, NULL);
 
 #ifdef LOG
-	    fprintf(flog, "[%lf]\t%20s\tProcessing job %s end: %lf\n", MSG_get_clock(),
-		    PROCESS_NAME(), job->name, MSG_get_clock() + job->run_time);
+	    fprintf(flog, "[%lf]\t%20s\tProcessing job %s end: %lf\n", 
+                    MSG_get_clock(), PROCESS_NAME(), job->name, 
+                    MSG_get_clock() + job->run_time);
 #endif
 
 	    // MSG_parallel_task_execute(pTask);
@@ -233,9 +249,11 @@ static int supervise(int argc, char ** argv) {
 	    }
 
 	    /* Finish - ask to be in the pool again */
-	    MSG_task_put(MSG_task_create("ATTACH", 0.0, 0.0, MSG_process_self()),
-			 MSG_host_self(), RSC_MNG_PORT);
-	    MSG_task_put(MSG_task_create("ACK", 0.0, 0.0, job),
+	    MSG_task_put(
+                MSG_task_create("ATTACH", 0.0, 0.0, MSG_process_self()),
+                MSG_host_self(), RSC_MNG_PORT);
+	    
+            MSG_task_put(MSG_task_create("ACK", 0.0, 0.0, job),
 			 MSG_host_self(), CLIENT_PORT);
 	}
     }
