@@ -2,12 +2,12 @@
 <!DOCTYPE platform_description SYSTEM "surfxml.dtd">
 <platform_description version="1">
   <!-- The Client process (with some arguments) -->
-  <!-- process host="Client" function="client" -->
-     <!-- argument value="0" / -->  
-     <!-- argument value="0" / -->   
-     <!-- argument value="0" / --> 
-     <!-- argument value="Batch1" / -->	  <!-- First slave -->
-  <!-- /process -->
+  <process host="Client" function="SB_client" >
+      <argument value="0" />  
+      <argument value="0" />   
+      <argument value="0" /> 
+      <argument value="Batch1" />	  <!-- First slave -->
+  </process>
   <!-- The Scheduler process (with some arguments) -->
   <process host="Batch1" function="SB_batch">
      <argument value="0" />	  <!-- Number of tasks -->
@@ -18,8 +18,8 @@
      <argument value="Node3" />
      <argument value="Node4" />
      <argument value="Node5" />
-	  <argument value="Node6" />
-	  <argument value="Node7" />
+	 <argument value="Node6" />
+	 <argument value="Node7" />
   </process> 
   <process host="Node1" function="SB_node"/>
   <process host="Node2" function="SB_node"/>

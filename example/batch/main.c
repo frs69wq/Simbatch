@@ -14,8 +14,7 @@
 
 #define NB_CHANNEL 10000
 
-int main(int argc, char ** argv) 
-{
+int main(int argc, char ** argv) {
     const char * trace_file = NULL;
     
     SB_global_init(&argc, argv);
@@ -32,7 +31,7 @@ int main(int argc, char ** argv)
     
     /* The client that submits requests (write your own ) 
      * params have to be called with the same name */
-    MSG_function_register("client", SB_client);
+    MSG_function_register("SB_client", SB_client);
     /* The batch */
     MSG_function_register("SB_batch", SB_batch);
     /* Node of the Cluster */

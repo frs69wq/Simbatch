@@ -214,6 +214,45 @@ int SB_batch(int argc, char ** argv) {
 #endif
                 }	    
                 
+                /*** Reservation handler ***/
+                else if (!strcmp(task->name, "SB_RES")) {
+                    job_t job = NULL;
+                    slot_t * slot = NULL;
+                    job = MSG_task_get_data(task);
+                    job->id = jobCounter++;
+                    int it = 0;
+                    
+#ifdef LOG	
+                    fprintf(flog, "[%lf]\t%20s\tReceive \"%s\" from \"%s\"\n",
+                            MSG_get_clock(), PROCESS_NAME(), job->name,
+                            MSG_host_get_name(MSG_task_get_source(task)));
+#endif
+                    slot = find_a_slot(cluster, job->nb_procs,
+                                       job->start_time, job->wall_time);
+                    printf("Slot: \n");
+                    for (it=0; it<cluster->nb_nodes; ++it) { 
+                        printf("\tNode: %d\n", slot[it]->node);
+                        printf("\tPosition: %d\n", slot[it]->position);
+                        printf("\tStart: %lf\n", slot[it]->start_time);
+                        printf("\tDuration: %lf\n", slot[it]->duration);
+                    }
+                    /* check reservation validity */
+                    if (slot[job->nb_procs-1]->start_time == job->start_time) {
+                        job->mapping = xbt_malloc(job->nb_procs * sizeof(int));
+                        xbt_dynar_push(cluster->reservations, &job);
+                        /* insert reservation into the Gantt chart */
+                        job->start_time = slot[0]->start_time;
+                        for (it=0; it<job->nb_procs; ++it) {
+                            job->mapping[it] = slot[it]->node; 
+                            xbt_dynar_insert_at(cluster->waiting_queue[slot[it]->node], 
+                                                slot[it]->position, &job);
+                        }
+                        cluster_print(cluster);
+                    }
+                    else
+                        printf("Reservation impossible");
+                }
+               
                 /*** A task has been done ***/
                 else if (!strcmp(task->name, "ACK")) {
                     job_t job = NULL;
@@ -231,9 +270,18 @@ int SB_batch(int argc, char ** argv) {
                     
                     job->state = DONE;
                     cluster_delete_done_job(cluster, job);
-                    it = cluster_search_job(cluster, job->id, job->priority);
-                    xbt_dynar_remove_at (cluster->queues[job->priority], 
-                                         it, NULL);
+              
+                    it = cluster_search_job(cluster, job->id, 
+                                            cluster->reservations);
+                    if (it == -1) { 
+                        it = cluster_search_job(cluster, job->id, 
+                                                cluster->queues[job->priority]);
+                        xbt_dynar_remove_at (cluster->queues[job->priority], 
+                                             it, NULL);
+                    }
+                    else // Job is in the reservation queue
+                        it = cluster_search_job(cluster, job->id, 
+                                                cluster->reservations);
                     
 #ifdef OUTPUT
                     fprintf(fout, "%-15s\t%lf\t%lf\t%lf\t%lf\t\n",

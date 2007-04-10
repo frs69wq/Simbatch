@@ -24,9 +24,8 @@ static void rrobin_schedule(cluster_t cluster, job_t job);
 static double rrobin_predict(cluster_t cluster, job_t job);
 
 /**************** Code ***************/
-plugin_scheduler_t init (plugin_scheduler_t p)
-{
-  p->schedule = rrobin_schedule;
+plugin_scheduler_t init (plugin_scheduler_t p) {
+    p->schedule = rrobin_schedule;
     p->reschedule = generic_reschedule;
     //p->reschedule = generic_no_reschedule;
     p->predict = rrobin_predict;
@@ -35,15 +34,13 @@ plugin_scheduler_t init (plugin_scheduler_t p)
 }
 
 
-static void rrobin_schedule(cluster_t cluster, job_t job)
-{
+static void rrobin_schedule(cluster_t cluster, job_t job) {
     static int proc = 0;
     int j = 0, k = proc;
     job->start_time = 0.0;
     
     /* We take the bid for each queue */
-    for (j = 0; j < job->nb_procs; j++)
-    {
+    for (j = 0; j < job->nb_procs; ++j) {
 	slot_t b = NULL;
 	
 	/* a speedup could be to not return a bid (no reusability) */
@@ -54,8 +51,7 @@ static void rrobin_schedule(cluster_t cluster, job_t job)
 	xbt_free(b);
     }
     
-    for (j=0; j<job->nb_procs; j++)
-    {
+    for (j=0; j<job->nb_procs; ++j) {
 	job->mapping[j] = proc;
 	xbt_dynar_push(cluster->waiting_queue[proc], &job);
 	proc = (proc+1) % cluster->nb_nodes;
@@ -63,16 +59,14 @@ static void rrobin_schedule(cluster_t cluster, job_t job)
 }
 
 
-static double rrobin_predict(cluster_t cluster, job_t job)
-{
+static double rrobin_predict(cluster_t cluster, job_t job) {
     static int proc = 0;
     int j = 0;
     double start_time = 0;
     
     /* We take the bid for each queue */
     
-    for (j=0; j<job->nb_procs; j++)
-    {
+    for (j=0; j<job->nb_procs; j++) {
 	slot_t b = NULL;
 	
 	b = get_last_slot(cluster, proc);

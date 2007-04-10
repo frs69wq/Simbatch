@@ -241,8 +241,7 @@ double get_completion_time(cluster_t cluster) {
     int i;
     double start_time = 0.0;
     
-    for (i = 0; i < cluster->nb_nodes; i++)
-    {
+    for (i = 0; i < cluster->nb_nodes; i++) {
 	slot_t s = NULL;
 	
 	/* a speedup could be to not return a bid (no reusability) */
@@ -288,7 +287,7 @@ job_t next_job_to_schedule_in_queue(xbt_dynar_t queue) {
 	return NULL;
     
     xbt_dynar_foreach(queue, cpt, job) {	 
-	if (job->state == WAITING)
+	if (job->state == WAITING || job->state == RESERVED)
 	    return job;
     }
 

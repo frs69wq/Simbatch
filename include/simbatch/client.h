@@ -9,5 +9,7 @@
 #define _CLIENT_H_
 
 int SB_client(int argc, char ** argv);
+int SB_file_client(int argc, char ** argv);
+int SB_job_client(int argc, char ** argv);
 
 #endif

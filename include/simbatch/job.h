@@ -17,6 +17,7 @@ typedef enum _state_t {
     RECOVERING = 3,
     DONE       = 4,
     CANCELLED  = 5,
+    RESERVED   = 6
 } state_t;
 
 

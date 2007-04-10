@@ -17,16 +17,18 @@
  * Cluster definition
  */
 typedef struct {
-  /* Number of slaves */ 
-  int nb_nodes;
-  /* Number of priority's level */
-  int priority;
-  /* Here are my slaves */ 
-  m_host_t * nodes;
-  /* Trace of the tasks actually in the system (batch + cluster) */
-  xbt_dynar_t * queues;
-  /* Scheduling table */
-  xbt_dynar_t * waiting_queue;
+    /* Number of slaves */ 
+    int nb_nodes;
+    /* Number of priority's level */
+    int priority;
+    /* Here are my slaves */ 
+    m_host_t * nodes;
+    /* Trace of the tasks actually in the system (batch + cluster) */
+    xbt_dynar_t * queues;
+    /* Scheduling table */
+    xbt_dynar_t * waiting_queue;
+    /* Reservation queue */
+    xbt_dynar_t reservations;
 } * cluster_t;
 
 
@@ -40,14 +42,14 @@ void cluster_destroy(cluster_t  * cluster);
 void cluster_clean(cluster_t cluster);
 
 /* Search a job by its id */
-int cluster_search_job(cluster_t cluster, int job_id, int priority);
+int cluster_search_job(cluster_t cluster, int job_id, xbt_dynar_t dynar);
 
 /* Delete a job in the cluster (job should be at first place (running)*/
 void cluster_delete_done_job(cluster_t cluster, job_t job);
 
-#ifdef GANTT
+//#ifdef GANTT
 void cluster_print(cluster_t cluster);
-#endif
+//#endif
 
 /* return the number of priority queue for the cluster */
 int get_nb_queues(char * value);
