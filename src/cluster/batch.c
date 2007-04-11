@@ -278,13 +278,10 @@ int SB_batch(int argc, char ** argv) {
                     if (it == -1) { 
                         it = cluster_search_job(cluster, job->id, 
                                                 cluster->queues[job->priority]);
-                        xbt_dynar_remove_at (cluster->queues[job->priority], 
+                        xbt_dynar_remove_at(cluster->queues[job->priority], 
                                              it, NULL);
                     }
-                    else // Job is in the reservation queue
-                        it = cluster_search_job(cluster, job->id, 
-                                                cluster->reservations);
-                    
+                    else { xbt_dynar_remove_at(cluster->reservations, it, NULL); }
 #ifdef OUTPUT
                     fprintf(fout, "%-15s\t%lf\t%lf\t%lf\t%lf\t\n",
                             job->name, job->entry_time, 
