@@ -128,13 +128,11 @@ int SB_resource_manager(int argc, char ** argv) {
                 MSG_task_get(&task, RSC_MNG_PORT);
                 xbt_fifo_push(msg_stack, task);
             }
-            
-            // fprintf(stderr, "%d\n", xbt_fifo_size(msg_stack));        
+                    
             xbt_fifo_sort(msg_stack);
             
             while (xbt_fifo_size(msg_stack)) {
                 task = xbt_fifo_shift(msg_stack);
-                // fprintf(stderr, "\t%s\n", task->name);
                 
                 if (!strcmp(task->name, "UPDATE")) {
 #ifdef DEBUG
