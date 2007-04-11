@@ -177,7 +177,7 @@ int SB_batch(int argc, char ** argv) {
                 /************ Schedule ************/
                 if (!strcmp(task->name, "SB_TASK")) {
                     job_t job = NULL;
-                    
+
                     job = MSG_task_get_data(task);
                     job->id = jobCounter++;
                     
@@ -188,6 +188,8 @@ int SB_batch(int argc, char ** argv) {
 #endif
                     
                     if (job->nb_procs <= cluster->nb_nodes) {
+                        plugin_scheduler_t scheduler = plugin->content;
+
                         /* We keep a trace of the task */
                         if (job->priority >= cluster->priority)
                             job->priority = cluster->priority - 1;
@@ -198,9 +200,9 @@ int SB_batch(int argc, char ** argv) {
                         job->mapping = xbt_malloc(job->nb_procs * sizeof(int));
                         xbt_dynar_push(cluster->queues[job->priority], &job); 
                         
-                        /* ask to the plugin to schedule this new task */
-                        ((plugin_scheduler_t) 
-                         plugin->content)->schedule(cluster, job);
+                        /* ask to the plugin to schedule and accept this new task */
+                        scheduler->accept(cluster, job,
+                                          scheduler->schedule(cluster, job));
                     }
 #ifdef LOG	
                     else {
@@ -294,10 +296,8 @@ int SB_batch(int argc, char ** argv) {
                     xbt_free(job);
                     
                     /* The system becomes stable again, we can now reschedule */
-                    ((plugin_scheduler_t) 
-                     plugin->content)->reschedule(cluster, 
-                                                  ((plugin_scheduler_t) 
-                                                   plugin->content)->schedule);
+                    ((plugin_scheduler_t) plugin->content)->reschedule(
+                        cluster, (plugin_scheduler_t) plugin->content);
                 }
                 
                 

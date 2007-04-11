@@ -3,33 +3,17 @@
 
 #include <xbt/dynar.h>
 #include "cluster.h"
-
-/* Structure to represent an idle time for a node */
-typedef struct _slot 
-{
-    /* Node's number */
-    int node;
-    /* Position of the slot in the waiting queue */
-    int position;
-    /* Slot's start */
-    double start_time;
-    /* Slot's duration */
-    double duration;
-} slot, * slot_t;
+#include "plugin_scheduler.h"
 
 
-typedef void (*scheduling_fct)(cluster_t, job_t);
-typedef void (*reschedule_fct)(cluster_t cluster, scheduling_fct schedule);
-typedef double (*prediction_fct)(cluster_t, job_t);
-
-/****************** Generic reschedules functions ********************/
-
+/****************** Generic rescheduling functions ********************/
 /* No re-schedule when a task just comes to end */
-void generic_no_reschedule (cluster_t cluster, scheduling_fct schedule);
+// void generic_no_reschedule(cluster_t cluster, scheduling_fct schedule);
+void generic_no_reschedule(cluster_t cluster, plugin_scheduler_t scheduler);
 
 /* Function to reschedule jobs waiting in the system */
-void generic_reschedule (cluster_t cluster, scheduling_fct schedule);
-
+// void generic_reschedule (cluster_t cluster, scheduling_fct schedule);
+void generic_reschedule(cluster_t cluster, plugin_scheduler * scheduler);
 
 /********************* Slot management functions *********************/
 slot_t new_slot(int node_id, int position, double start_time, double duration);

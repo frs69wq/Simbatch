@@ -13,24 +13,21 @@
 /* no reschedule: generic function 
  * (i.e. works for all scheduing algorithm) 
  */ 
-void generic_no_reschedule (cluster_t cluster, scheduling_fct schedule) {
+void generic_no_reschedule (cluster_t cluster, plugin_scheduler_t scheduler) {
     return ;
 }
 
 
-/* Old nested function defining in generic_reschedule */
-static inline 
-void reschedule(cluster_t cluster, job_t job, scheduling_fct schedule) {   
-    if (job->state == WAITING) {
-	schedule(cluster, job);
+void generic_reschedule (cluster_t cluster, plugin_scheduler_t scheduler) {
+    auto void reschedule(job_t job);
+    void reschedule(job_t job) { 
+        if ((job->state) == WAITING) { 
+            scheduler->accept(cluster, job, scheduler->schedule(cluster, job));
+        }
     }
-}
 
-
-/* Generic reschedule version 2 Nested functions are moved outside */
-void generic_reschedule (cluster_t cluster, scheduling_fct schedule) {
     int i = 0;
-    
+
     /* remove waiting jobs */
     cluster_clean(cluster);
     
@@ -39,10 +36,7 @@ void generic_reschedule (cluster_t cluster, scheduling_fct schedule) {
 	int cpt;
 	job_t job = NULL;
 	
-	/* xbt_dynar_map(cluster->queues[i], reschedule); */
-	xbt_dynar_foreach(cluster->queues[i], cpt, job) {	
-	    reschedule(cluster, job, schedule);
-	}
+	xbt_dynar_foreach(cluster->queues[i], cpt, job) { reschedule(job); }
     }
 }
 

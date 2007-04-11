@@ -17,24 +17,21 @@
 #include "cluster.h"
 #include "scheduling.h"
 
+///// DEPRECATED
 
 /************* Functions *************/
-static void rrobin_schedule(cluster_t cluster, job_t job);
-
-static double rrobin_predict(cluster_t cluster, job_t job);
+static slot_t * rrobin_schedule(cluster_t cluster, job_t job);
 
 /**************** Code ***************/
 plugin_scheduler_t init (plugin_scheduler_t p) {
     p->schedule = rrobin_schedule;
     p->reschedule = generic_reschedule;
-    //p->reschedule = generic_no_reschedule;
-    p->predict = rrobin_predict;
     
     return p;
 }
 
 
-static void rrobin_schedule(cluster_t cluster, job_t job) {
+static slot_t * rrobin_schedule(cluster_t cluster, job_t job) {
     static int proc = 0;
     int j = 0, k = proc;
     job->start_time = 0.0;
@@ -56,27 +53,11 @@ static void rrobin_schedule(cluster_t cluster, job_t job) {
 	xbt_dynar_push(cluster->waiting_queue[proc], &job);
 	proc = (proc+1) % cluster->nb_nodes;
     }
+
+    return NULL;
 }
 
-
-static double rrobin_predict(cluster_t cluster, job_t job) {
-    static int proc = 0;
-    int j = 0;
-    double start_time = 0;
-    
-    /* We take the bid for each queue */
-    
-    for (j=0; j<job->nb_procs; j++) {
-	slot_t b = NULL;
-	
-	b = get_last_slot(cluster, proc);
-	if (b->start_time > start_time)
-	    start_time = b->start_time;
-	
-	proc=(proc + 1) % cluster->nb_nodes;
-	xbt_free(b);
-    }
-    
-    return start_time;
+static void rrobin_accept(cluster_t cluster, job_t job, slot_t * slots) {
+    return;
 }
 

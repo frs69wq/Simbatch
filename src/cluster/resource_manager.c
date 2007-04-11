@@ -200,14 +200,14 @@ static int supervise(int argc, char ** argv) {
 	    job = MSG_task_get_data(task);
 	    MSG_task_destroy(task); 
 	    task = NULL;
-	
+           	
 	    /* Send input data TODO: use put_with_alarm */
-	    if (job->input_size > 0.0) {
+            if (job->input_size > 0.0) {
 		MSG_task_put(
 		    MSG_task_create("DATA_IN", 0.0, job->input_size * 1000000,
 				    NULL),
 		    cluster->nodes[job->mapping[0]], NODE_PORT);
-	    }
+            }
 
 	    /* PTask creation & execution */
 	    comm = calloc(job->nb_procs, sizeof(double));
@@ -236,7 +236,7 @@ static int supervise(int argc, char ** argv) {
 	
 	    /* Receive output data TODO: use get_with_alarm */
 	    if (job->output_size > 0.0) {
-		MSG_task_put(
+                MSG_task_put(
 		    MSG_task_create("DATA_OUT", 0.0, job->output_size * 1000000,
 				    NULL),
 		    cluster->nodes[job->mapping[0]], NODE_PORT);

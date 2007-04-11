@@ -34,7 +34,6 @@ typedef enum _state_t {
  * - job id fixed by the batch 
  */
 
-
 typedef struct _job {
     char name[15];
     double submit_time;
@@ -50,5 +49,21 @@ typedef struct _job {
     int * mapping;
     state_t state; /* to avoid data duplication */
 } * job_t;
+
+
+/* 
+ * Slot (or non-job) definition : 
+ * node : node number which owns the slot
+ * position : slot position in the waiting queue
+ * start_time : start time of the slot
+ * duration : slot duration
+ */
+typedef struct _slot {
+    int node;
+    int position;
+    double start_time;
+    double duration;
+} slot, * slot_t;
+
 
 #endif
