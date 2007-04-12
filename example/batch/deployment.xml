@@ -3,17 +3,11 @@
 <platform_description version="1">
   <!-- The Client process (with some arguments) -->
   <process host="Client" function="SB_client" >
-      <argument value="0" />  
-      <argument value="0" />   
-      <argument value="0" /> 
-      <argument value="Batch1" />	  <!-- First slave -->
+      <argument value="Batch1" />
   </process>
   <!-- The Scheduler process (with some arguments) -->
   <process host="Batch1" function="SB_batch">
-     <argument value="0" />	  <!-- Number of tasks -->
-     <argument value="0" />	  <!-- Computation size of tasks -->
-     <argument value="0" />	  <!-- Communication s1ize of tasks -->
-     <argument value="Node1" />	  <!-- First slave -->
+     <argument value="Node1" />	
      <argument value="Node2" />
      <argument value="Node3" />
      <argument value="Node4" />

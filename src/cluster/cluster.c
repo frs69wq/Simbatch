@@ -35,23 +35,23 @@ static cluster_t cluster_new(int argc,char ** argv, int nb) {
     
     /* Process organisation */
     /* no nodes... no cluster! */ 
-    if (argc < 5) {
+    if (argc < 2) {
 	INFO0("No nodes are defined!");
 	abort();
     }
     
     cluster = xbt_malloc(sizeof(*cluster));
-    cluster->nb_nodes = argc - 4;
+    cluster->nb_nodes = argc - 1;
     cluster->priority = nb;
     cluster->nodes = xbt_malloc(cluster->nb_nodes * sizeof(*(cluster->nodes)));
     cluster->waiting_queue = xbt_malloc(cluster->nb_nodes * 
 					sizeof(*(cluster->waiting_queue)));
     
-    for (i=4; i<argc; ++i) {
-	cluster->waiting_queue[i-4] = xbt_dynar_new(sizeof(job_t), NULL);  
-	cluster->nodes[i-4] = MSG_get_host_by_name(argv[i]);
-	if (!cluster->nodes[i-4]) {
-	    INFO1("Unknown host %s. Stopping Now! ", argv[i]);
+    for (i=0; i<argc-1; ++i) {
+	cluster->waiting_queue[i] = xbt_dynar_new(sizeof(job_t), NULL);  
+	cluster->nodes[i] = MSG_get_host_by_name(argv[i+1]);
+	if (!cluster->nodes[i]) {
+	    INFO1("Unknown host %s. Stopping Now! ", argv[i+1]);
 	    xbt_abort();
 	}
     }

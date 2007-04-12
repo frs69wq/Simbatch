@@ -28,14 +28,14 @@
 int SB_client(int argc, char ** argv) {
     m_host_t sched = NULL;
 
-    if (argc!=5) {
+    if (argc != 2) {
 	fprintf(stderr, "Client has a bad definition\n");
 	exit(1);
     }
     
-    sched = MSG_get_host_by_name(argv[4]);
+    sched = MSG_get_host_by_name(argv[1]);
     if (!sched) {
-	fprintf(stderr, "Unknown host %s. Stopping Now!\n", argv[4]);
+	fprintf(stderr, "Unknown host %s. Stopping Now!\n", argv[1]);
 	exit(2);
     }
     
