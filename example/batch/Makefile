@@ -27,7 +27,7 @@ $(EXEC): $(OBJ)
 .PHONY: clean mrproper
 
 clean:	
-	rm -f *.o *~
+	rm -f *.o *~ *log *out
 
 mrproper: clean
 	rm -f $(EXEC)

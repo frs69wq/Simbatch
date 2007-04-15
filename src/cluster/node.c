@@ -19,11 +19,11 @@
 #include "node.h"
 
 
-int SB_node(int argc, char ** argv)
-{ 
-
-    while (1)
-    {
+int SB_node(int argc, char ** argv) { 
+#ifdef VERBOSE
+    fprintf(stderr, "%s... ready\n", MSG_host_get_name(MSG_host_self())); 
+#endif
+    while (1) {
 	// MSG_error_t err;
 	m_task_t data = NULL;
 
@@ -33,8 +33,7 @@ int SB_node(int argc, char ** argv)
 	
 	/* Waiting for input comm */
 	MSG_task_get_with_time_out(&data, NODE_PORT, DBL_MAX);
-	if (data)
-	{
+	if (data) {
 #ifdef LOG
 	    flog = config_get_log_file(MSG_host_get_name(
 					   MSG_task_get_source(data)));
@@ -47,6 +46,7 @@ int SB_node(int argc, char ** argv)
 	}
 	else
 	    break;
+
     }
     
     return EXIT_SUCCESS;

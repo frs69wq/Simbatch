@@ -16,8 +16,7 @@
 
 extern int DIET_MODE;
 
-const char * SB_request_external_load(void)
-{
+const char * SB_request_external_load(void) {
     char request[128];
     const char * wld_filename;
     
@@ -41,8 +40,7 @@ const char * SB_request_external_load(void)
 }
 
 
-int SB_external_load(int argc, char ** argv)
-{
+int SB_external_load(int argc, char ** argv) {
     char * wld_filename = (char *)MSG_process_get_data(MSG_process_self()); 
     void * handle = NULL;
     plugin_input plugin;
@@ -59,18 +57,17 @@ int SB_external_load(int argc, char ** argv)
     if (bag_of_tasks == NULL)
 	return EXIT_FAILURE;
     
-    if (xbt_fifo_size(bag_of_tasks))
-    {
+    if (xbt_fifo_size(bag_of_tasks)) {
 	double time = 0;
 	job_t job = NULL;
 	
 #ifdef VERBOSE
-	fprintf(stderr, "%s : workload ready\n", HOST_NAME());
+	fprintf(stderr, "%s : workload ready - %d jobs\n", HOST_NAME(),
+            xbt_fifo_size(bag_of_tasks));
 #endif
 	
 	/* And the others */
-	while ((job=(job_t)xbt_fifo_shift(bag_of_tasks)))
-	{   
+	while ((job=(job_t)xbt_fifo_shift(bag_of_tasks))) {   
 	    MSG_process_sleep(job->submit_time - time);
 #ifdef LOG	
 	    fprintf(flog, "[%lf]\t%20s\tSend %s to \"%s\"\n", 
@@ -85,7 +82,7 @@ int SB_external_load(int argc, char ** argv)
 	xbt_fifo_free(bag_of_tasks);
     }
 
-    /* When everuthing has been submitted - ask question for DIET */ 
+    /* When everything has been submitted - ask question for DIET */ 
     if (DIET_MODE) {
 	MSG_task_put(MSG_task_create("DIET_REQUEST", 0, 0, NULL), 
 		     MSG_host_self(), CLIENT_PORT);

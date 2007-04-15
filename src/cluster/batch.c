@@ -54,7 +54,7 @@ int SB_batch(int argc, char ** argv) {
     m_process_t resource_manager = NULL;
     MSG_error_t err = MSG_OK;   
     xbt_fifo_t msg_stack = NULL;
-    
+
 #ifdef OUTPUT
     char * out_file;
     FILE * fout;
@@ -67,7 +67,8 @@ int SB_batch(int argc, char ** argv) {
 #endif
     
     cluster_t cluster = NULL;
-    pluginInfo_t plugin;
+    pluginInfo_t plugin = NULL;
+    plugin_scheduler_t scheduler = NULL;
     m_process_t wld_process;
     
     
@@ -82,7 +83,7 @@ int SB_batch(int argc, char ** argv) {
 #ifdef VERBOSE
     fprintf(stderr, "plugin name : %s\n", plugin->name);
 #endif
-    
+    scheduler = plugin->content;
     
     /*** Cluster ***/
 #ifdef VERBOSE
@@ -93,7 +94,9 @@ int SB_batch(int argc, char ** argv) {
         simbatch_clean();
         xbt_die("Failed to create the cluster");
     }
-    
+#ifdef VERBOSE
+    fprintf(stderr, "Number of nodes: %d\n", cluster->nb_nodes);
+#endif
     MSG_host_set_data(MSG_host_self(), cluster);
     
     /*** External Load ***/
@@ -136,15 +139,17 @@ int SB_batch(int argc, char ** argv) {
 	fprintf(stderr, "No load, dedicated platform\n");
 #endif
     
-    
     /************* Create resource manager ************/
     resource_manager = MSG_process_create("Resource manager", 
 					  SB_resource_manager,
 					  NULL, 
 					  MSG_host_self());	
     
-    
     /************* start schedule ***************/  
+#ifdef VERBOSE
+    fprintf(stderr, "%s... ready\n", MSG_host_get_name(MSG_host_self())); 
+#endif
+
 #ifdef LOG
     fprintf(flog, "[%lf]\t%20s\tWait for tasks\n", 
 	    MSG_get_clock(), PROCESS_NAME());
@@ -188,8 +193,6 @@ int SB_batch(int argc, char ** argv) {
 #endif
                     
                     if (job->nb_procs <= cluster->nb_nodes) {
-                        plugin_scheduler_t scheduler = plugin->content;
-
                         /* We keep a trace of the task */
                         if (job->priority >= cluster->priority)
                             job->priority = cluster->priority - 1;
@@ -293,8 +296,7 @@ int SB_batch(int argc, char ** argv) {
                     xbt_free(job);
                     
                     /* The system becomes stable again, we can now reschedule */
-                    ((plugin_scheduler_t) plugin->content)->reschedule(
-                        cluster, (plugin_scheduler_t) plugin->content);
+                    scheduler->reschedule(cluster, scheduler);
                 }
                 
                 
@@ -316,6 +318,7 @@ int SB_batch(int argc, char ** argv) {
                             DIET_PARAM[i+1] = cluster->nb_nodes;
                         slots = find_a_slot(cluster, DIET_PARAM[i+1],
                                             MSG_get_clock(), DIET_PARAM[i]);
+                        // slots = scheduler->schedule(cluster, job);
                         fprintf(fdiet, "[%lf] DIET answer : %lf\n", 
                                 MSG_get_clock(), slots[0]->start_time);
                         xbt_free(slots), slots = NULL;

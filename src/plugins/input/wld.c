@@ -20,8 +20,7 @@ static xbt_fifo_t wld_parse(const char * wld_file, const char * name);
 
 /***************************/
 
-plugin_input_t init_input(plugin_input_t p)
-{
+plugin_input_t init_input(plugin_input_t p) {
     p->create_list = wld_parse;
     
     return p;
@@ -38,8 +37,7 @@ plugin_input_t init_input(plugin_input_t p)
  * 6 -> nb_procs : nb procs requested for a task   
  * 7 -> priority : priority of the task
  */
-static xbt_fifo_t wld_parse(const char * wld_file, const char * name)
-{
+static xbt_fifo_t wld_parse(const char * wld_file, const char * name) {
     int i = 1;
     FILE * f = NULL;
     char buf[512];
@@ -48,8 +46,7 @@ static xbt_fifo_t wld_parse(const char * wld_file, const char * name)
     
     /* Papa's got a brand new bag... */
     printf ("parsing %s\n", wld_file);
-    if ((f = fopen(wld_file, "r")) == NULL)
-    {
+    if ((f = fopen(wld_file, "r")) == NULL) {
 	fprintf (stderr, "%s:line %d, function %s, fopen failed : %s \n",\
 		 __FILE__, __LINE__, __func__, wld_file);
 	return NULL;
@@ -57,11 +54,9 @@ static xbt_fifo_t wld_parse(const char * wld_file, const char * name)
     
     list = xbt_fifo_new();
     
-    while (fgets(buf,512,f) != NULL)
-    {
+    while (fgets(buf,512,f) != NULL) {
 	/* Comments */
-	if (buf[0] != ';')
-	{
+	if (buf[0] != ';') {
 	    job_t job;
 	    
 	    job = xbt_malloc(sizeof(*job));
