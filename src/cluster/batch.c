@@ -314,14 +314,29 @@ int SB_batch(int argc, char ** argv) {
                     }
                     
                     for (i=0; i<=2; i+=2) {
+                        job_t job =  xbt_malloc(sizeof(*job));
+                      
+                        strcpy(job->name, "DIET");
+                        job->submit_time = MSG_get_clock();
+                        job->input_size = 0.0; 
+                        job->output_size = 0.0;
+                        job->priority = 0.0;         
+                        
                         if (DIET_PARAM[i+1] > cluster->nb_nodes) 
                             DIET_PARAM[i+1] = cluster->nb_nodes;
-                        slots = find_a_slot(cluster, DIET_PARAM[i+1],
-                                            MSG_get_clock(), DIET_PARAM[i]);
-                        // slots = scheduler->schedule(cluster, job);
+                       
+                        job->nb_procs = DIET_PARAM[i+1];
+                        job->wall_time = DIET_PARAM[i];
+                        job->run_time = DIET_PARAM[i];
+                        job->mapping = xbt_malloc(job->nb_procs * sizeof(int));
+                        // slots = find_a_slot(cluster, DIET_PARAM[i+1],
+                        //                    MSG_get_clock(), DIET_PARAM[i]);
+                        slots = scheduler->schedule(cluster, job);
                         fprintf(fdiet, "[%lf] DIET answer : %lf\n", 
                                 MSG_get_clock(), slots[0]->start_time);
                         xbt_free(slots), slots = NULL;
+                        xbt_free(job->mapping);
+                        xbt_free(job);
                     }       
                     fclose(fdiet);
                 }
