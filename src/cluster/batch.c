@@ -302,7 +302,7 @@ int SB_batch(int argc, char ** argv) {
                 
                 /* Diet request - to do with */
                 else if (!strcmp(task->name, "DIET_REQUEST")) {
-                    FILE * fdiet = fopen(DIET_FILE, "a"); 
+                    FILE * fdiet = fopen(DIET_FILE, "w"); 
                     slot_t * slots = NULL;
                     int i = 0;
                     
