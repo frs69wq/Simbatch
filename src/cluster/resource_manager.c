@@ -224,7 +224,7 @@ static int supervise(int argc, char ** argv) {
                     MSG_get_clock() + job->run_time);
 #endif
 
-	    //MSG_parallel_task_execute(pTask);
+	    // MSG_parallel_task_execute(pTask);
 	    MSG_process_sleep(job->run_time);
 
 	    xbt_free(hosts); hosts = NULL;

@@ -6,8 +6,8 @@ PEDANTIC_PARANOID_FREAK =       -Wshadow -Wcast-align -Wnonnull\
 REASONABLY_CAREFUL_DUDE =       -Wall -Wstrict-prototypes -Wcast-align -Wmissing-prototypes\
 				_Wnonnull -Wmissing-prototypes -Wmissing-declarations
 WARNINGS=$(PEDANTIC_PARANOID_FREAK)
-LDFLAGS=-L. -L/usr/local/lib/ -L../lib/ -lsimgrid -lsimbatch
-INCLUDES=-I ../include 
+LDFLAGS=-L. -L/usr/local/lib/ -L../../lib/ -lsimgrid -lsimbatch
+INCLUDES=-I ../../include 
 OPTS=-O0 -pipe
 DEBUG= # -pg -DDEBUG
 CFLAGS=$(WARNINGS) $(OPTS) $(DEBUG)

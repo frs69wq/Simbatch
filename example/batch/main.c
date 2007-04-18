@@ -20,7 +20,6 @@ int main(int argc, char ** argv) {
     SB_global_init(&argc, argv);
     MSG_global_init(&argc, argv);
  
-
     /* Open the channels */
     MSG_set_channel_number(NB_CHANNEL);
     
