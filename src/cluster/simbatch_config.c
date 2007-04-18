@@ -200,6 +200,7 @@ const char * config_get_value(const char * _xpath) {
     
     /* Rquete XPath*/
     xmlobject = xmlXPathEval(xpath, config->context);
+
     if (xmlobject == NULL)
 	return NULL;
     

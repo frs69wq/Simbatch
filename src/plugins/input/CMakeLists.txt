@@ -22,5 +22,5 @@ TARGET_LINK_LIBRARIES(wld dl simgrid simbatch)
 TARGET_LINK_LIBRARIES(swf dl simgrid simbatch)
 
 # Install library in the lib dir at the root of the project
-INSTALL_TARGETS(/lib/input swf wld)
+INSTALL_TARGETS(/lib swf wld)
 

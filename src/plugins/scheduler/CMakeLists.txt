@@ -24,5 +24,5 @@ TARGET_LINK_LIBRARIES(fcfs dl simgrid simbatch)
 TARGET_LINK_LIBRARIES(cbf dl simgrid simbatch)
 
 # Install library in the lib dir at the root of the project
-INSTALL_TARGETS(/lib/scheduler rrobin fcfs cbf)
+INSTALL_TARGETS(/lib rrobin fcfs cbf)
 

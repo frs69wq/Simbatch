@@ -45,10 +45,9 @@ extern int DIET_MODE;
 
 double NOISE=0.0;
 
-
 /********** Here it starts *************/
 int SB_batch(int argc, char ** argv) {
-    const char * wld_filename;
+    const char * workload_file, * parser_name;
     int jobCounter = 0;
     m_task_t task = NULL;
     m_process_t resource_manager = NULL;
@@ -100,8 +99,9 @@ int SB_batch(int argc, char ** argv) {
     MSG_host_set_data(MSG_host_self(), cluster);
     
     /*** External Load ***/
-    wld_filename = SB_request_external_load();
-    
+    workload_file = SB_request_external_load();
+    parser_name = SB_request_parser();
+
     /* Test if config is still needed */
     config_close();
     
@@ -126,12 +126,16 @@ int SB_batch(int argc, char ** argv) {
     
     
     /****************** Create load ******************/
-    if (wld_filename != NULL) {
+    if (workload_file && parser_name) {
+        const char ** param = xbt_malloc(2 * sizeof(char *));
+        param[0] = workload_file;
+        param[1] = parser_name;
+
 #ifdef VERBOSE
 	fprintf(stderr, "Create load... \n");
 #endif
 	wld_process = MSG_process_create("external_load", SB_external_load,
-					 (void *)wld_filename, 
+					 (void *)param, 
 					 MSG_host_self());
     }
 #ifdef VERBOSE
@@ -171,13 +175,11 @@ int SB_batch(int argc, char ** argv) {
                 xbt_fifo_push(msg_stack, task);
             }
             
-            // fprintf(stderr, "%d\n", xbt_fifo_size(msg_stack));
             xbt_fifo_sort(msg_stack);
             
             /* retrieve messages from the stack */
             while (xbt_fifo_size(msg_stack)) {
-                task = xbt_fifo_shift(msg_stack);
-                // fprintf(stderr, "\t%s\n", task->name); 
+                task = xbt_fifo_shift(msg_stack); 
                 
                 /************ Schedule ************/
                 if (!strcmp(task->name, "SB_TASK")) {

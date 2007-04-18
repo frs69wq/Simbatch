@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#include <xbt/sysdep.h>
 #include <xbt/fifo.h>
 #include <msg/msg.h>
 
@@ -19,30 +20,55 @@ extern int DIET_MODE;
 
 const char * SB_request_external_load(void) {
     char request[128];
-    const char * wld_filename;
+    const char * filename;
     
     /*** External Load ***/
 #ifdef VERBOSE
     fprintf(stderr, "Get external workload : ");
 #endif
     
-    sprintf(request, "/config/batch[@host=\"%s\"]/wld/text()",\
+    sprintf(request, "/config/batch[@host=\"%s\"]/load/text()",\
 	    MSG_host_get_name(MSG_host_self())); 
-    wld_filename = config_get_value(request);
+    filename = config_get_value(request);
     
 #ifdef VERBOSE
-    if (wld_filename == NULL)
+    if (filename == NULL)
 	fprintf(stderr, "no external workload\n");
     else
-	fprintf(stderr, "%s\n", wld_filename);
+	fprintf(stderr, "%s\n", filename);
 #endif
     
-    return wld_filename;
+    return filename;
+}
+
+const char * SB_request_parser(void) {
+    char request[128];
+    const char * parserName;
+    
+    /*** External Load ***/
+#ifdef VERBOSE
+    fprintf(stderr, "Get workload parser: ");
+#endif
+    
+    sprintf(request, "/config/batch[@host=\"%s\"]/parser/text()",\
+	    MSG_host_get_name(MSG_host_self())); 
+    parserName = config_get_value(request);
+
+#ifdef VERBOSE
+    if (parserName == NULL)
+	fprintf(stderr, "no parser defined!\n");
+    else
+	fprintf(stderr, "%s\n", parserName);
+#endif
+    
+    return parserName;
 }
 
 
 int SB_external_load(int argc, char ** argv) {
-    char * wld_filename = (char *)MSG_process_get_data(MSG_process_self()); 
+    const char ** param = (const char **)MSG_process_get_data(MSG_process_self());
+    const char * filename = param[0];
+    const char * parserName = param[1];
     void * handle = NULL;
     plugin_input plugin;
     xbt_fifo_t bag_of_tasks = NULL;
@@ -50,8 +76,9 @@ int SB_external_load(int argc, char ** argv) {
     FILE * flog = config_get_log_file(HOST_NAME());
 #endif
     
-    launch_plugin(&handle, &plugin, "../lib/input/libwld.so", "init_input");
-    bag_of_tasks = plugin.create_list(wld_filename, "task");
+    xbt_free(param);
+    launch_plugin(&handle, &plugin, parserName, "init_input");
+    bag_of_tasks = plugin.create_list(filename, "task");
     close_plugin(handle);
     
     /* Now just send the job at time to the scheduler */
