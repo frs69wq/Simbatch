@@ -373,8 +373,8 @@ int SB_batch(int argc, char ** argv) {
 
                         slots = scheduler->schedule(cluster, job);
                         
-                        MSG_task_async_put(MSG_task_create("SED_PRED", 0.0, 0.0, slots),
-                                 sender, BATCH_OUT);
+                        MSG_task_async_put(MSG_task_create("SB_PRED", 0.0, 0.0, slots),
+                                 sender, SED_CHANNEL);
                     }
                 }
                 
@@ -384,7 +384,7 @@ int SB_batch(int argc, char ** argv) {
             UPDATE_RSC_MNG();
         }
     }
-    
+    xbt_fifo_free(msg_stack);
     
     /* Clean */ 
 #ifdef OUTPUT

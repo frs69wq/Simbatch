@@ -7,7 +7,9 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <float.h>
 
+#include <xbt/fifo.h>
 #include <xbt/sysdep.h>
 #include <msg/msg.h>
 
@@ -91,8 +93,8 @@ int metaSched(int argc, char ** argv) {
 
 int sed(int argc, char ** argv) {
     m_host_t cluster = NULL;
-    m_task_t task = NULL;
     m_host_t sched = NULL;
+    xbt_fifo_t msg_stack = xbt_fifo_new();
                       
     printf("%s - ", MSG_host_get_name(MSG_host_self()));
     printf("%s\n", MSG_process_get_name(MSG_process_self()));
@@ -102,23 +104,39 @@ int sed(int argc, char ** argv) {
     sched = MSG_get_host_by_name(argv[1]);
     cluster = MSG_get_host_by_name(argv[2]);
 
-    /* Receive task */
-    MSG_task_get(&task, SED_CHANNEL);
-    printf("%s\n", task->name);
-    /* Forward to the Batch */ 
-    MSG_task_put(task, MSG_host_self(), CLIENT_PORT);
-    /* Receive from the Batch */
-    task = NULL;
-    MSG_task_get(&task, BATCH_OUT);
-    /* Forward to the MetaSched */
-    MSG_task_async_put(task, sched, MS_CHANNEL); 
+    while (1) {
+        m_task_t task = NULL;
+        MSG_error_t err;
 
-    /* Receive task */
-    task = NULL;
-    MSG_task_get(&task, SED_CHANNEL);
-    printf("%s\n", task->name);
-    /* Forward to the Batch */ 
-    MSG_task_put(task, MSG_host_self(), CLIENT_PORT);
+        err = MSG_task_get_with_time_out(&task, SED_CHANNEL, DBL_MAX);
+        
+        if (err == MSG_TRANSFER_FAILURE) { break; }
+        
+        if (err == MSG_OK) {
+            xbt_fifo_push(msg_stack, task);
+            while (MSG_task_Iprobe(SED_CHANNEL)) {
+                task = NULL;
+                MSG_task_get(&task, SED_CHANNEL);
+                xbt_fifo_push(msg_stack, task);
+            } 
+        }
+        
+        while (xbt_fifo_size(msg_stack)) {
+            task = xbt_fifo_shift(msg_stack);
+            
+            if (!strcmp(task->name, "SB_PRED")) {
+                /* Forward to the MS */
+                printf("%s\n", task->name);
+                MSG_task_async_put(task, sched, MS_CHANNEL); 
+            }
+            else {
+                /* Forward to the Batch */
+                printf("%s\n", task->name);
+                MSG_task_async_put(task, MSG_host_self(), CLIENT_PORT);
+            }
+        }
+    }
+    xbt_fifo_free(msg_stack);
 
     return EXIT_SUCCESS;
 }
