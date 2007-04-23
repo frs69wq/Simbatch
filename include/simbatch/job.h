@@ -9,6 +9,7 @@
 #ifndef _JOB_H_
 #define _JOB_H_
 
+#include <msg/msg.h>
 
 typedef enum _state_t {
     WAITING    = 0,
@@ -31,7 +32,8 @@ typedef enum _state_t {
  * - #procs needed
  * - mapping : proc # affected for the task
  * - a state 
- * - job id fixed by the batch 
+ * - job id fixed by the batch
+ * - source is the m_host_t which send the task
  */
 
 typedef struct _job {
@@ -47,7 +49,9 @@ typedef struct _job {
     int priority;
     int nb_procs;
     int * mapping;
-    state_t state; /* to avoid data duplication */
+    state_t state;
+    m_host_t source;
+    void * data;
 } * job_t;
 
 
@@ -57,12 +61,16 @@ typedef struct _job {
  * position : slot position in the waiting queue
  * start_time : start time of the slot
  * duration : slot duration
+ * host : usefull for a metascheduler
+ * data : could be usefull
  */
 typedef struct _slot {
     int node;
     int position;
     double start_time;
     double duration;
+    m_host_t host;
+    void * data;
 } slot, * slot_t;
 
 

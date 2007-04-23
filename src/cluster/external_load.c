@@ -102,7 +102,7 @@ int SB_external_load(int argc, char ** argv) {
 		    MSG_get_clock(), PROCESS_NAME(),\
 		    job->name, HOST_NAME());
 #endif		
-	    
+            job->source = MSG_host_self();
 	    MSG_task_put(MSG_task_create("SB_TASK", 0, 0, job), 
 			 MSG_host_self(), CLIENT_PORT);
 	    time = job->submit_time;
@@ -112,7 +112,7 @@ int SB_external_load(int argc, char ** argv) {
 
     /* When everything has been submitted - ask question for DIET */ 
     if (DIET_MODE) {
-	MSG_task_put(MSG_task_create("DIET_REQUEST", 0, 0, NULL), 
+	MSG_task_put(MSG_task_create("SB_DIET", 0, 0, NULL), 
 		     MSG_host_self(), CLIENT_PORT);
     }
     

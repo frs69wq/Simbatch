@@ -91,7 +91,8 @@ int SB_file_client(int argc, char ** argv) {
 	    fprintf(flog, "[%lf]\t%16s\t Send %s to \"%s\"\n",
 		    MSG_get_clock(), PROCESS_NAME(), job->name, sched->name);
 #endif		
-	    
+            
+	    job->source = MSG_host_self();
 	    MSG_task_put(MSG_task_create("SB_TASK", 0.0, 0.0, job), 
 			 sched, CLIENT_PORT);
 	    time = job->submit_time;
@@ -138,6 +139,7 @@ int SB_job_client(int argc, char ** argv) {
     job->nb_procs = 3; 
     job->priority = 0;
     job->state = RESERVED;
+    job->source = MSG_host_self();
     MSG_task_put(MSG_task_create("SB_RES", 0.0, 0.0, job), 
                  sched, CLIENT_PORT);
 
@@ -152,6 +154,7 @@ int SB_job_client(int argc, char ** argv) {
     job->nb_procs = 5; 
     job->priority = 0;
     job->state = RESERVED;
+    job->source = MSG_host_self();
     MSG_task_put(MSG_task_create("SB_RES", 0.0, 0.0, job), 
                  sched, CLIENT_PORT);
 

@@ -134,7 +134,7 @@ int SB_resource_manager(int argc, char ** argv) {
             while (xbt_fifo_size(msg_stack)) {
                 task = xbt_fifo_shift(msg_stack);
                 
-                if (!strcmp(task->name, "UPDATE")) {
+                if (!strcmp(task->name, "SB_UPDATE")) {
 #ifdef DEBUG
                     fprintf(stderr, "[%lf]\t%20s\tUpdate\n", MSG_get_clock(), 
                             PROCESS_NAME());
@@ -142,7 +142,7 @@ int SB_resource_manager(int argc, char ** argv) {
                 }
                 
                 /* A Supervisor has finished and is available again */
-                else if (!strcmp(task->name, "ATTACH")) {
+                else if (!strcmp(task->name, "RM_ATTACH")) {
                     m_process_t supervisor = MSG_task_get_data(task);
 #ifdef LOG
                     fprintf(flog, "[%lf]\t%20s\tAttach %s\n", MSG_get_clock(),
@@ -248,10 +248,10 @@ static int supervise(int argc, char ** argv) {
 
 	    /* Finish - ask to be in the pool again */
 	    MSG_task_put(
-                MSG_task_create("ATTACH", 0.0, 0.0, MSG_process_self()),
+                MSG_task_create("RM_ATTACH", 0.0, 0.0, MSG_process_self()),
                 MSG_host_self(), RSC_MNG_PORT);
 	    
-            MSG_task_put(MSG_task_create("ACK", 0.0, 0.0, job),
+            MSG_task_put(MSG_task_create("SB_ACK", 0.0, 0.0, job),
 			 MSG_host_self(), CLIENT_PORT);
 	}
     }

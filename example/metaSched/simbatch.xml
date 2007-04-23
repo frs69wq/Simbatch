@@ -7,8 +7,8 @@
   
   <batch host="Batch0">
     <plugin>libcbf.so</plugin>
-    <load>1.wld</load> 
-    <parser>libwld.so</parser>
+    <!-- <load>1.wld</load> --> 
+    <!-- <parser>libwld.so</parser> -->
     <priority_queue>
       <number>3</number>
     </priority_queue>
@@ -16,35 +16,35 @@
   
   <batch host="Batch1">
     <plugin>libcbf.so</plugin>
-    <load>1.wld</load> 
-    <parser>libwld.so</parser>
+    <!-- <load>1.wld</load> -->
+    <!-- <parser>libwld.so</parser> -->
     <priority_queue>
       <number>3</number>
     </priority_queue>
   </batch>
       
   <batch host="Batch2">
-    <plugin>libcbf.so</plugin>
+      <plugin>libcbf.so</plugin> <!--
     <load>1.wld</load> 
-    <parser>libwld.so</parser>
+    <parser>libwld.so</parser> -->
     <priority_queue>
       <number>3</number>
     </priority_queue>
   </batch>
       
   <batch host="Batch3">
-    <plugin>libcbf.so</plugin>
+      <plugin>libcbf.so</plugin> <!--
     <load>1.wld</load> 
-    <parser>libwld.so</parser>
+    <parser>libwld.so</parser> -->
     <priority_queue>
       <number>3</number>
     </priority_queue>
   </batch>
   
   <batch host="Batch4">
-    <plugin>libcbf.so</plugin>
+      <plugin>libcbf.so</plugin> <!--
     <load>1.wld</load> 
-    <parser>libwld.so</parser>
+    <parser>libwld.so</parser> -->
     <priority_queue>
       <number>3</number>
     </priority_queue>

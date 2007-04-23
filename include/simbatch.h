@@ -12,5 +12,7 @@
 #include "simbatch/job.h"
 #include "simbatch/cluster.h"
 #include "simbatch/scheduling.h"
+#include "simbatch/utils.h"
+#include "simbatch/ports.h"
 
 #endif

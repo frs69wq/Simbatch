@@ -40,9 +40,7 @@ job_t next_job_to_schedule(cluster_t cluster);
 __inline__ void free_slot(void * d);
 
 /* print a xbt dynar of slots */
-#ifdef DEBUG2
 __inline__ void print_slots(xbt_dynar_t slots);
-#endif
 
 /* return the last slot of queue i */
 slot_t get_last_slot(cluster_t cluster, int i);
@@ -53,9 +51,6 @@ slot_t * select_n_slots(cluster_t cluster, xbt_dynar_t slots, int nb);
 /* return the last completion time (end of work) */
 double get_completion_time(cluster_t cluster);
 
-#ifdef DEBUG2
 __inline__ void print_slot(slot_t * slots, int size);
-#endif
-
 
 #endif

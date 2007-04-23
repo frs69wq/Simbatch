@@ -35,9 +35,20 @@
 #include "plugin_scheduler.h"
 
 #define UPDATE_RSC_MNG()  ({\
-    MSG_task_put(MSG_task_create("UPDATE", 0.0, 0.0, NULL),\
+    MSG_task_put(MSG_task_create("SB_UPDATE", 0.0, 0.0, NULL),\
 		 MSG_host_self(), RSC_MNG_PORT);\
 })
+
+#define ASEND_OK()  ({\
+    MSG_task_async_put(MSG_task_create("SB_OK", 0.0, 0.0, NULL),\
+		 sender, BATCH_OUT);                    \
+})
+
+#define ASEND_KO()  ({\
+    MSG_task_async_put(MSG_task_create("SB_OK", 0.0, 0.0, NULL),\
+		 sender, BATCH_OUT);                         \
+})
+
 
 extern unsigned long int DIET_PARAM[4];
 extern const char * DIET_FILE; 
@@ -68,8 +79,8 @@ int SB_batch(int argc, char ** argv) {
     cluster_t cluster = NULL;
     pluginInfo_t plugin = NULL;
     plugin_scheduler_t scheduler = NULL;
-    m_process_t wld_process;
-    
+    m_process_t wld_process = NULL;
+    m_host_t sender = NULL;
     
     /**************** Configuration ******************/  
     
@@ -180,7 +191,8 @@ int SB_batch(int argc, char ** argv) {
             /* retrieve messages from the stack */
             while (xbt_fifo_size(msg_stack)) {
                 task = xbt_fifo_shift(msg_stack); 
-                
+                sender = MSG_task_get_source(task);
+               
                 /************ Schedule ************/
                 if (!strcmp(task->name, "SB_TASK")) {
                     job_t job = NULL;
@@ -191,7 +203,7 @@ int SB_batch(int argc, char ** argv) {
 #ifdef LOG	
                     fprintf(flog, "[%lf]\t%20s\tReceive \"%s\" from \"%s\"\n",
                             MSG_get_clock(), PROCESS_NAME(), job->name,
-                            MSG_host_get_name(MSG_task_get_source(task)));
+                            MSG_host_get_name(sender));
 #endif
                     
                     if (job->nb_procs <= cluster->nb_nodes) {
@@ -202,6 +214,7 @@ int SB_batch(int argc, char ** argv) {
                         job->entry_time = MSG_get_clock();
                         /* Noise */
                         job->run_time += NOISE;
+                        if (job->mapping != NULL) xbt_free(job->mapping);
                         job->mapping = xbt_malloc(job->nb_procs * sizeof(int));
                         xbt_dynar_push(cluster->queues[job->priority], &job); 
                         
@@ -216,33 +229,25 @@ int SB_batch(int argc, char ** argv) {
                                 MSG_get_clock(), PROCESS_NAME(), job->name);
                     }
 #endif		
-#ifdef GANTT
-                    cluster_print(cluster);
-#endif
                 }	    
                 
                 /*** Reservation handler ***/
                 else if (!strcmp(task->name, "SB_RES")) {
                     job_t job = NULL;
                     slot_t * slot = NULL;
-                    job = MSG_task_get_data(task);
-                    job->id = jobCounter++;
                     int it = 0;
                     
+                    job = MSG_task_get_data(task);
+                    job->id = jobCounter++;
 #ifdef LOG	
                     fprintf(flog, "[%lf]\t%20s\tReceive \"%s\" from \"%s\"\n",
                             MSG_get_clock(), PROCESS_NAME(), job->name,
-                            MSG_host_get_name(MSG_task_get_source(task)));
+                            MSG_host_get_name(sender));
 #endif
                     slot = find_a_slot(cluster, job->nb_procs,
                                        job->start_time, job->wall_time);
                     printf("Slot: \n");
-                    for (it=0; it<cluster->nb_nodes; ++it) { 
-                        printf("\tNode: %d\n", slot[it]->node);
-                        printf("\tPosition: %d\n", slot[it]->position);
-                        printf("\tStart: %lf\n", slot[it]->start_time);
-                        printf("\tDuration: %lf\n", slot[it]->duration);
-                    }
+                    print_slot(slot, cluster->nb_nodes);
                     /* check reservation validity */
                     if (slot[job->nb_procs-1]->start_time == job->start_time) {
                         job->mapping = xbt_malloc(job->nb_procs * sizeof(int));
@@ -254,14 +259,18 @@ int SB_batch(int argc, char ** argv) {
                             xbt_dynar_insert_at(cluster->waiting_queue[slot[it]->node], 
                                                 slot[it]->position, &job);
                         }
-                        cluster_print(cluster);
+                        ASEND_OK();
                     }
-                    else
+                    else {
                         printf("Reservation impossible");
+                        ASEND_KO();
+                        xbt_free(slot);
+                        xbt_free(job);
+                    }
                 }
                
                 /*** A task has been done ***/
-                else if (!strcmp(task->name, "ACK")) {
+                else if (!strcmp(task->name, "SB_ACK")) {
                     job_t job = NULL;
                     int it;
                     
@@ -303,7 +312,7 @@ int SB_batch(int argc, char ** argv) {
                 
                 
                 /* Diet request - to do with */
-                else if (!strcmp(task->name, "DIET_REQUEST")) {
+                else if (!strcmp(task->name, "SB_DIET")) {
                     FILE * fdiet = fopen(DIET_FILE, "w"); 
                     slot_t * slots = NULL;
                     int i = 0;
@@ -342,6 +351,33 @@ int SB_batch(int argc, char ** argv) {
                     }       
                     fclose(fdiet);
                 }
+                
+                else if (!strcmp(task->name, "SED_PRED")) {
+                    job_t job = MSG_task_get_data(task);
+                    slot_t * slots = NULL;
+                    printf("Prediction\n");
+ 
+#ifdef LOG	
+                    fprintf(flog, "[%lf]\t%20s\tReceive \"%s\" from \"%s\"\n",
+                            MSG_get_clock(), PROCESS_NAME(), job->name,
+                            MSG_host_get_name(sender));
+#endif
+                    
+                    if (job->nb_procs <= cluster->nb_nodes) {
+                        if (job->priority >= cluster->priority)
+                            job->priority = cluster->priority - 1;
+                        
+                        job->entry_time = MSG_get_clock();
+                        job->run_time += NOISE;
+                        job->mapping = xbt_malloc(job->nb_procs * sizeof(int)); 
+
+                        slots = scheduler->schedule(cluster, job);
+                        
+                        MSG_task_async_put(MSG_task_create("SED_PRED", 0.0, 0.0, slots),
+                                 sender, BATCH_OUT);
+                    }
+                }
+                
                 MSG_task_destroy(task);
                 task = NULL;
             }

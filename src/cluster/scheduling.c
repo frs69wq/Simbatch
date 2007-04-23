@@ -54,7 +54,9 @@ slot_t new_slot(int node_id, int it, double start_time, double duration) {
     s->start_time = start_time; 
     s->duration = duration;
     s->position = it;
-    
+    s->host = MSG_host_self();
+    s->data = NULL;
+
     return s;
 }
 
@@ -249,14 +251,14 @@ double get_completion_time(cluster_t cluster) {
 }
 
 
-/* Print a tab of slots */
-#ifdef DEBUG2
 inline void print_slot(slot_t * slots, int size) {
     int i = 0;
     
-    for (i=0 ; i<size; i++)
-	printf("node : %d, start_time : %f, duration : %f\n", 
-	       slots[i]->node+1, slots[i]->start_time, slots[i]->duration);
+    for (i=0 ; i<size; ++i) {
+	printf("node : %d, idx: %d, start_time : %lf, duration : %lf, host: %s\n", 
+               slots[i]->node+1, slots[i]->position, slots[i]->start_time,
+               slots[i]->duration, slots[i]->host->name);
+    }
 }
 
 
@@ -264,11 +266,11 @@ inline void print_slots(xbt_dynar_t slots) {
     int cursor = 0;
     slot_t s;
     
-    xbt_dynar_foreach(slots, cursor, s) 
+    xbt_dynar_foreach(slots, cursor, s) {
 	printf("slot %d : %f\t", s->node, s->start_time);
+    }
     printf("\n");
 }
-#endif
 
 
 /* Return the next job to schedule in the queue nb */

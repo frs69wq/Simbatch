@@ -12,7 +12,10 @@
 
     <!-- Cluster 0 -->
     <process host="Batch0" function="sed">
+        <argument value="MetaSched"/>
         <argument value="Batch0"/>
+        <argument value="Service1"/>
+        <argument value="Service2"/>
     </process>      
     <process host="Batch0" function="SB_batch">
         <argument value="Node0_0"/>
@@ -29,7 +32,9 @@
 
     <!-- Cluster 1 -->
     <process host="Batch1" function="sed">
+        <argument value="MetaSched"/>
         <argument value="Batch1"/>
+        <argument value="Service1"/>
     </process>      
     <process host="Batch1" function="SB_batch">
         <argument value="Node1_0"/>
@@ -46,7 +51,9 @@
   
     <!-- Cluster 2 -->
     <process host="Batch2" function="sed">
+        <argument value="MetaSched"/>
         <argument value="Batch2"/>
+        <argument value="Service1"/>
     </process>      
     <process host="Batch2" function="SB_batch">
         <argument value="Node2_0"/>
@@ -63,7 +70,9 @@
 
     <!-- Cluster 3 -->
     <process host="Batch3" function="sed">
+        <argument value="MetaSched"/>
         <argument value="Batch3"/>
+        <argument value="Service1"/>
     </process>
     <process host="Batch3" function="SB_batch">
         <argument value="Node3_0"/>
@@ -80,7 +89,9 @@
 
     <!-- Cluster 4 -->
     <process host="Batch4" function="sed">
+        <argument value="MetaSched"/>
         <argument value="Batch4"/>
+        <argument value="Service1"/>
     </process>      
     <process host="Batch4" function="SB_batch">
         <argument value="Node4_0"/>
