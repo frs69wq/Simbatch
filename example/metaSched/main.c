@@ -22,7 +22,7 @@
 void printArgs(int argc, char **argv);
 int metaSched(int argc, char ** argv);
 int sed(int argc, char ** argv);
-
+m_host_t MCT_schedule(int nbClusters, m_host_t * clusters, job_t job);
 
 void printArgs(int argc, char ** argv) {
     int i=1;
@@ -32,32 +32,10 @@ void printArgs(int argc, char ** argv) {
 }
 
 
-int metaSched(int argc, char ** argv) {
-    m_host_t * clusters = NULL;
-    job_t job =  xbt_malloc(sizeof(*job));
-    int nbClusters = argc - 1;
-    int i = 1;
-    int min = 0;
-
-    printf("%s - ", MSG_host_get_name(MSG_host_self()));
-    printf("%s\n", MSG_process_get_name(MSG_process_self()));
-    printArgs(argc, argv);
-
-    clusters = xbt_malloc(sizeof(m_host_t) * nbClusters);
-    for (i=1; i<argc; ++i) {
-        clusters[i-1] = MSG_get_host_by_name(argv[i]);
-        printf("t %s\n", clusters[i-1]->name);
-    }
-
-    // Warning: should the job be copied or not?
-    strcpy(job->name, "SED_PRED");
-    job->submit_time = MSG_get_clock();
-    job->input_size = 0.0; 
-    job->output_size = 0.0;
-    job->priority = 0;
-    job->nb_procs = 3;
-    job->wall_time = 150;
-    job->run_time = 100;
+m_host_t MCT_schedule(int nbClusters, m_host_t * clusters, job_t job) {
+    int i = 0;
+    double min = DBL_MAX;
+    m_host_t winner = NULL;
 
     // broadcast 
     for (i=0; i<nbClusters; ++i) {    
@@ -75,18 +53,77 @@ int metaSched(int argc, char ** argv) {
         task = NULL;
         print_slot(slots, 5);
         printf("\n");
-        if (slots[0]->start_time < min)
-            min = i;
+        if (slots[0]->start_time < min) {
+            min = slots[0]->start_time;
+            winner = clusters[i];
+        }
         xbt_free(slots);
     }
+    return winner;
+}
+
+
+int metaSched(int argc, char ** argv) {
+    m_host_t * clusters = NULL;
+    m_host_t winner = NULL;
+    int nbClusters = argc - 1;
+    int i = 1;
+
+    printf("%s - ", MSG_host_get_name(MSG_host_self()));
+    printf("%s\n", MSG_process_get_name(MSG_process_self()));
+    printArgs(argc, argv);
+
+    clusters = xbt_malloc(sizeof(m_host_t) * nbClusters);
+    for (i=1; i<argc; ++i) {
+        clusters[i-1] = MSG_get_host_by_name(argv[i]);
+        printf("t %s\n", clusters[i-1]->name);
+    }
     
-    printf("Winner is %d!\n", min);
-    strcpy(job->name, "job");
-    MSG_task_put(MSG_task_create("SB_TASK", 0, 0, job), clusters[min], SED_CHANNEL);
-
-    // free
+    {
+        job_t job =  NULL; 
+        job =  xbt_malloc(sizeof(*job));
+        
+        // Warning: should the job be copied or not?
+        strcpy(job->name, "SED_PRED");
+        job->submit_time = MSG_get_clock();
+        job->input_size = 0.0; 
+        job->output_size = 0.0;
+        job->priority = 0;
+        job->nb_procs = 3;
+        job->wall_time = 150;
+        job->run_time = 100;
+        job->state = WAITING;
+  
+        winner = MCT_schedule(nbClusters, clusters, job);
+        
+        printf("Winner is %s!\n", winner->name);
+        strcpy(job->name, "job");
+        MSG_task_put(MSG_task_create("SB_TASK", 0, 0, job), winner, SED_CHANNEL);
+    }
+    
+    MSG_process_sleep(10);
+    
+    {
+        job_t job =  xbt_malloc(sizeof(*job)); // freed by SB_batch
+        strcpy(job->name, "SED_PRED");
+        job->submit_time = MSG_get_clock();
+        job->input_size = 0.0; 
+        job->output_size = 0.0;
+        job->priority = 0;
+        job->nb_procs = 3;
+        job->wall_time = 150;
+        job->run_time = 100;
+        job->state = WAITING;
+        
+        winner = MCT_schedule(nbClusters, clusters, job);
+        
+        printf("Winner is %s!\n", winner->name);
+        strcpy(job->name, "job1"); 
+        MSG_task_put(MSG_task_create("SB_TASK", 0, 0, job), winner, SED_CHANNEL);
+    }
+    
     xbt_free(clusters);
-
+    
     return EXIT_SUCCESS;
 }
 
@@ -126,27 +163,27 @@ int sed(int argc, char ** argv) {
             
             if (!strcmp(task->name, "SB_PRED")) {
                 /* Forward to the MS */
-                printf("%s\n", task->name);
+                printf("Forward %s to the Metascheduler\n", task->name);
                 MSG_task_async_put(task, sched, MS_CHANNEL); 
             }
             else {
                 /* Forward to the Batch */
-                printf("%s\n", task->name);
+                printf("Forward %s to the batch\n", task->name);
                 MSG_task_async_put(task, MSG_host_self(), CLIENT_PORT);
             }
         }
     }
     xbt_fifo_free(msg_stack);
-
+    
     return EXIT_SUCCESS;
 }
 
-    
+
 int main(int argc, char ** argv) {
     
     SB_global_init(&argc, argv);
     MSG_global_init(&argc, argv);
-
+    
     /* Open the channels */
     MSG_set_channel_number(NB_CHANNEL);
     
