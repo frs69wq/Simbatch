@@ -110,7 +110,8 @@ winner_t * MCT_schedule(const m_host_t * clusters, const int nbClusters,
     int i = 0;
     double completionT = DBL_MAX;
     winner_t * winner = xbt_malloc(sizeof(winner_t));
-    
+    int failure = 0;
+
     winner->completionT = DBL_MAX;
     winner->job = job;
     
@@ -138,11 +139,15 @@ winner_t * MCT_schedule(const m_host_t * clusters, const int nbClusters,
         else { 
             const m_host_t sender = MSG_task_get_source(task);
             printf("Service unavailable on host: %s\n", sender->name);
+            ++failure;
         }
-        
+       
         printf("\n");
         MSG_task_destroy(task), task = NULL;
     }
+
+    if (failure == nbClusters) { winner->completionT = -1; }
+
     return winner;
 }
 
@@ -165,11 +170,18 @@ MinMin_schedule(const m_host_t * clusters, const int nbClusters,
     // foreach MCT estimation, select the min
     bigWinner = winners[0];
     for (i=1; i<xbt_fifo_size(bagofJobs); ++i) {
-        if (winners[i]->completionT < bigWinner->completionT) {
-            bigWinner = winners[i];
+        if (winners[i]->completionT > 0) {
+            if (bigWinner->completionT < winners[i]->completionT) {
+                bigWinner = winners[0]; 
+            } 
         }
     }
-
+    
+    // free loosers
+    for (i=0; i<xbt_fifo_size(bagofJobs); ++i) {
+        if (winners[i] != bigWinner) { xbt_free(winners[i]); }
+    }
+    
     return bigWinner;
 }
 
@@ -191,11 +203,18 @@ MaxMin_schedule(const m_host_t * clusters, const int nbClusters,
     // foreach MCT estimation, select the min
     bigWinner = winners[0];
     for (i=1; i<xbt_fifo_size(bagofJobs); ++i) {
-        if (winners[i]->completionT > bigWinner->completionT) {
-            bigWinner = winners[i];
+        if (winners[i]->completionT > 0) {
+            if (bigWinner->completionT > winners[i]->completionT) {
+                bigWinner = winners[0]; 
+            } 
         }
     }
     
+    // free loosers
+    for (i=0; i<xbt_fifo_size(bagofJobs); ++i) {
+        if (winners[i] != bigWinner) { xbt_free(winners[i]); }
+    }
+
     return bigWinner;
 }
 
@@ -267,7 +286,7 @@ int metaSched(int argc, char ** argv) {
         job_t job = xbt_malloc(sizeof(*job)); // freed by SB_batch
         
         strcpy(job->name, "SED_PRED");
-        strcpy(job->service, "Service2");
+        strcpy(job->service, "Service1");
         job->submit_time = MSG_get_clock();
         job->input_size = 0.0; 
         job->output_size = 0.0;
@@ -278,33 +297,41 @@ int metaSched(int argc, char ** argv) {
         job->state = WAITING;
         xbt_fifo_push(jobList, job);
     }
-    /*** MCT ***/ 
+    /*** MCT ***/ /*
     {
         job_t job;
         while ((job=(job_t)xbt_fifo_shift(jobList)) != NULL) { 
             winner = MCT_schedule(clusters, nbClusters, speedCoef, job);
             
+            if (winner->completionT != -1) {
+                printf("Winner is %s!\n", winner->cluster->name);
+                sprintf(job->name, "job%d", ++cpt);
+                MSG_task_put(
+                    MSG_task_create("SB_TASK", 0, 0, job), winner->cluster, SED_CHANNEL);
+            }
+            else { 
+                printf("no winner!\n"); 
+                xbt_free(winner);
+            }
+        }
+        } 
+*/
+ 
+    
+    /*** MinMin or MinMax ***/
+    while (xbt_fifo_size(jobList)!=0) {
+        winner = MinMin_schedule(clusters, nbClusters, speedCoef, jobList);
+        if (winner) {
             printf("Winner is %s!\n", winner->cluster->name);
-            sprintf(job->name, "job%d", ++cpt);
-            MSG_task_put(
-                MSG_task_create("SB_TASK", 0, 0, job), winner->cluster, SED_CHANNEL);
+            
+            sprintf(winner->job->name, "job%d", cpt++);
+            MSG_task_put(MSG_task_create("SB_TASK", 0, 0, winner->job), 
+                         winner->cluster, SED_CHANNEL);
+            xbt_fifo_remove(jobList, winner->job);
             xbt_free(winner);
         }
     }
-  
     
-    /*** MinMin or MinMax ***/ /*
-    while (xbt_fifo_size(jobList)!=0) {
-        winner = MaxMin_schedule(clusters, nbClusters, speedCoef, jobList);
-        printf("Winner is %s!\n", winner->cluster->name);
-
-        sprintf(winner->job->name, "job%d", cpt++);
-        MSG_task_put(MSG_task_create("SB_TASK", 0, 0, winner->job), 
-                     winner->cluster, SED_CHANNEL);
-        xbt_fifo_remove(jobList, winner->job);
-        xbt_free(winner);
-    }
-                               */
     xbt_fifo_free(jobList);
     xbt_free(speedCoef);
     
@@ -346,7 +373,7 @@ int sed(int argc, char ** argv) {
                 xbt_fifo_push(msg_stack, task);
             } 
         }
-        
+
         while (xbt_fifo_size(msg_stack)) {
             task = xbt_fifo_shift(msg_stack);
 
