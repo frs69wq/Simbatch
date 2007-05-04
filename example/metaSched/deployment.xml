@@ -14,7 +14,8 @@
     <process host="Batch0" function="sed">
         <argument value="MetaSched"/>
         <argument value="Batch0"/>
-        <argument value="Service1"/>
+        <argument value="100"/> <!-- waiting time -->
+        <argument value="Service1"/> <!-- list of services -->
         <argument value="Service2"/>
     </process>      
     <process host="Batch0" function="SB_batch">
@@ -34,6 +35,7 @@
     <process host="Batch1" function="sed">
         <argument value="MetaSched"/>
         <argument value="Batch1"/>
+        <argument value="200"/>
         <argument value="Service1"/>
     </process>      
     <process host="Batch1" function="SB_batch">
@@ -53,6 +55,7 @@
     <process host="Batch2" function="sed">
         <argument value="MetaSched"/>
         <argument value="Batch2"/>
+        <argument value="200"/>
         <argument value="Service1"/>
     </process>      
     <process host="Batch2" function="SB_batch">
@@ -72,6 +75,7 @@
     <process host="Batch3" function="sed">
         <argument value="MetaSched"/>
         <argument value="Batch3"/>
+        <argument value="200"/>
         <argument value="Service1"/>
     </process>
     <process host="Batch3" function="SB_batch">
@@ -91,6 +95,7 @@
     <process host="Batch4" function="sed">
         <argument value="MetaSched"/>
         <argument value="Batch4"/>
+        <argument value="200"/>
         <argument value="Service1"/>
     </process>      
     <process host="Batch4" function="SB_batch">

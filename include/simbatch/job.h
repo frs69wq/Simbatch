@@ -38,6 +38,7 @@ typedef enum _state_t {
 
 typedef struct _job {
     char name[15];
+    char service[15];
     double submit_time;
     double entry_time;
     double run_time;
