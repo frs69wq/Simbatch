@@ -108,8 +108,11 @@ double * getSpeedCoef(const m_host_t * clusters, const int nbClusters) {
 winner_t * MCT_schedule(const m_host_t * clusters, const int nbClusters, 
                         const double * speedCoef, job_t job) {
     int i = 0;
-    double min = DBL_MAX;
+    double completionT = DBL_MAX;
     winner_t * winner = xbt_malloc(sizeof(winner_t));
+    
+    winner->completionT = DBL_MAX;
+    winner->job = job;
     
     // broadcast 
     for (i=0; i<nbClusters; ++i) {    
@@ -119,21 +122,26 @@ winner_t * MCT_schedule(const m_host_t * clusters, const int nbClusters,
     // get
     for (i=0; i<nbClusters; ++i) {
         m_task_t task = NULL;
-        slot_t * slots = NULL;
         
         MSG_task_get(&task, MS_CHANNEL);
-        slots = MSG_task_get_data(task);
-        MSG_task_destroy(task);
-        task = NULL;
-        print_slot(slots, 5);
-        printf("\n");
-        winner->completionT = slots[0]->start_time + (job->wall_time * speedCoef[i]);
-        if (winner->completionT  < min) {
-            min = winner->completionT;
-            winner->cluster = clusters[i];
-            winner->job = job; 
+        if (!strcmp(task->name, "SB_PRED")) { // OK
+            slot_t * slots = NULL;
+            slots = MSG_task_get_data(task);
+            print_slot(slots, 5);
+            completionT = slots[0]->start_time + (job->wall_time * speedCoef[i]);
+            if (completionT < winner->completionT) { 
+                winner->completionT = completionT;
+                winner->cluster = slots[0]->host;
+            }
+            xbt_free(slots);
         }
-        xbt_free(slots);
+        else { 
+            const m_host_t sender = MSG_task_get_source(task);
+            printf("Service unavailable on host: %s\n", sender->name);
+        }
+        
+        printf("\n");
+        MSG_task_destroy(task), task = NULL;
     }
     return winner;
 }
@@ -151,6 +159,7 @@ MinMin_schedule(const m_host_t * clusters, const int nbClusters,
     // foreach job select min MCT
     xbt_fifo_foreach(bagofJobs, bucket, job, typeof(job)) {
         winners[i++] = MCT_schedule(clusters, nbClusters, speedCoef, job);
+        printf("qdfdsf %lf\n", winners[i-1]->completionT); 
     }
     
     // foreach MCT estimation, select the min
@@ -160,7 +169,7 @@ MinMin_schedule(const m_host_t * clusters, const int nbClusters,
             bigWinner = winners[i];
         }
     }
-    
+
     return bigWinner;
 }
 
@@ -269,22 +278,22 @@ int metaSched(int argc, char ** argv) {
         job->state = WAITING;
         xbt_fifo_push(jobList, job);
     }
-    /*** MCT ***/ /*  
+    /*** MCT ***/ 
     {
         job_t job;
         while ((job=(job_t)xbt_fifo_shift(jobList)) != NULL) { 
             winner = MCT_schedule(clusters, nbClusters, speedCoef, job);
             
             printf("Winner is %s!\n", winner->cluster->name);
-            sprintf(job->name, "job%d", cpt);
+            sprintf(job->name, "job%d", ++cpt);
             MSG_task_put(
                 MSG_task_create("SB_TASK", 0, 0, job), winner->cluster, SED_CHANNEL);
             xbt_free(winner);
         }
     }
-    */
+  
     
-    /*** MinMin or MinMax ***/
+    /*** MinMin or MinMax ***/ /*
     while (xbt_fifo_size(jobList)!=0) {
         winner = MaxMin_schedule(clusters, nbClusters, speedCoef, jobList);
         printf("Winner is %s!\n", winner->cluster->name);
@@ -295,7 +304,7 @@ int metaSched(int argc, char ** argv) {
         xbt_fifo_remove(jobList, winner->job);
         xbt_free(winner);
     }
-    
+                               */
     xbt_fifo_free(jobList);
     xbt_free(speedCoef);
     
@@ -347,9 +356,17 @@ int sed(int argc, char ** argv) {
                 MSG_task_async_put(task, sched, MS_CHANNEL); 
             }
             else {
-                /* Forward to the Batch */
-                printf("Forward %s to the batch\n", task->name);
-                MSG_task_async_put(task, batch, CLIENT_PORT);
+                job_t job = MSG_task_get_data(task);
+                if (isAvailable(services, job->service)) {
+                    /* Forward to the Batch */
+                    printf("Forward %s to the batch\n", task->name);
+                    MSG_task_async_put(task, batch, CLIENT_PORT);
+                }
+                else { /* Service unavailable */
+                    printf("%s Service unavailable %s \n", MSG_host_self()->name, task->name);
+                    MSG_task_async_put(MSG_task_create("SB_SERVICE_KO", 0, 0, job), 
+                                       sched, MS_CHANNEL); 
+                }
             }
         }
     }

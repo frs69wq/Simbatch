@@ -3,7 +3,7 @@
 <platform_description version="1">
 
   <!-- Cluster 0 -->
-  <cpu name="Batch0" power="386500000"/>
+  <cpu name="Batch0" power="3865000000"/>
   <cpu name="Node0_0" power="3865000000"/>
   <cpu name="Node0_1" power="3865000000"/>
   <cpu name="Node0_2" power="3865000000"/>
