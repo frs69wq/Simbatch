@@ -164,7 +164,6 @@ MinMin_schedule(const m_host_t * clusters, const int nbClusters,
     // foreach job select min MCT
     xbt_fifo_foreach(bagofJobs, bucket, job, typeof(job)) {
         winners[i++] = MCT_schedule(clusters, nbClusters, speedCoef, job);
-        printf("qdfdsf %lf\n", winners[i-1]->completionT); 
     }
     
     // foreach MCT estimation, select the min
@@ -309,27 +308,25 @@ int metaSched(int argc, char ** argv) {
                 MSG_task_put(
                     MSG_task_create("SB_TASK", 0, 0, job), winner->cluster, SED_CHANNEL);
             }
-            else { 
-                printf("no winner!\n"); 
-                xbt_free(winner);
-            }
+            else { printf("no winner!\n"); }
+            xbt_free(winner);
         }
-        } 
-*/
+        } */
  
     
     /*** MinMin or MinMax ***/
     while (xbt_fifo_size(jobList)!=0) {
         winner = MinMin_schedule(clusters, nbClusters, speedCoef, jobList);
-        if (winner) {
+        if (winner->completionT > 0) {
             printf("Winner is %s!\n", winner->cluster->name);
             
             sprintf(winner->job->name, "job%d", cpt++);
             MSG_task_put(MSG_task_create("SB_TASK", 0, 0, winner->job), 
                          winner->cluster, SED_CHANNEL);
-            xbt_fifo_remove(jobList, winner->job);
-            xbt_free(winner);
         }
+        else { printf("no winner!\n"); }
+        xbt_fifo_remove(jobList, winner->job);
+        xbt_free(winner);
     }
     
     xbt_fifo_free(jobList);
