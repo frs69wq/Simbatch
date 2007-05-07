@@ -221,6 +221,8 @@ MaxMin_schedule(const m_host_t * clusters, const int nbClusters,
 double HPF(const m_host_t * clusters, const int nbClusters, 
            const double * speedCoef, job_t job) {
     double weight = 0;
+    double * data = 0;
+    int nbServiceOk = nbClusters;
     int i = 0;
     
     // broadcast 
@@ -233,14 +235,19 @@ double HPF(const m_host_t * clusters, const int nbClusters,
         m_task_t task = NULL;
         
         MSG_task_get(&task, MS_CHANNEL);
-        weight = *((double *) MSG_task_get_data(task));
+        if (!strcmp(task->name, "SB_SERVICE_KO")) { --nbServiceOk; }
+        // else if (!strcmp(task->name, "SB_CLUSTER_KO")) {;}
+        else {  
+            data = (double *)MSG_task_get_data(task);
+            weight += *data;
+            xbt_free(data);
+        }
         MSG_task_destroy(task);
         task = NULL;
-       
-        xbt_free(&weight);
     }
     
-    return weight;
+    printf ("representativite : %d/%d\n", nbServiceOk, nbClusters);
+    return weight * (nbClusters/nbServiceOk);
 }
 
 
@@ -285,7 +292,7 @@ int metaSched(int argc, char ** argv) {
         job_t job = xbt_malloc(sizeof(*job)); // freed by SB_batch
         
         strcpy(job->name, "SED_PRED");
-        strcpy(job->service, "Service1");
+        strcpy(job->service, "Service2");
         job->submit_time = MSG_get_clock();
         job->input_size = 0.0; 
         job->output_size = 0.0;
@@ -314,7 +321,7 @@ int metaSched(int argc, char ** argv) {
         } */
  
     
-    /*** MinMin or MinMax ***/
+    /*** MinMin or MinMax ***/ /*
     while (xbt_fifo_size(jobList)!=0) {
         winner = MinMin_schedule(clusters, nbClusters, speedCoef, jobList);
         if (winner->completionT > 0) {
@@ -327,6 +334,16 @@ int metaSched(int argc, char ** argv) {
         else { printf("no winner!\n"); }
         xbt_fifo_remove(jobList, winner->job);
         xbt_free(winner);
+        }*/
+
+    
+    /*** HPF ***/
+    {
+        job_t job;
+        while ((job=(job_t)xbt_fifo_shift(jobList)) != NULL) { 
+            double weight = HPF(clusters, nbClusters, speedCoef, job);
+            printf ("weight %s: %lf\n", job->name, weight); 
+        }
     }
     
     xbt_fifo_free(jobList);
@@ -376,6 +393,10 @@ int sed(int argc, char ** argv) {
 
             /* Forward to the metaScheduler */ 
             if (MSG_task_get_source(task) == batch) {
+                if (!strcmp(task->name, "SB_HPF")) {
+                    double * weight = MSG_task_get_data(task);
+                    *weight /= nbServices; 
+                }
                 printf("Forward %s to the MetaScheduler\n", task->name);
                 MSG_task_async_put(task, sched, MS_CHANNEL); 
             }

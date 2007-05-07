@@ -377,6 +377,26 @@ int SB_batch(int argc, char ** argv) {
                                  sender, SED_CHANNEL);
                     }
                 }
+
+                else if (!strcmp(task->name, "SED_HPF")) {
+                    job_t job = MSG_task_get_data(task);
+                    double * weight = xbt_malloc(sizeof(double));
+                    m_task_t HPF_value = NULL;
+                    double waitT = 1; // to fix
+
+                    printf("Heuristique\n");
+
+                    if (job->nb_procs > cluster->nb_nodes) { 
+                        *weight = 0;
+                        HPF_value = MSG_task_create("SB_CLUSTER_KO", 0.0, 0.0, weight);
+                    }
+                    else {
+                        *weight = (cluster->nb_nodes * 
+                                   MSG_get_host_speed(MSG_host_self())) / waitT;
+                        HPF_value = MSG_task_create("SB_HPF", 0.0, 0.0, weight);
+                    }
+                    MSG_task_async_put(HPF_value, sender, SED_CHANNEL);
+                }
                 
                 MSG_task_destroy(task);
                 task = NULL;
