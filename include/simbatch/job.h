@@ -27,6 +27,7 @@ typedef enum _state_t {
  * - submit time : time client send the job
  * - entry time : time the job entered for the first time in the batch
  * - run time : time job runs
+ * - weight : a weight given by some heuristic
  * - data size 
  * - requested time
  * - #procs needed
@@ -46,6 +47,7 @@ typedef struct _job {
     double output_size;
     double wall_time;
     double start_time;
+    double weight;
     unsigned long int id;
     int priority;
     int nb_procs;

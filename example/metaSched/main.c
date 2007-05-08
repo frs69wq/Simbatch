@@ -49,9 +49,12 @@ winner_t * MinMin_schedule(const m_host_t * clusters, const int nbClusters,
 winner_t * MaxMin_schedule(const m_host_t * clusters, const int nbClusters, 
                            const double * speedCoef, xbt_fifo_t bagofJobs);
 
-double HPF(const m_host_t * clusters, const int nbClusters, 
-           const double * speedCoef, job_t job);
+void HPF(const m_host_t * clusters, const int nbClusters, 
+         const double * speedCoef, job_t job);
 
+p_winner_t
+HPF_schedule(const m_host_t * clusters, const int nbClusters, 
+             const double * speedCoef, xbt_fifo_t bagofJobs);
 
 
 void printArgs(int argc, char ** argv) {
@@ -218,13 +221,14 @@ MaxMin_schedule(const m_host_t * clusters, const int nbClusters,
 }
 
 
-double HPF(const m_host_t * clusters, const int nbClusters, 
-           const double * speedCoef, job_t job) {
-    double weight = 0;
+void HPF(const m_host_t * clusters, const int nbClusters, 
+         const double * speedCoef, job_t job) {
     double * data = 0;
     int nbServiceOk = nbClusters;
     int i = 0;
     
+    job->weight = 0;
+
     // broadcast 
     for (i=0; i<nbClusters; ++i) {    
         MSG_task_put(MSG_task_create("SED_HPF", 0, 0, job), clusters[i], SED_CHANNEL);
@@ -239,15 +243,34 @@ double HPF(const m_host_t * clusters, const int nbClusters,
         // else if (!strcmp(task->name, "SB_CLUSTER_KO")) {;}
         else {  
             data = (double *)MSG_task_get_data(task);
-            weight += *data;
+            job->weight += *data;
             xbt_free(data);
         }
         MSG_task_destroy(task);
         task = NULL;
     }
     
-    printf ("representativite : %d/%d\n", nbServiceOk, nbClusters);
-    return weight * (nbClusters/nbServiceOk);
+    job->weight = 10000000/(double)(job->weight); 
+    printf ("weight : %lf \t representativite : %d/%d\n", job->weight, nbServiceOk, nbClusters);
+    job->weight *= nbClusters / nbServiceOk;
+}
+
+
+p_winner_t
+HPF_schedule(const m_host_t * clusters, const int nbClusters, 
+             const double * speedCoef, xbt_fifo_t bagofJobs) {
+    xbt_fifo_item_t bucket = NULL;
+    job_t job;
+    job_t criticalJob = NULL;
+    
+    xbt_fifo_foreach(bagofJobs, bucket, job, typeof(job)) { 
+        HPF(clusters, nbClusters, speedCoef, job);
+        printf ("weight %s: %lf\n", job->name, job->weight); 
+        if (!criticalJob) { criticalJob = job; }
+        else if (criticalJob->weight < job->weight) { criticalJob = job; }
+    }
+
+    return MCT_schedule(clusters, nbClusters, speedCoef, criticalJob);
 }
 
 
@@ -303,6 +326,7 @@ int metaSched(int argc, char ** argv) {
         job->state = WAITING;
         xbt_fifo_push(jobList, job);
     }
+    
     /*** MCT ***/ /*
     {
         job_t job;
@@ -324,7 +348,7 @@ int metaSched(int argc, char ** argv) {
     /*** MinMin or MinMax ***/ /*
     while (xbt_fifo_size(jobList)!=0) {
         winner = MinMin_schedule(clusters, nbClusters, speedCoef, jobList);
-        if (winner->completionT > 0) {
+        if (winner->completionT >= 0) {
             printf("Winner is %s!\n", winner->cluster->name);
             
             sprintf(winner->job->name, "job%d", cpt++);
@@ -339,10 +363,18 @@ int metaSched(int argc, char ** argv) {
     
     /*** HPF ***/
     {
-        job_t job;
-        while ((job=(job_t)xbt_fifo_shift(jobList)) != NULL) { 
-            double weight = HPF(clusters, nbClusters, speedCoef, job);
-            printf ("weight %s: %lf\n", job->name, weight); 
+        while (xbt_fifo_size(jobList)!=0) {
+            winner = HPF_schedule(clusters, nbClusters, speedCoef, jobList);
+            if (winner->completionT >= 0) {
+                printf("Winner is %s!\n", winner->cluster->name);
+                
+                sprintf(winner->job->name, "job%d", cpt++);
+                MSG_task_put(MSG_task_create("SB_TASK", 0, 0, winner->job), 
+                             winner->cluster, SED_CHANNEL);
+            }
+            else { printf("no winner!\n"); }
+            xbt_fifo_remove(jobList, winner->job);
+            xbt_free(winner);
         }
     }
     
