@@ -90,7 +90,7 @@
   <route src="Node2_4" dst="Batch2"><route_element name="B2_4"/></route>
 
   <!-- Cluster 3 -->
-  <cpu name="Batch3" power="3865100000"/>
+  <cpu name="Batch3" power="3865000000"/>
   <cpu name="Node3_0" power="3865000000"/>
   <cpu name="Node3_1" power="3865000000"/>
   <cpu name="Node3_2" power="3865000000"/>

@@ -376,6 +376,10 @@ int SB_batch(int argc, char ** argv) {
                         MSG_task_async_put(MSG_task_create("SB_PRED", 0.0, 0.0, slots),
                                  sender, SED_CHANNEL);
                     }
+                    else {
+                        MSG_task_async_put(MSG_task_create("SB_CLUSTER_KO", 0.0, 0.0, slots),
+                                 sender, SED_CHANNEL);
+                    }
                 }
 
                 else if (!strcmp(task->name, "SED_HPF")) {
@@ -385,7 +389,8 @@ int SB_batch(int argc, char ** argv) {
 
                     printf("Heuristique\n");
 
-                    if (job->nb_procs > cluster->nb_nodes) { 
+                    if (job->nb_procs > cluster->nb_nodes) {
+                        printf("SB_CLUSTER_KO\n");
                         *weight = 0;
                         HPF_value = MSG_task_create("SB_CLUSTER_KO", 0.0, 0.0, weight);
                     }

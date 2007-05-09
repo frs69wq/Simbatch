@@ -15,17 +15,8 @@
 #include <msg/msg.h>
 
 #include "simbatch.h"
-
-#define NB_CHANNEL 10000
-#define MS_CHANNEL 10
-#define SED_CHANNEL 42
-
-
-typedef struct _winner {
-    job_t job;
-    double completionT;
-    m_host_t cluster;
-} winner_t, * p_winner_t;
+#include "algos.h"
+#include "parser.h"
 
 
 void printArgs(int argc, char **argv);
@@ -33,28 +24,6 @@ void printArgs(int argc, char **argv);
 int isAvailable(const char * services[], const char * service);
 
 double str2double(const char * str);
-
-int metaSched(int argc, char ** argv);
-
-int sed(int argc, char ** argv);
-
-double * getSpeedCoef(const m_host_t * cluster, const int nbClusters);
-
-winner_t * MCT_schedule(const m_host_t * clusters, const int nbClusters, 
-                        const double * speedCoef, job_t job);
-
-winner_t * MinMin_schedule(const m_host_t * clusters, const int nbClusters, 
-                           const double * speedCoef, xbt_fifo_t bagofJobs);
-
-winner_t * MaxMin_schedule(const m_host_t * clusters, const int nbClusters, 
-                           const double * speedCoef, xbt_fifo_t bagofJobs);
-
-void HPF(const m_host_t * clusters, const int nbClusters, 
-         const double * speedCoef, job_t job);
-
-p_winner_t
-HPF_schedule(const m_host_t * clusters, const int nbClusters, 
-             const double * speedCoef, xbt_fifo_t bagofJobs);
 
 
 void printArgs(int argc, char ** argv) {
@@ -108,174 +77,9 @@ double * getSpeedCoef(const m_host_t * clusters, const int nbClusters) {
 }
 
 
-winner_t * MCT_schedule(const m_host_t * clusters, const int nbClusters, 
-                        const double * speedCoef, job_t job) {
-    int i = 0;
-    double completionT = DBL_MAX;
-    winner_t * winner = xbt_malloc(sizeof(winner_t));
-    int failure = 0;
-
-    winner->completionT = DBL_MAX;
-    winner->job = job;
-    
-    // broadcast 
-    for (i=0; i<nbClusters; ++i) {    
-        MSG_task_put(MSG_task_create("SED_PRED", 0, 0, job), clusters[i], SED_CHANNEL);
-    }
-    
-    // get
-    for (i=0; i<nbClusters; ++i) {
-        m_task_t task = NULL;
-        
-        MSG_task_get(&task, MS_CHANNEL);
-        if (!strcmp(task->name, "SB_PRED")) { // OK
-            slot_t * slots = NULL;
-            slots = MSG_task_get_data(task);
-            print_slot(slots, 5);
-            completionT = slots[0]->start_time + (job->wall_time * speedCoef[i]);
-            if (completionT < winner->completionT) { 
-                winner->completionT = completionT;
-                winner->cluster = slots[0]->host;
-            }
-            xbt_free(slots);
-        }
-        else { 
-            const m_host_t sender = MSG_task_get_source(task);
-            printf("Service unavailable on host: %s\n", sender->name);
-            ++failure;
-        }
-       
-        printf("\n");
-        MSG_task_destroy(task), task = NULL;
-    }
-
-    if (failure == nbClusters) { winner->completionT = -1; }
-
-    return winner;
-}
-
-
-p_winner_t
-MinMin_schedule(const m_host_t * clusters, const int nbClusters, 
-                const double * speedCoef, xbt_fifo_t bagofJobs) {
-    p_winner_t winners[xbt_fifo_size(bagofJobs)];
-    p_winner_t bigWinner = NULL;
-    xbt_fifo_item_t bucket = NULL;
-    job_t job = NULL;
-    int i = 0;
-    
-    // foreach job select min MCT
-    xbt_fifo_foreach(bagofJobs, bucket, job, typeof(job)) {
-        winners[i++] = MCT_schedule(clusters, nbClusters, speedCoef, job);
-    }
-    
-    // foreach MCT estimation, select the min
-    bigWinner = winners[0];
-    for (i=1; i<xbt_fifo_size(bagofJobs); ++i) {
-        if (winners[i]->completionT > 0) {
-            if (bigWinner->completionT < winners[i]->completionT) {
-                bigWinner = winners[0]; 
-            } 
-        }
-    }
-    
-    // free loosers
-    for (i=0; i<xbt_fifo_size(bagofJobs); ++i) {
-        if (winners[i] != bigWinner) { xbt_free(winners[i]); }
-    }
-    
-    return bigWinner;
-}
-
- 
-p_winner_t
-MaxMin_schedule(const m_host_t * clusters, const int nbClusters, 
-                const double * speedCoef, xbt_fifo_t bagofJobs) {
-    p_winner_t winners[xbt_fifo_size(bagofJobs)];
-    p_winner_t bigWinner = NULL;
-    xbt_fifo_item_t bucket = NULL;
-    job_t job = NULL;
-    int i = 0;
-    
-    // foreach job select min MCT
-    xbt_fifo_foreach(bagofJobs, bucket, job, typeof(job)) {
-        winners[i++] = MCT_schedule(clusters, nbClusters, speedCoef, job);
-    }
-    
-    // foreach MCT estimation, select the min
-    bigWinner = winners[0];
-    for (i=1; i<xbt_fifo_size(bagofJobs); ++i) {
-        if (winners[i]->completionT > 0) {
-            if (bigWinner->completionT > winners[i]->completionT) {
-                bigWinner = winners[0]; 
-            } 
-        }
-    }
-    
-    // free loosers
-    for (i=0; i<xbt_fifo_size(bagofJobs); ++i) {
-        if (winners[i] != bigWinner) { xbt_free(winners[i]); }
-    }
-
-    return bigWinner;
-}
-
-
-void HPF(const m_host_t * clusters, const int nbClusters, 
-         const double * speedCoef, job_t job) {
-    double * data = 0;
-    int nbServiceOk = nbClusters;
-    int i = 0;
-    
-    job->weight = 0;
-
-    // broadcast 
-    for (i=0; i<nbClusters; ++i) {    
-        MSG_task_put(MSG_task_create("SED_HPF", 0, 0, job), clusters[i], SED_CHANNEL);
-    }
-    
-     // get
-    for (i=0; i<nbClusters; ++i) {
-        m_task_t task = NULL;
-        
-        MSG_task_get(&task, MS_CHANNEL);
-        if (!strcmp(task->name, "SB_SERVICE_KO")) { --nbServiceOk; }
-        // else if (!strcmp(task->name, "SB_CLUSTER_KO")) {;}
-        else {  
-            data = (double *)MSG_task_get_data(task);
-            job->weight += *data;
-            xbt_free(data);
-        }
-        MSG_task_destroy(task);
-        task = NULL;
-    }
-    
-    job->weight = 10000000/(double)(job->weight); 
-    printf ("weight : %lf \t representativite : %d/%d\n", job->weight, nbServiceOk, nbClusters);
-    job->weight *= nbClusters / nbServiceOk;
-}
-
-
-p_winner_t
-HPF_schedule(const m_host_t * clusters, const int nbClusters, 
-             const double * speedCoef, xbt_fifo_t bagofJobs) {
-    xbt_fifo_item_t bucket = NULL;
-    job_t job;
-    job_t criticalJob = NULL;
-    
-    xbt_fifo_foreach(bagofJobs, bucket, job, typeof(job)) { 
-        HPF(clusters, nbClusters, speedCoef, job);
-        printf ("weight %s: %lf\n", job->name, job->weight); 
-        if (!criticalJob) { criticalJob = job; }
-        else if (criticalJob->weight < job->weight) { criticalJob = job; }
-    }
-
-    return MCT_schedule(clusters, nbClusters, speedCoef, criticalJob);
-}
 
 
 int metaSched(int argc, char ** argv) {
-    static int cpt = 0;
     const int nbClusters = argc - 1;
     m_host_t clusters[nbClusters];
     xbt_fifo_t jobList = NULL;
@@ -292,41 +96,24 @@ int metaSched(int argc, char ** argv) {
     }
     
     speedCoef = getSpeedCoef(clusters, nbClusters);
-    
-    jobList = xbt_fifo_new();
+
+    jobList = parse("1.wld", "job");
+    /*
     {
-        job_t job =  xbt_malloc(sizeof(*job));
-        
-        // Warning: should the job be copied or not?
-        strcpy(job->name, "SED_PRED");
+        job_t job = xbt_malloc(sizeof(*job));
+        strcpy(job->name, "job1");
         strcpy(job->service, "Service1");
-        job->submit_time = MSG_get_clock();
-        job->input_size = 0.0; 
-        job->output_size = 0.0;
         job->priority = 0;
-        job->nb_procs = 3;
-        job->wall_time = 150;
-        job->run_time = 105;
-        job->state = WAITING;
-        xbt_fifo_push(jobList, job);
-    }
-    
-    {
-        job_t job = xbt_malloc(sizeof(*job)); // freed by SB_batch
-        
-        strcpy(job->name, "SED_PRED");
-        strcpy(job->service, "Service2");
-        job->submit_time = MSG_get_clock();
-        job->input_size = 0.0; 
-        job->output_size = 0.0;
-        job->priority = 0;
-        job->nb_procs = 3;
-        job->wall_time = 200;
+        job->weight = 0;
         job->run_time = 100;
-        job->state = WAITING;
+        job->wall_time = 150;
+        job->nb_procs = 3;
+        job->input_size = 0;
+        job->output_size = 0;
+        jobList = xbt_fifo_new();
         xbt_fifo_push(jobList, job);
-    }
-    
+        }*/
+
     /*** MCT ***/ /*
     {
         job_t job;
@@ -367,8 +154,6 @@ int metaSched(int argc, char ** argv) {
             winner = HPF_schedule(clusters, nbClusters, speedCoef, jobList);
             if (winner->completionT >= 0) {
                 printf("Winner is %s!\n", winner->cluster->name);
-                
-                sprintf(winner->job->name, "job%d", cpt++);
                 MSG_task_put(MSG_task_create("SB_TASK", 0, 0, winner->job), 
                              winner->cluster, SED_CHANNEL);
             }
