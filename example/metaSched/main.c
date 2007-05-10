@@ -122,33 +122,30 @@ int metaSched(int argc, char ** argv) {
             
             if (winner->completionT != -1) {
                 printf("Winner is %s!\n", winner->cluster->name);
-                sprintf(job->name, "job%d", ++cpt);
                 MSG_task_put(
                     MSG_task_create("SB_TASK", 0, 0, job), winner->cluster, SED_CHANNEL);
             }
             else { printf("no winner!\n"); }
             xbt_free(winner);
         }
-        } */
- 
+    } 
+                  */
     
-    /*** MinMin or MinMax ***/ /*
+    /*** MinMin or MaxMin ***/ 
     while (xbt_fifo_size(jobList)!=0) {
-        winner = MinMin_schedule(clusters, nbClusters, speedCoef, jobList);
+        winner = MaxMin_schedule(clusters, nbClusters, speedCoef, jobList);
         if (winner->completionT >= 0) {
             printf("Winner is %s!\n", winner->cluster->name);
-            
-            sprintf(winner->job->name, "job%d", cpt++);
             MSG_task_put(MSG_task_create("SB_TASK", 0, 0, winner->job), 
                          winner->cluster, SED_CHANNEL);
         }
         else { printf("no winner!\n"); }
         xbt_fifo_remove(jobList, winner->job);
         xbt_free(winner);
-        }*/
-
+    }
+                            
     
-    /*** HPF ***/
+    /*** HPF ***//*
     {
         while (xbt_fifo_size(jobList)!=0) {
             winner = HPF_schedule(clusters, nbClusters, speedCoef, jobList);
@@ -161,7 +158,7 @@ int metaSched(int argc, char ** argv) {
             xbt_fifo_remove(jobList, winner->job);
             xbt_free(winner);
         }
-    }
+        }*/
     
     xbt_fifo_free(jobList);
     xbt_free(speedCoef);
