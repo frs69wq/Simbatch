@@ -19,10 +19,9 @@ random() {
 ##### main ####
 
 # Usage: scriptName oldWldFile
-if [ $# != 1 ]
+if [[ $# != 1 ]]
 then
     echo "Usage: $0 file"
-    echo $#
     exit 1
 fi
 
@@ -33,7 +32,7 @@ while read submiT runT inD outD wallT nbNodes priority
 do
     random 1 3
     nb=$?
-    if [ $nbNodes > 5 ]
+    if [[ $nbNodes > 5 ]]
     then
        random 1 6
        nbNodes=$?
