@@ -97,7 +97,7 @@ int metaSched(int argc, char ** argv) {
     
     speedCoef = getSpeedCoef(clusters, nbClusters);
 
-    jobList = parse("1.wld", "job");
+    jobList = parse("2.wld", "job");
     /*
     {
         job_t job = xbt_malloc(sizeof(*job));

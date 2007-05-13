@@ -25,6 +25,10 @@ then
     exit 1
 fi
 
+# init the random generator
+SEED=1
+RANDOM=$SEED
+
 # parse & create the new wld file (with tmp suffix)
 oldFile=$1
 newFile=$1.tmp
