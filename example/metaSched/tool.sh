@@ -53,7 +53,8 @@ for file in $@
 do
     if [[ $file == *.wld ]]
     then
-        convert $file
+        # convert $file
+        echo ok
     fi
 done
 
