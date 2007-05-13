@@ -1,5 +1,14 @@
 #!/bin/bash
 
+# Usage: scriptName oldWldFile
+usage() {
+    if [[ $# == 0 ]]
+    then    
+        echo "Usage: $0 file1.wld file2.wld ..."
+        exit 1
+    fi
+}
+
 # random floor ceil -> random integer in [floor, ceil[
 random() {
     FLOOR=$1
@@ -15,36 +24,36 @@ random() {
     return $number 
 }
 
+# old wld file format -> new wld file format 
+# (add services + adapt nb_nodes) 
+convert() {
+    oldFile=$1
+    newFile=$1.tmp
+    while read submiT runT inD outD wallT nbNodes priority
+    do
+        random 1 3
+        nb=$?
+        random 1 6
+        nbNodes=$?    
+        line="$submiT \t $runT \t $inD \t $outD \t $wallT \t $nbNodes \t $priority \t Service$nb" 
+        echo -e "$line" >> $newFile
+    done < "$1"
+
+    mv $newFile $oldFile
+}
 
 ##### main ####
-
-# Usage: scriptName oldWldFile
-if [[ $# != 1 ]]
-then
-    echo "Usage: $0 file"
-    exit 1
-fi
 
 # init the random generator
 SEED=1
 RANDOM=$SEED
 
-# parse & create the new wld file (with tmp suffix)
-oldFile=$1
-newFile=$1.tmp
-while read submiT runT inD outD wallT nbNodes priority
+usage $@
+for file in $@
 do
-    random 1 3
-    nb=$?
-    if [[ $nbNodes > 5 ]]
+    if [[ $file == *.wld ]]
     then
-       random 1 6
-       nbNodes=$?
-    fi    
-    line="$submiT \t $runT \t $inD \t $outD \t $wallT \t $nbNodes \t $priority \t Service$nb" 
-    echo -e "$line" >> $newFile
-done < "$1"
-
-# replace the old wlf file by the new one
-mv $newFile $oldFile
+        convert $file
+    fi
+done
 
