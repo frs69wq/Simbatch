@@ -35,12 +35,13 @@ convert() {
         nb=$?
         random 1 6
         nbNodes=$?    
-        line="$submiT \t $runT \t $inD \t $outD \t $wallT \t $nbNodes \t $priority \t Service$nb" 
+        line="$submiT \t $runT \t $inD \t $outD \t $runT \t $nbNodes \t $priority \t Service$nb" 
         echo -e "$line" >> $newFile
     done < "$1"
 
     mv $newFile $oldFile
 }
+
 
 ##### main ####
 
@@ -53,8 +54,7 @@ for file in $@
 do
     if [[ $file == *.wld ]]
     then
-        # convert $file
-        echo ok
+        convert $file
     fi
 done
 

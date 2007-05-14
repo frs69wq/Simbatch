@@ -97,7 +97,7 @@ int metaSched(int argc, char ** argv) {
     
     speedCoef = getSpeedCoef(clusters, nbClusters);
 
-    jobList = parse("2.wld", "job");
+    jobList = parse("load.wld", "job");
     /*
     {
         job_t job = xbt_malloc(sizeof(*job));
@@ -128,8 +128,8 @@ int metaSched(int argc, char ** argv) {
             else { printf("no winner!\n"); }
             xbt_free(winner);
         }
-    } 
-                  */
+    } */
+
     
     /*** MinMin or MaxMin ***/ 
     while (xbt_fifo_size(jobList)!=0) {
@@ -143,9 +143,9 @@ int metaSched(int argc, char ** argv) {
         xbt_fifo_remove(jobList, winner->job);
         xbt_free(winner);
     }
-                            
+
     
-    /*** HPF ***//*
+    /*** HPF ***/ /*
     {
         while (xbt_fifo_size(jobList)!=0) {
             winner = HPF_schedule(clusters, nbClusters, speedCoef, jobList);
@@ -236,7 +236,6 @@ int sed(int argc, char ** argv) {
 
 
 int main(int argc, char ** argv) {
-    
     SB_global_init(&argc, argv);
     MSG_global_init(&argc, argv);
     
