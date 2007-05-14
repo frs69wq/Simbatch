@@ -5,6 +5,40 @@ usage() {
     exit 1
 }
 
+# initialize global variables with command line options
+getOpts() {
+    while getopts "n:p:s:t:" options
+    do  
+        case $options in 
+            n ) nb=$OPTARG;;
+            p ) procs=$OPTARG;;
+            s ) services=$OPTARG;;
+            t ) tasks=$OPTARG;;
+            * ) echo unknown $options 
+                usage;;
+        esac 
+    done
+}
+
+# check the number of procs and tasks 
+checkOpts() {
+    if [[ $1 == 0 ]] && [[ $2 == 0 ]]
+    then
+        usage
+    fi
+}
+
+# Check that no directory will be erased
+checkDir() {
+    if [ ! -e $1 ]
+    then
+        mkdir $1
+    else
+        echo "Error: $1 already exist, delete or rename it" 
+        exit 1
+    fi
+}
+
 # generateLoad seed nbValue nbNodes nbServices -> file.wld
 generateLoad() {
     local i runT submiT nbNodes services waitCoef stime 
@@ -20,42 +54,28 @@ generateLoad() {
         let stime+=${submiT[i]/.*}
         waitT=$(echo "scale=1; ${waitCoef} * ${runT[i]}" | bc)
         # waitT=$(echo "scale=1; ${waitCoef[i]} * ${runT[i]}" | bc)
-        echo -e "$stime \t ${runT[i]/.*} \t 0 \t 0 \t ${waitT/.*} \t ${nbNodes[i]/.*} \t 0 \t Service${services[i]/.*}" 
+        echo -e "$stime \t ${runT[i]/.*} \t 0 \t 0 \t ${waitT/.*}"\
+                "\t ${nbNodes[i]/.*} \t 0 \t Service${services[i]/.*}" 
     } 
 }
 
 
+
 ### main ###
 
+# global variables
 nb=0
 procs=5
 services=2
 tasks=0
-
-while getopts "n:p:s:t:" options
-do
-    case $options in 
-        n ) nb=$OPTARG;;
-        p ) procs=$OPTARG;;
-        s ) services=$OPTARG;;
-        t ) tasks=$OPTARG;;
-        * ) echo unknown $options 
-            usage;;
-    esac 
-done
-
-if [[ $nb == 0 ]] && [[ $tasks == 0 ]]
-then
-    usage
-fi
-
 dir=xp2
-if [ ! -e $dir ]
-then
-   mkdir $dir
-fi
-cp *.xml $dir/
 
+# init
+getOpts $@
+checkOpts $nb $tasks
+checkDir $dir
+
+cp *.xml $dir/
 for bin in mct minMin minMax hpf
 do
     for (( i=0; i<$nb; ++i )) {
@@ -70,3 +90,4 @@ do
         mv Batch* $dir/$i/$bin
     }
 done
+rm -f load.wld
