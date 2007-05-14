@@ -58,13 +58,15 @@ cp *.xml $dir/
 
 for bin in mct minMin minMax hpf
 do
-    mkdir $dir/$bin
-    path=$dir/$bin
     for (( i=0; i<$nb; ++i )) {
-        generateLoad $i $tasks $procs $services  >> load.wld
+        if [ ! -e $dir/$i ]
+        then 
+            mkdir $dir/$i
+            generateLoad $i $tasks $procs $services  >> $dir/$i/load.wld
+        fi
+        cp $dir/$i/load.wld .
         `./$bin -f simbatch.xml > /dev/null`
-        mkdir $path/$i
-        mv load.wld $path/$i/
-        mv Batch* $path/$i/
+        mkdir $dir/$i/$bin/
+        mv Batch* $dir/$i/$bin
     }
 done
