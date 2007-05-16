@@ -377,8 +377,9 @@ int SB_batch(int argc, char ** argv) {
                                  sender, SED_CHANNEL);
                     }
                     else {
-                        MSG_task_async_put(MSG_task_create("SB_CLUSTER_KO", 0.0, 0.0, slots),
-                                 sender, SED_CHANNEL);
+                        MSG_task_async_put(
+                            MSG_task_create("SB_CLUSTER_KO", 0.0, 0.0, slots),
+                            sender, SED_CHANNEL);
                     }
                 }
 
@@ -404,6 +405,15 @@ int SB_batch(int argc, char ** argv) {
                         xbt_free(slots), slots = NULL;
                     }
                     MSG_task_async_put(HPF_value, sender, SED_CHANNEL);
+                }
+                
+                else if (!strcmp(task->name, "PF_INIT")) {
+                    int * answer = xbt_malloc(sizeof(int));
+                    
+                    *answer = cluster->nb_nodes;
+                    MSG_task_async_put(
+                        MSG_task_create("SB_INIT", 0.0, 0.0, answer),
+                        sender, SED_CHANNEL);
                 }
                 
                 MSG_task_destroy(task);

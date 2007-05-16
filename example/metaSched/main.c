@@ -20,10 +20,9 @@
 
 
 void printArgs(int argc, char **argv);
-
 int isAvailable(const char * services[], const char * service);
-
 double str2double(const char * str);
+int * getNbNodesPF(const m_host_t * clusters, const int nbNodesPF);
 
 
 void printArgs(int argc, char ** argv) {
@@ -56,6 +55,7 @@ int isAvailable(const char * services[], const char * service) {
 }
 
 
+
 /* Ratio between clusters */
 double * getSpeedCoef(const m_host_t * clusters, const int nbClusters) {
     double * speedCoef = NULL;
@@ -77,14 +77,35 @@ double * getSpeedCoef(const m_host_t * clusters, const int nbClusters) {
 }
 
 
+int * getNbNodesPF(const m_host_t * clusters, const int nbClusters) {
+    int i=0;
+    int * clusterInfo = xbt_malloc(sizeof(int) * nbClusters);
+    
+    for (i=0; i<nbClusters; ++i) {
+        m_task_t task = NULL;
+        int * data;
+       
+        MSG_task_put(MSG_task_create("PF_INIT", 0, 0, NULL), clusters[i],
+                     SED_CHANNEL);
+        MSG_task_get(&task, MS_CHANNEL);
+        data = (int *)MSG_task_get_data(task);
+        clusterInfo[i] = *data;
+        xbt_free(data);
+        MSG_task_destroy(task);
+    }
+    
+    return clusterInfo;
+}
 
 
 int metaSched(int argc, char ** argv) {
     const int nbClusters = argc - 1;
+    int * nbNodesPF;
     m_host_t clusters[nbClusters];
     xbt_fifo_t jobList = NULL;
     winner_t * winner = NULL;
     double * speedCoef = NULL;
+    int nbNodesTot = 0;
     int i = 1;
 
     printf("%s - ", MSG_host_get_name(MSG_host_self()));
@@ -97,12 +118,16 @@ int metaSched(int argc, char ** argv) {
     
     speedCoef = getSpeedCoef(clusters, nbClusters);
 
-    jobList = parse("load.wld", "job");
-    /*
+    nbNodesPF = getNbNodesPF(clusters, nbClusters);
+    for (i=0; i<nbClusters; ++i) { nbNodesTot += nbNodesPF[i]; }
+
+    //jobList = parse("load.wld", "job");
+
+    jobList = xbt_fifo_new();
     {
         job_t job = xbt_malloc(sizeof(*job));
         strcpy(job->name, "job1");
-        strcpy(job->service, "Service1");
+        strcpy(job->service, "Service0");
         job->priority = 0;
         job->weight = 0;
         job->run_time = 100;
@@ -112,8 +137,8 @@ int metaSched(int argc, char ** argv) {
         job->output_size = 0;
         jobList = xbt_fifo_new();
         xbt_fifo_push(jobList, job);
-        }*/
-
+    }
+        
     /*** MCT ***/ /*
     {
         job_t job;
@@ -131,7 +156,7 @@ int metaSched(int argc, char ** argv) {
     } */
 
     
-    /*** MinMin or MaxMin ***/ 
+    /*** MinMin or MaxMin ***/ /* 
     while (xbt_fifo_size(jobList)!=0) {
         winner = MaxMin_schedule(clusters, nbClusters, speedCoef, jobList);
         if (winner->completionT >= 0) {
@@ -143,9 +168,9 @@ int metaSched(int argc, char ** argv) {
         xbt_fifo_remove(jobList, winner->job);
         xbt_free(winner);
     }
-
+                               */
     
-    /*** HPF ***/ /*
+    /*** HPF ***/
     {
         while (xbt_fifo_size(jobList)!=0) {
             winner = HPF_schedule(clusters, nbClusters, speedCoef, jobList);
@@ -158,11 +183,12 @@ int metaSched(int argc, char ** argv) {
             xbt_fifo_remove(jobList, winner->job);
             xbt_free(winner);
         }
-        }*/
+    }
     
     xbt_fifo_free(jobList);
     xbt_free(speedCoef);
-    
+    xbt_free(nbNodesPF);
+
     return EXIT_SUCCESS;
 }
 
@@ -216,13 +242,22 @@ int sed(int argc, char ** argv) {
             }
             else {
                 job_t job = MSG_task_get_data(task);
+                
+                if (!job) {
+                    /* Forward to the Batch */
+                    printf("Forward %s to the batch\n", task->name);
+                    MSG_task_async_put(task, batch, CLIENT_PORT);
+                    continue;
+                }
+                
                 if (isAvailable(services, job->service)) {
                     /* Forward to the Batch */
                     printf("Forward %s to the batch\n", task->name);
                     MSG_task_async_put(task, batch, CLIENT_PORT);
                 }
                 else { /* Service unavailable */
-                    printf("%s Service unavailable %s \n", MSG_host_self()->name, task->name);
+                    printf("%s Service unavailable %s \n", 
+                           MSG_host_self()->name, task->name);
                     MSG_task_async_put(MSG_task_create("SB_SERVICE_KO", 0, 0, job), 
                                        sched, MS_CHANNEL); 
                 }

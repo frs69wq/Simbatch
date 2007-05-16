@@ -21,15 +21,11 @@ winner_t * MCT_schedule(const m_host_t * clusters, const int nbClusters,
     winner->completionT = DBL_MAX;
     winner->job = job;
     
-    // broadcast 
-    for (i=0; i<nbClusters; ++i) {    
-        MSG_task_put(MSG_task_create("SED_PRED", 0, 0, job), clusters[i], SED_CHANNEL);
-    }
-    
-    // get
+   
     for (i=0; i<nbClusters; ++i) {
         m_task_t task = NULL;
-        
+      
+        MSG_task_put(MSG_task_create("SED_PRED", 0, 0, job), clusters[i], SED_CHANNEL);
         MSG_task_get(&task, MS_CHANNEL);
         if (!strcmp(task->name, "SB_PRED")) { // OK
             slot_t * slots = NULL;
@@ -135,16 +131,11 @@ void HPF(const m_host_t * clusters, const int nbClusters,
     int i = 0;
     
     job->weight = 0;
-
-    // broadcast 
-    for (i=0; i<nbClusters; ++i) {    
-        MSG_task_put(MSG_task_create("SED_HPF", 0, 0, job), clusters[i], SED_CHANNEL);
-    }
     
-     // get
     for (i=0; i<nbClusters; ++i) {
         m_task_t task = NULL;
         
+        MSG_task_put(MSG_task_create("SED_HPF", 0, 0, job), clusters[i], SED_CHANNEL);
         MSG_task_get(&task, MS_CHANNEL);
         if (!strcmp(task->name, "SB_SERVICE_KO")) { --nbServiceOk; }
         // else if (!strcmp(task->name, "SB_CLUSTER_KO")) { }
@@ -158,7 +149,8 @@ void HPF(const m_host_t * clusters, const int nbClusters,
     }
     
     if (job->weight != 0)  {job->weight = 10000000/(double)(job->weight); } 
-    printf ("weight : %lf \t representativite : %d/%d\n", job->weight, nbServiceOk, nbClusters);
+    printf ("weight : %lf \t representativite : %d/%d\n", 
+            job->weight, nbServiceOk, nbClusters);
     job->weight *= nbClusters / nbServiceOk;
 }
 

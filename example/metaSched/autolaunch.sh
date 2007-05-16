@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 usage() {
     echo "Usage: $0 -n nbTests -p nbProcs -s nbServices -t nbTasks"
@@ -78,7 +78,7 @@ checkDir $dir
 cp *.xml $dir/
 for bin in mct minMin minMax hpf
 do
-    for (( i=0; i<$nb; ++i )) {
+    for (( i=0; i<$tasks; ++i )) {
         if [ ! -e $dir/$i ]
         then 
             mkdir $dir/$i
@@ -88,6 +88,6 @@ do
         `./$bin -f simbatch.xml > /dev/null`
         mkdir $dir/$i/$bin/
         mv Batch* $dir/$i/$bin
-    }
+    } 
 done
 rm -f load.wld
