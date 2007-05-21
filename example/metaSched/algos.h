@@ -30,11 +30,13 @@ winner_t * MaxMin_schedule(const m_host_t * clusters, const int nbClusters,
                            const double * speedCoef, xbt_fifo_t bagofJobs);
 
 void HPF(const m_host_t * clusters, const int nbClusters, 
-         const double * speedCoef, job_t job);
+         const double * speedCoef, job_t job,
+         const int * nbNodesPF, const int nbNodesTot);
 
 p_winner_t
 HPF_schedule(const m_host_t * clusters, const int nbClusters, 
-             const double * speedCoef, xbt_fifo_t bagofJobs);
+             const double * speedCoef, xbt_fifo_t bagofJobs,
+             const int * nbNodesPF, const int nbNodesTot);
 
 
 #endif

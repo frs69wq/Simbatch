@@ -30,7 +30,7 @@ winner_t * MCT_schedule(const m_host_t * clusters, const int nbClusters,
         if (!strcmp(task->name, "SB_PRED")) { // OK
             slot_t * slots = NULL;
             slots = MSG_task_get_data(task);
-            print_slot(slots, 5);
+            //print_slot(slots, 5);
             completionT = slots[0]->start_time + (job->wall_time * speedCoef[i]);
             if (completionT < winner->completionT) { 
                 winner->completionT = completionT;
@@ -125,21 +125,22 @@ MaxMin_schedule(const m_host_t * clusters, const int nbClusters,
 
 
 void HPF(const m_host_t * clusters, const int nbClusters, 
-         const double * speedCoef, job_t job) {
+         const double * speedCoef, job_t job, 
+         const int * nbNodesPF, const int nbNodesTot) {
     double * data = 0;
-    int nbServiceOk = nbClusters;
+    int nbServiceOk = nbNodesTot;
     int i = 0;
     
     job->weight = 0;
-    
+     
     for (i=0; i<nbClusters; ++i) {
         m_task_t task = NULL;
         
         MSG_task_put(MSG_task_create("SED_HPF", 0, 0, job), clusters[i], SED_CHANNEL);
         MSG_task_get(&task, MS_CHANNEL);
-        if (!strcmp(task->name, "SB_SERVICE_KO")) { --nbServiceOk; }
+        if (!strcmp(task->name, "SB_SERVICE_KO")) { nbServiceOk -= nbNodesPF[i]; }
         // else if (!strcmp(task->name, "SB_CLUSTER_KO")) { }
-        else {  
+        else {
             data = (double *)MSG_task_get_data(task);
             job->weight += *data;
             xbt_free(data);
@@ -150,20 +151,21 @@ void HPF(const m_host_t * clusters, const int nbClusters,
     
     if (job->weight != 0)  {job->weight = 10000000/(double)(job->weight); } 
     printf ("weight : %lf \t representativite : %d/%d\n", 
-            job->weight, nbServiceOk, nbClusters);
-    job->weight *= nbClusters / nbServiceOk;
+            job->weight, nbNodesTot, nbServiceOk);
+    job->weight *= (nbNodesTot/nbServiceOk)?:0;
 }
 
 
 p_winner_t
 HPF_schedule(const m_host_t * clusters, const int nbClusters, 
-             const double * speedCoef, xbt_fifo_t bagofJobs) {
+             const double * speedCoef, xbt_fifo_t bagofJobs,
+             const int * nbNodesPF, const int nbNodesTot) {
     xbt_fifo_item_t bucket = NULL;
     job_t job;
     job_t criticalJob = NULL;
     
     xbt_fifo_foreach(bagofJobs, bucket, job, typeof(job)) { 
-        HPF(clusters, nbClusters, speedCoef, job);
+        HPF(clusters, nbClusters, speedCoef, job, nbNodesPF, nbNodesTot);
         printf ("weight %s: %lf\n", job->name, job->weight); 
         if (!criticalJob) { criticalJob = job; }
         else if (criticalJob->weight < job->weight) { criticalJob = job; }

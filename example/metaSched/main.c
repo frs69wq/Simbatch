@@ -173,7 +173,8 @@ int metaSched(int argc, char ** argv) {
     /*** HPF ***/
     {
         while (xbt_fifo_size(jobList)!=0) {
-            winner = HPF_schedule(clusters, nbClusters, speedCoef, jobList);
+            winner = HPF_schedule(clusters, nbClusters, speedCoef,
+                                  jobList, nbNodesPF, nbNodesTot);
             if (winner->completionT >= 0) {
                 printf("Winner is %s!\n", winner->cluster->name);
                 MSG_task_put(MSG_task_create("SB_TASK", 0, 0, winner->job), 
