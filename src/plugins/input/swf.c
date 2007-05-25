@@ -1,10 +1,3 @@
-/*******************************/
-/* Author : Jean-Sebastien Gay */
-/* Date : 2006                 */
-/*                             */
-/* Project Name : SimBatch     */
-/*******************************/
-
 /*********  Very Simple Parser **************
 * Parse file from the swf format
 * (Feitelson's format).

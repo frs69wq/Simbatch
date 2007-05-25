@@ -1,11 +1,3 @@
-/*******************************/
-/* Author : Jean-Sebastien Gay */
-/* Date : 2006                 */
-/*                             */
-/* Project Name : SimBatch     */
-/*******************************/
-
-
 #ifndef _JOB_H_
 #define _JOB_H_
 

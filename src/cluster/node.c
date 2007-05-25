@@ -1,10 +1,3 @@
-/*******************************/
-/* Author : Jean-Sebastien Gay */
-/* Date : 2006                 */
-/*                             */
-/* Project Name : SimBatch     */
-/*******************************/
-
 #include <stdlib.h>
 #include <string.h>
 #include <float.h>

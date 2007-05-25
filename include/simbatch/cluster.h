@@ -1,10 +1,3 @@
-/*******************************/
-/* Author : Jean-Sebastien Gay */
-/* Date : 2006                 */
-/*                             */
-/* Project Name : SimBatch     */
-/*******************************/
-
 #ifndef _CLUSTER_H_
 #define _CLUSTER_H_
 

@@ -1,10 +1,3 @@
-/*******************************/
-/* Author : Jean-Sebastien Gay */
-/* Date : 2006                 */
-/*                             */
-/* Project get_name : SimBatch     */
-/*******************************/
-
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>

@@ -1,4 +1,3 @@
-/* Headers fir the DOM API */
 #ifndef _SIMBATCH_CONFIG_H_
 #define _SIMBATCH_CONFIG_H_
 

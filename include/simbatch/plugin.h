@@ -1,10 +1,3 @@
-/*******************************/
-/* Author : Jean-Sebastien Gay */
-/* Date : 2006                 */
-/*                             */
-/* Project Name : SimBatch     */
-/*******************************/
-
 #ifndef _PLUGIN_H
 #define _PLUGIN_H
 

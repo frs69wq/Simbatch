@@ -1,10 +1,3 @@
-/*******************************/
-/* Author : Jean-Sebastien Gay */
-/* Date : 2006                 */
-/*                             */
-/* Project Name : SimBatch     */
-/*******************************/
-
 #ifndef _PLUGIN_SCHEDULER_H_
 #define _PLUGIN_SCHEDULER_H_
 

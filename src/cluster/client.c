@@ -1,11 +1,3 @@
-/*******************************/
-/* Author : Jean-Sebastien Gay */
-/* Date : 2006                 */
-/*                             */
-/* Project Name : SimBatch     */
-/*******************************/
-
-/* This file is an example of what could be a client */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

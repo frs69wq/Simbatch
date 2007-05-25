@@ -152,7 +152,7 @@ void HPF(const m_host_t * clusters, const int nbClusters,
     if (job->weight != 0)  {job->weight = 10000000/(double)(job->weight); } 
     printf ("weight : %lf \t representativite : %d/%d\n", 
             job->weight, nbNodesTot, nbServiceOk);
-    job->weight *= (nbNodesTot/nbServiceOk)?:0;
+    job->weight *= (nbServiceOk>0)? nbNodesTot/nbServiceOk: 0;
 }
 
 
