@@ -15,7 +15,7 @@
         <argument value="MetaSched"/>
         <argument value="Batch0"/>
         <argument value="100"/> <!-- waiting time -->
-        <argument value="Service0"/> <!-- list of services -->
+        <argument value="0"/> <!-- list of services -->
     </process>      
     <process host="Batch0" function="SB_batch">
         <argument value="Node0_0"/>
@@ -35,7 +35,7 @@
         <argument value="MetaSched"/>
         <argument value="Batch1"/>
         <argument value="200"/>
-        <argument value="Service0"/>
+        <argument value="2"/>
     </process>      
     <process host="Batch1" function="SB_batch">
         <argument value="Node1_0"/>
@@ -55,7 +55,7 @@
         <argument value="MetaSched"/>
         <argument value="Batch2"/>
         <argument value="200"/>
-        <argument value="Service0"/>
+        <argument value="1"/>
     </process>      
     <process host="Batch2" function="SB_batch">
         <argument value="Node2_0"/>
@@ -75,7 +75,7 @@
         <argument value="MetaSched"/>
         <argument value="Batch3"/>
         <argument value="200"/>
-        <argument value="Service0"/>
+        <argument value="1"/>
     </process>
     <process host="Batch3" function="SB_batch">
         <argument value="Node3_0"/>
@@ -95,7 +95,7 @@
         <argument value="MetaSched"/>
         <argument value="Batch4"/>
         <argument value="200"/>
-        <argument value="Service0"/>
+        <argument value="0"/>
     </process>      
     <process host="Batch4" function="SB_batch">
         <argument value="Node4_0"/>

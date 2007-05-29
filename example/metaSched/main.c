@@ -24,7 +24,7 @@
 
 
 void printArgs(int argc, char **argv);
-int isAvailable(const char * services[], const char * service);
+int isAvailable(const int services[], const int service);
 double str2double(const char * str);
 int * getNbNodesPF(const m_host_t * clusters, const int nbNodesPF);
 
@@ -49,10 +49,10 @@ double str2double(const char * str) {
 }
 
 
-int isAvailable(const char * services[], const char * service) {
+int isAvailable(const int services[], const  int service) {
     int i = 0, found = 0;
-    while (services[i] && !found) {
-        if (!strcmp(services[i], service)) { found = 1; }
+    while ((services[i]!=-1)  && !found) {
+        if (services[i] == service) { found = 1; }
         else { ++i; }
     }
     return found;
@@ -125,13 +125,14 @@ int metaSched(int argc, char ** argv) {
     nbNodesPF = getNbNodesPF(clusters, nbClusters);
     for (i=0; i<nbClusters; ++i) { nbNodesTot += nbNodesPF[i]; }
 
-    //jobList = parse("load.wld", "job");
-
+    jobList = parse("load.wld", "job");
+/*
     jobList = xbt_fifo_new();
     {
         job_t job = xbt_malloc(sizeof(*job));
-        strcpy(job->name, "job1");
-        strcpy(job->service, "Service0");
+        job->user_id = 0;
+        sprintf(job->name, "job%lu", job->user_id);
+        job->service = 0;
         job->priority = 0;
         job->weight = 0;
         job->run_time = 100;
@@ -142,7 +143,7 @@ int metaSched(int argc, char ** argv) {
         jobList = xbt_fifo_new();
         xbt_fifo_push(jobList, job);
     }
-        
+  */      
     /*** MCT ***/ /*
     {
         job_t job;
@@ -202,8 +203,8 @@ int sed(int argc, char ** argv) {
     const m_host_t sched = MSG_get_host_by_name(argv[1]);
     const m_host_t batch = MSG_get_host_by_name(argv[2]);
     const int nbServices = argc - 4;
-    const char * services[nbServices + 1];
     const double waitT = str2double(argv[3]);
+    int services[nbServices + 1];
     xbt_fifo_t msg_stack = xbt_fifo_new();
     int i = 0;
 
@@ -211,9 +212,9 @@ int sed(int argc, char ** argv) {
     printf("%s - %lf\n", MSG_process_get_name(MSG_process_self()), waitT);
     printArgs(argc, argv);
 
-    services[nbServices] = NULL;
-    for (i=0; i<nbServices; ++i) { services[i] = argv[4+i]; }
-    for (i=0; services[i]; ++i) { printf("%s\t", services[i]); }
+    services[nbServices] = -1;
+    for (i=0; i<nbServices; ++i) { services[i] = atoi(argv[4+i]); }
+    for (i=0; services[i]!=-1; ++i) { printf("Service%d\t", services[i]); }
     printf("\n");
 
     while (1) {
