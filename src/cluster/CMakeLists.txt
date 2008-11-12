@@ -1,12 +1,14 @@
 # Make the list of src file
 FILE(GLOB SRC_FILE *.c)
 
+
+IF(${CMAKE_C_COMPILER} STREQUAL "gcc" )
+
 # Add flags (only for gcc user)
 IF (CFLAGS)
 	SET_SOURCE_FILES_PROPERTIES(
 		${SRC_FILE}
 		COMPILE_FLAGS ${CFLAGS})
-
 ENDIF (CFLAGS)
 
 ENDIF(${CMAKE_C_COMPILER} STREQUAL "gcc" )

@@ -1,5 +1,6 @@
 # Name of the project
 PROJECT(SIMBATCH C)
+CMAKE_MINIMUM_REQUIRED(VERSION 2.4)
 
 # Affiche un message standard
 MESSAGE(STATUS "Building Makefile for the Simbatch project")
