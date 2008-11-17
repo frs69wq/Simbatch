@@ -39,11 +39,14 @@ static xbt_dict_t book_of_plugin;
 /* Dictionnary to shared log file handlers */
 #ifdef LOG
 static xbt_dict_t book_of_log;
+static void close_log_file(void * data);
+#endif
 
 /*** Private functions ***/ 
 static int parseCmdLine(int argc, char * argv[]);
+#ifdef LOG
 static void close_log_file(void * data);
-
+#endif
 
 static int parseCmdLine(int argc, char * argv[]) {
     char * allowed[] = {"-f", "-o", "-tw", "-tp", "-sw", "-sp", NULL};
@@ -83,7 +86,7 @@ static int parseCmdLine(int argc, char * argv[]) {
     return 0;
 }
 
-
+#ifdef LOG
 static void close_log_file(void * data) {
     FILE * flog = (FILE *)data;
     fclose(flog);
