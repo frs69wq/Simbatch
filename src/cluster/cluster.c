@@ -167,7 +167,6 @@ int cluster_search_job(cluster_t cluster, int job_id, xbt_dynar_t dynar) {
     return -1;
 }
 
-//#ifdef GANTT
 void cluster_print(cluster_t cluster) {
     int i = 0, size = 0;
     
@@ -191,7 +190,6 @@ void cluster_print(cluster_t cluster) {
     
     printf("\n****** bag => %d tasks ******\n\n", size);
 }
-//#endif
 
 
 void cluster_delete_done_job(cluster_t cluster, job_t job) {
@@ -207,7 +205,7 @@ void cluster_delete_done_job(cluster_t cluster, job_t job) {
     }
 }
 
-
+/*
 int get_nb_queues(char * value) {
     int nb = 0;
     
@@ -220,5 +218,4 @@ int get_nb_queues(char * value) {
     
     return nb;
 }
-
-
+*/

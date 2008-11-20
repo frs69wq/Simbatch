@@ -14,6 +14,8 @@
 
 #include <xbt/fifo.h>
 
+/* File used to include parsers for different input files */
+
 /* API */
 typedef struct 
 {

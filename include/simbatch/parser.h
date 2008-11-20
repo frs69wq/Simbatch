@@ -14,6 +14,8 @@
 
 #include <xbt/fifo.h>
 
+/* File not used in the project */
+
 void print(const int * t, const unsigned char);
 xbt_fifo_t create_job_from_swf_file();
 

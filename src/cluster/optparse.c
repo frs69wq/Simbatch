@@ -17,10 +17,6 @@
 
 #include "optparse.h" 
 
-#define ARRAYSIZE(a) ({int _sz__=0; while ((a)[_sz__++]); --_sz__;})
-#define FOREACH(a,fun) ({int _i__=0; while ((a)[_i__]) fun((a)[_i__++]);})
-#define ARRAYEND(a) ({int _i__=0; while ((a)[_i__]) _i__++; &((a)[_i__]);})
-
 /* Utils */
 void shiftL(char * argv[]) {
     int i=0;

@@ -19,19 +19,19 @@
 #include "job.h"
 /*
  * Cluster definition
+ * - Number of slaves
+ * - Number of priority's level
+ * - The slaves
+ * - Trace of the tasks actually in the system (batch + cluster)
+ * - Scheduling table
+ * - Reservation queue
  */
 typedef struct {
-    /* Number of slaves */ 
     int nb_nodes;
-    /* Number of priority's level */
     int priority;
-    /* Here are my slaves */ 
     m_host_t * nodes;
-    /* Trace of the tasks actually in the system (batch + cluster) */
     xbt_dynar_t * queues;
-    /* Scheduling table */
     xbt_dynar_t * waiting_queue;
-    /* Reservation queue */
     xbt_dynar_t reservations;
 } * cluster_t;
 
@@ -51,11 +51,13 @@ int cluster_search_job(cluster_t cluster, int job_id, xbt_dynar_t dynar);
 /* Delete a job in the cluster (job should be at first place (running)*/
 void cluster_delete_done_job(cluster_t cluster, job_t job);
 
-//#ifdef GANTT
+/* Prints some infos on a cluster */
 void cluster_print(cluster_t cluster);
-//#endif
 
-/* return the number of priority queue for the cluster */
-int get_nb_queues(char * value);
+/* return the number of priority queue for the cluster 
+ * Unused Function in the project
+ * 
+ */
+/* int get_nb_queues(char * value);*/
 
 #endif 

@@ -12,6 +12,7 @@
 #ifndef _IS_H_
 #define _IS_H_
 
+/* Not used currently in the project */
 int SB_IS(int argc, char ** argv);
 
 #endif

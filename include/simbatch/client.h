@@ -9,6 +9,11 @@
 /****************************************************************************/
 
 
+
+/*
+ * This file should be removes. It is used to simplify a client example
+ */
+
 #ifndef _CLIENT_H_
 #define _CLIENT_H_
 

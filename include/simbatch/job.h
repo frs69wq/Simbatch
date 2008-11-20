@@ -14,6 +14,9 @@
 
 #include <msg/msg.h>
 
+/*
+ * States a job can have
+ */
 typedef enum _state_t {
     WAITING    = 0,
     LOADING    = 1,
@@ -26,18 +29,25 @@ typedef enum _state_t {
 
 
 /*
- * Let's define a job : 
- * - submit time : time client send the job
- * - entry time : time the job entered for the first time in the batch
- * - run time : time job runs
- * - weight : a weight given by some heuristic
- * - data size 
- * - requested time
- * - #procs needed
- * - mapping : proc # affected for the task
- * - a state 
- * - job id fixed by the batch
- * - source is the m_host_t which send the task
+ * Job Definition:
+ * - name: Name of the job 
+ * - submit_time: time client send the job
+ * - entry_time: time the job entered for the first time in the batch
+ * - run_time: time needed to run
+ * - input_size: Size to be transferred before execution
+ * - output_size: size of produced data
+ * - wall_time: Duration for a slot requested by the job
+ * - start_time: time teh job started execution
+ * - weight: a weight given by some heuristic (used by HPF)
+ * - user_id: id given by the user
+ * - id: id given by the batch
+ * - priority: priority of a job
+ * - nb_proc: Number of procs needed
+ * - service: Service that can execute the job
+ * - mapping: proc affected for the job
+ * - state: current state of a job
+ * - source: the m_host_t which send the task
+ * - data: some datas
  */
 
 typedef struct _job {
