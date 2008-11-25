@@ -66,16 +66,17 @@ static xbt_fifo_t wld_parse(const char * wld_file, const char * name) {
 	    job = xbt_malloc(sizeof(*job));
 	    job->start_time = 0.0;
 	    /* Need to ajsust and keep only the usefull data */
-	    sscanf(buf,"%lu %lf %lf %lf %lf %lf %d %d", 
+	    sscanf(buf,"%lu %lf %lf %lf %lf %lf %d %d %u", 
                 &(job->user_id), &(job->submit_time), &(job->run_time),
                 &(job->input_size), &(job->output_size), &(job->wall_time),
-                &(job->nb_procs), &(job->priority));
+                   &(job->nb_procs), &(job->priority), &(job->service));
 	    job->state = WAITING;
 	    sprintf(job->name, "%s%lu", name, job->user_id);
 	    xbt_fifo_push(list,job);
 #ifdef DEBUG
-	    printf("%s %lf %lf %lf %lf %d\n", job->name, job->submit_time,\
-		   job->run_time, job->input_size, job->wall_time, job->nb_procs);
+	    printf("%s %lf %lf %lf %lf %d %u\n", job->name, job->submit_time,
+		   job->run_time, job->input_size, job->wall_time, 
+                   job->nb_procs, job->service);
 #endif
 	    }
     }

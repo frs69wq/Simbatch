@@ -49,7 +49,7 @@
 })
 
 #define ASEND_KO()  ({\
-    MSG_task_async_put(MSG_task_create("SB_OK", 0.0, 0.0, NULL),\
+    MSG_task_async_put(MSG_task_create("SB_KO", 0.0, 0.0, NULL),\
 		 sender, BATCH_OUT);                         \
 })
 
