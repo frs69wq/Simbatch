@@ -15,7 +15,7 @@ Analyse .out file and compare them following the option.
 """
 __author__ = "Jean-Sebastien Gay"
 __date__ = "23 octobre 2006"
-__version__ = "$Revision$"
+__version__ = "$Revision: 4406 $"
 __credits__ = "thanks to pylint for code cleaning"
 
 
@@ -40,19 +40,21 @@ class Parser(object):
             raise IOError, "'%s' doesn't exist!" % filename
         
         data = {}
+        i = 1
         for line in open(filename):
             if line.startswith('e', 0, 1) or line.startswith('#', 0, 1):
                 pass
             else:
-                temp = line[4:].split()
-                data[temp[0]] = [float(value) for value in temp[1:]]
+                temp = line.split()
+                data[i] = [float(value) for value in temp[1:]]
+                i = i + 1
                 del temp
 
         self.__nb_tasks = len(data.keys())
         for key in xrange(1, self.__nb_tasks + 1):
-            self.submit_times.append(data[str(key)][0])
-            self.start_times.append(data[str(key)][1])
-            self.end_times.append(data[str(key)][2])
+            self.submit_times.append(data[key][0])
+            self.start_times.append(data[key][1])
+            self.end_times.append(data[key][2])
         del data
 
     def get_flows(self):
@@ -132,8 +134,8 @@ def geometric_mean(values):
 def analyse_list(list_values):
     "Compute some stats on a list"
     array = scipy.array(list_values)
-    return min(list_values), max(list_values), scipy.stats.mean(array), \
-           geometric_mean(list_values), scipy.stats.std(array)
+    return min(list_values), max(list_values), scipy.mean(array), \
+           geometric_mean(list_values), scipy.std(array)
 
 def print_file_stats(parser):
     "Print some stats one a file"
