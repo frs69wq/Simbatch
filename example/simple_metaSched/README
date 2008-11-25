@@ -1,0 +1,6 @@
+This example is based on the metaSched example, but is 
+simplified to have a better understanding
+
+Platform composed of 3 clusters with no load
+Each cluster has the same computing power
+2 clusters with 5 nodes and one with 2 nodes
