@@ -1,9 +1,7 @@
 # Make the list of src file
 FILE(GLOB SRC_FILE *.c)
 
-
-IF(${CMAKE_C_COMPILER} STREQUAL "gcc" )
-
+IF(${CMAKE_C_COMPILER} MATCHES "(gcc|/usr/bin/gcc)" )
 # Add flags (only for gcc user)
 IF (CFLAGS)
 	SET_SOURCE_FILES_PROPERTIES(
@@ -11,7 +9,7 @@ IF (CFLAGS)
 		COMPILE_FLAGS ${CFLAGS})
 ENDIF (CFLAGS)
 
-ENDIF(${CMAKE_C_COMPILER} STREQUAL "gcc" )
+ENDIF(${CMAKE_C_COMPILER} MATCHES "(gcc|/usr/bin/gcc)" )
 
 # Create the simbatch library
 ADD_LIBRARY(simbatch SHARED ${SRC_FILE} ${INC_FILE})
