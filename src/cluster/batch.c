@@ -359,8 +359,9 @@ int SB_batch(int argc, char ** argv) {
                 else if (!strcmp(task->name, "SED_PRED")) {
                     job_t job = MSG_task_get_data(task);
                     slot_t * slots = NULL;
+#ifdef VERBOSE
                     printf("Prediction\n");
- 
+#endif
 #ifdef LOG	
                     fprintf(flog, "[%lf]\t%20s\tReceive \"%s\" from \"%s\"\n",
                             MSG_get_clock(), PROCESS_NAME(), job->name,
