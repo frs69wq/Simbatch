@@ -1,0 +1,59 @@
+\documentclass[a4paper,10pt]{article}
+
+\usepackage{times}
+\usepackage[english]{babel}
+\usepackage[latin1]{inputenc}
+\usepackage[T1]{fontenc}
+
+%adding hyperlinks to the PDF
+\usepackage[pdftex, pdfstartview=FitH]{hyperref}
+\hypersetup{
+   colorlinks,
+   citecolor=black,
+   filecolor=black,
+   linkcolor=black,  
+   urlcolor=black
+}
+
+\author{Jean-Sébastion Gay and Ghislain Charrier} 
+\title{Simbatch Documentation}
+\date{\today
+\\
+\{jean-sebastien.gay, ghislain.charrier\}@ens-lyon.fr
+\\
+This is just a rough draft of what will be the
+  documentation, but it is better than nothing.}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Beginning of the document
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{document}
+\maketitle
+\tableofcontents
+\listoffigures
+\listoftables
+
+%% Global presentation of simbatch
+\include{introduction}
+
+%% Compiling simbatch
+\include{compilation}
+
+%% basic example
+\include{example}
+
+%%simbatch.xml
+
+%% Types of tasks we can send to SB_batch
+\include{SB_batch}
+
+%% plugins (schedulers)
+
+%% plugins (parsers)
+
+%% platform description
+
+\bibliographystyle{plain}
+\bibliography{simbatch}
+
+\end{document}

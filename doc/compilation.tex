@@ -1,0 +1,28 @@
+\section{Compiling Simbatch}
+
+\subsection{Dependencies}
+
+To compile Simbatch, you will need to have:
+
+\begin{itemize}
+  \item a *nix environment
+  \item simgrid >= 3.1
+  \item cmake >= 2.4
+  \item libxml2
+\end{itemize}
+
+\subsection{Installation}
+
+Go in the Simbatch source directory. Then, create a directory to build
+the project (mkdir build) and go inside (cd build). Then, to generate
+the Make file automatically, we use cmake (ccmake ..). When the GUI is
+launched, you can specify the options. Finally, you just have to
+compile the project (make install). The simbatch library is then
+created and can be used. Do not forget to add the library path to the
+environment variables with export (DY)LD\_LIBRARY\_PATH
+
+\subsection {testing the installation}
+
+Go in example/batch and try to run the example (make and then
+./example -f simbatch.xml). if there is no error, your installation is
+ready.
