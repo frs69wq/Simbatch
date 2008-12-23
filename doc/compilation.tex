@@ -1,28 +1,96 @@
-\section{Compiling Simbatch}
+\section{Installing Simbatch}
+\label{sec:installation}
 
 \subsection{Dependencies}
+\label{subsec:dependencies}
 
 To compile Simbatch, you will need to have:
 
 \begin{itemize}
-  \item a *nix environment
-  \item simgrid >= 3.1
-  \item cmake >= 2.4
-  \item libxml2
+  \item a *nix environment (Simbatch was tested on Linux and Mac OS
+    but should work on any *nix environment)
+  \item simgrid >= 3.1 (Simbatch is build over simgrid so it is
+    obviously a dependency)
+  \item gcc >= 4.0 (to compile the project)
+  \item cmake >= 2.4 (to create the makefiles)
+  \item libxml2 (used to parse input files)
 \end{itemize}
 
-\subsection{Installation}
+\subsection{Compiling and installing Simbatch}
+\label{subsec:compilation}
 
-Go in the Simbatch source directory. Then, create a directory to build
-the project (mkdir build) and go inside (cd build). Then, to generate
-the Make file automatically, we use cmake (ccmake ..). When the GUI is
-launched, you can specify the options. Finally, you just have to
-compile the project (make install). The simbatch library is then
-created and can be used. Do not forget to add the library path to the
-environment variables with export (DY)LD\_LIBRARY\_PATH
+To install Simbatch, the first thing you need to do is to download the
+sources. you can go on \url{http://graal.ens-lyon.fr/simbatch} to
+download an old release. If you want a more up-to-date version, you
+need to download the sources from the Simgrid svn in the contrib
+version. Then, create a build directory to work with cmake. then you
+can compile and install Simbatch.
 
-\subsection {testing the installation}
+\verb+ccmake+ is used instead of cmake because it is a graphical
+version of the tool. The first screen you will see will tell you that
+the cache is empty. This is normal, so just quit by hitting \emph{e}.
+On the next screen, you can change different options. The options will
+be details in section \ref{subsec:options}. Hit the \emph{c} key to
+test if all needed packages are present. if everything is OK, you can
+press \emph{g} to generate the makefiles. Finally, just compile as
+usual with make and make install.
 
-Go in example/batch and try to run the example (make and then
-./example -f simbatch.xml). if there is no error, your installation is
-ready.
+{\small
+\begin{verbatim}
+$>svn checkout svn://scm.gforge.inria.fr/svn/simgrid/contrib/Simbatch
+[...]
+$>cd Simbatch
+$>mkdir build
+$>cd build
+$>ccmake ..
+$>make
+[...]
+$>make install
+[...]
+$>
+\end{verbatim}}
+
+\subsection{Cmake options}
+\label{subsec:options}
+
+When you are in the \verb+ccmake+ GUI, the options you may use are:
+
+\begin{description}
+  \item [CMAKE\_INSTALL\_PREFIX] lets you choose the installation
+    folder. It is not used currently.
+  \item [DEBUG] activates some flags and prints more informations
+  \item [GANTT] activates the
+    paj{\'e}\footnote{\url{http://www-id.imag.fr/Logiciels/paje/}}
+    output to visualize gantt charts. It does not work well for now.
+  \item [LIBRARY\_OUTPUT\_PATH] lets you choose where the libraries
+    will be put. If you let it empty, the libraries will be places in
+    the lib directory where you downloaded the sources.
+  \item [LOG] creates a file when executing an example with what
+    appens in the batch. For example, it can display: task 1 arrived
+    on batch at time 10.
+  \item [NDEBUG] does something
+  \item [OPT] does something
+  \item [OUTPUT] is used to obtain the result of a batch in a
+    file. The file contains the list of jobs the batch executed, their
+    arrival time, when they started, the completion time and the
+    diration.
+  \item [PARANOID] activates a lot of compilation flags.
+  \item [SIMGRID\_HOME] specifies the folder where simgrid is.
+  \item [VERBOSE] displays more informations during an execution.
+  \item [WARN] activates the basic warning flags for compilation.
+\end{description} 
+
+\subsection {Testing the installation}
+\label{subsec:testing}
+
+Go in example/batch and try to run the example. If there is no error,
+your installation is ready.
+
+{\small
+\begin{verbatim}
+$>cd Simbatch/example/batch
+$>make
+$>./batch -f simbatch.xml
+[...]
+$>
+\end{verbatim}}

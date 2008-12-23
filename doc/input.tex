@@ -1,0 +1,161 @@
+\section{Input files}
+\label{sec:input}
+
+Several types of files can be taken as input of a simbatch
+program. Every program that you run needs to have at least 3
+files. The Simbatch file, and two files used by simgrid. All these
+files are described in section\ref{subsec:description}.
+
+Simbatch can also read \verb+wld+ and \verb+swf+ files. These files
+are described in section \ref{subsec:jobsDESC}. In those files, jobs
+that are executed are described.
+
+\subsection{Description files}
+\label{subsec:description}
+
+The description files are describing the batchs, the hardware and the
+deployment of the processes on the hardware.
+
+\subsubsection{Simbatch file}
+\label{subsubsec:SBfile}
+
+This XML file is quite simple. First, you give the simgrid files
+(deployment and platform). Then, the batchs are described. You can
+describe more than one batch. The example bellow displays a simualtion
+with 2 batchs. The first one uses the Conservative Backfilling
+algorithm to allocate resources. It has an internal load (so we need
+to give the parser of the load). The second batch uses First Come
+First Serve to allocate resources to jobs, and is dedicated (no load
+is given).
+
+{\small
+\begin{verbatim}
+<config>  
+    <global>
+        <file type="platform">platform.xml</file>
+        <file type="deployment">deployment.xml</file>
+    </global>
+    <batch host="Batch0">
+        <plugin>libfcfs.so</plugin>
+        <load>1.wld</load>
+        <parser>libwld.so</parser>
+        <priority_queue>
+            <number>3</number>
+        </priority_queue>
+    </batch>
+    <batch host="Batch1">
+        <plugin>libcbf.so</plugin>
+        <priority_queue>
+            <number>3</number>
+        </priority_queue>
+    </batch>
+</config>
+\end{verbatim}}
+
+\subsubsection{Platform file}
+\label{subsubsec:PFfile}
+
+The platform file describes the hardware of the simulation. It is the
+old version of platform description in Simgrid. The example below
+describes a platform with 2 batchs. The first batch has 2 nodes and
+the second one has just one node. The description is done by
+describing CPUs, network links capacities and routes.
+
+{\small
+\begin{verbatim}
+<?xml version='1.0'?>
+<!DOCTYPE platform_description SYSTEM "surfxml.dtd">
+<platform_description version="1">
+  <!-- Cluster 0 -->
+  <cpu name="B0" power="3865000"/>
+  <cpu name="N0" power="3865000"/>
+  <cpu name="N1" power="3865000"/>
+
+  <network_link name="LB0" bandwidth="498000" latency="0.0"/>
+  <network_link name="BW0" bandwidth="1000000" latency="0.0"/>
+  <network_link name="BW1" bandwidth="1000000" latency="0.0"/>
+  
+  <route src="B0" dst="B0"><route_element name="LB0"/></route>
+  <route src="B0" dst="N0"><route_element name="BW0"/></route>
+  <route src="B0" dst="N1"><route_element name="BW1"/></route>
+  <route src="N0" dst="B0"><route_element name="BW0"/></route>
+  <route src="N1" dst="B0"><route_element name="BW1"/></route>
+
+  <!-- Cluster 1 -->
+  <cpu name="B1" power="3865000000"/>
+  <cpu name="N2" power="3865000000"/>
+  
+  <network_link name="LB1" bandwidth="4980000" latency="0.0"/>
+  <network_link name="BW2" bandwidth="1000000" latency="0.0"/>
+  
+  <route src="B1" dst="1"><route_element name="LB1"/></route>  
+  <route src="B1" dst="N2"><route_element name="B2"/></route>  
+  <route src="N2" dst="B1"><route_element name="B2"/></route>
+</platform_description>
+\end{verbatim}}
+
+\subsubsection{Deployment file}
+\label{subsubsec:DEPfile}
+
+The deployment file describes the Simgrid processes that will be used,
+and where each process will be executed. For example, the process
+\verb+SB_batch+ will run on the host B0 and will take 1 argument. The
+arguments have to contain the list of nodes of the batch.
+
+{\small
+\begin{verbatim}
+<?xml version='1.0'?>
+<!DOCTYPE platform_description SYSTEM "surfxml.dtd">
+<platform_description version="1">
+    <process host="Client" function="SB_client" >
+        <argument value="B1" />
+    </process>
+    <process host="B0" function="SB_batch">
+        <argument value="N0" />	
+        <argument value="N1" />
+    </process> 
+    <process host="B1" function="SB_batch">
+        <argument value="N2" />	
+    </process> 
+    <process host="N0" function="SB_node"/>
+    <process host="N1" function="SB_node"/>
+    <process host="N2" function="SB_node"/>
+</platform_description>
+\end{verbatim}}
+
+
+\subsection{Jobs files}
+\label{subsec:jobsDESC}
+
+Jobs can be defined using several models. The only one tested for now
+in Simbatch is the \verb+wld+ one. You can add more job parsers by
+implementing you own plugin.
+
+\subsubsection{wld files}
+\label{subsubsec:wld}
+
+The \verb+wld+ parser is implemented within a plugin. Each job is
+defined on a single line of the file. The jobs in this kind of file
+are described as follows (in this order):
+
+\begin{description}
+  \item [user\_id] an ID of each job given by the user (it is NOT the
+    id of the user submitting the job)
+  \item [submit\_time] the time where the job is submitted by the client
+  \item [run\_time] the duration of the job
+  \item [input\_size] the size of the data transmitted from the client
+    to the batch when submitting the job
+  \item [output\_size] the size of the data transmitted from the batch
+    to the client when the job is completed
+  \item [wall\_time] the time the user requested for the batch submission
+  \item [nb\_procs] the number of processors needed by the task
+  \item [service] the type of the job (for example type 1 is a matrix
+    pultiplication)
+  \item [priority] the priority of the job.
+\end{description}
+
+\subsubsection{swf files}
+\label{subsubsec:swf}
+
+The plugin to parse \verb+swf+ files is created but is not
+tested. Please do not use it for now.
