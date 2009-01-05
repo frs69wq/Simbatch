@@ -225,6 +225,7 @@ int SB_batch(int argc, char ** argv) {
                         /* ask to the plugin to schedule and accept this new task */
                         scheduler->accept(cluster, job,
                                           scheduler->schedule(cluster, job));
+                        printf("batch : %u\n", job->state);
                     }
 #ifdef LOG	
                     else {
@@ -309,6 +310,30 @@ int SB_batch(int argc, char ** argv) {
                     
                     xbt_free(job->mapping);
                     xbt_free(job);
+                    
+                    /* The system becomes stable again, we can now reschedule */
+                    scheduler->reschedule(cluster, scheduler);
+                }
+                /* A job cancellation has been asked */
+                else if (!strcmp(task->name, "SB_TASK_CANCEL")) {
+                    job_t job = NULL;
+                    int it;
+                    
+                    job = MSG_task_get_data(task);
+
+                    cluster_delete_done_job(cluster, job);
+              
+                    it = cluster_search_job(cluster, job->id, 
+                                            cluster->reservations);
+                    if (it == -1) { 
+                        it = cluster_search_job(cluster, job->id, 
+                                                cluster->queues[job->priority]);
+                        xbt_dynar_remove_at(cluster->queues[job->priority], 
+                                             it, NULL);
+                    }
+                    else { 
+                      xbt_dynar_remove_at(cluster->reservations, it, NULL); 
+                    }
                     
                     /* The system becomes stable again, we can now reschedule */
                     scheduler->reschedule(cluster, scheduler);
