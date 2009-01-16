@@ -307,9 +307,10 @@ int SB_batch(int argc, char ** argv) {
                             job->start_time + NOISE, MSG_get_clock(), 
                             MSG_get_clock() - job->start_time - NOISE);
 #endif
-                    
-                    xbt_free(job->mapping);
-                    xbt_free(job);
+                    if (job->free_on_completion) {
+		      xbt_free(job->mapping);
+		      xbt_free(job);
+		    }
                     
                     /* The system becomes stable again, we can now reschedule */
                     scheduler->reschedule(cluster, scheduler);

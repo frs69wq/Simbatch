@@ -47,6 +47,7 @@ typedef enum _state_t {
  * - mapping: proc affected for the job
  * - state: current state of a job
  * - source: the m_host_t which send the task
+ * - free_on_completion: says if the job should be freed when completed
  * - data: some datas
  */
 
@@ -68,6 +69,7 @@ typedef struct _job {
     int * mapping;
     state_t state;
     m_host_t source;
+    int free_on_completion;
     void * data;
 } * job_t;
 

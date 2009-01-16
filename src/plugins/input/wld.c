@@ -71,6 +71,7 @@ static xbt_fifo_t wld_parse(const char * wld_file, const char * name) {
                 &(job->input_size), &(job->output_size), &(job->wall_time),
                    &(job->nb_procs), &(job->priority), &(job->service));
 	    job->state = WAITING;
+	    job->free_on_completion = 1;
 	    sprintf(job->name, "%s%lu", name, job->user_id);
 	    xbt_fifo_push(list,job);
 #ifdef DEBUG
