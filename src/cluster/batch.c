@@ -1,5 +1,5 @@
 /****************************************************************************/
-/* This file is part of the Simbatch project                                */
+/* This file is part of the Simbatchproject                                */
 /* written by Jean-Sebastien Gay, ENS Lyon                                  */
 /*                                                                          */
 /* Copyright (c) 2007 Jean-Sebastien Gay. All rights reserved.              */
@@ -225,7 +225,6 @@ int SB_batch(int argc, char ** argv) {
                         /* ask to the plugin to schedule and accept this new task */
                         scheduler->accept(cluster, job,
                                           scheduler->schedule(cluster, job));
-                        printf("batch : %u\n", job->state);
                     }
 #ifdef LOG	
                     else {
