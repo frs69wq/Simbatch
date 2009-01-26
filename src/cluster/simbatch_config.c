@@ -24,7 +24,7 @@
 
 /* DIET integration */
 char * DIET_FILE = NULL;
-unsigned long int DIET_PARAM[4] = {0, 0, 0, 0};
+unsigned long int DIET_PARAM[2] = {0, 0};
 int DIET_MODE = 0;
 
 /* Nb Batch in the system */
@@ -49,10 +49,10 @@ static void close_log_file(void * data);
 #endif
 
 static int parseCmdLine(int argc, char * argv[]) {
-    char * allowed[] = {"-f", "-o", "-tw", "-tp", "-sw", "-sp", NULL};
+    char * allowed[] = {"-f", "-o", "-tw", "-tp", NULL};
     char * needed[] = {"-f", NULL};
     char * neededWithDIET[] = {"-o", "-tw", "-tp", NULL};
-    char * withParams[] = {"-f", "-o", "-tw", "-tp", "-sw", "-sp", NULL};
+    char * withParams[] = {"-f", "-o", "-tw", "-tp", NULL};
     
     if (controlParams(argv, withParams, needed, allowed)) {
 #ifdef VERBOSE
@@ -65,7 +65,7 @@ static int parseCmdLine(int argc, char * argv[]) {
 	if (controlParams(argv, withParams, neededWithDIET, allowed)) {
 #ifdef VERBOSE
 	    fprintf (stderr, 
-		     "Usage: %s -f config.xml -o diet_file -tw uint -tp uint [-sw uint -tw uint]\n", argv[0]);
+		     "Usage: %s -f config.xml -o diet_file -tw uint -tp uint\n", argv[0]);
 #endif
 	    return -1;
 	} 
@@ -78,8 +78,6 @@ static int parseCmdLine(int argc, char * argv[]) {
 #endif
 	    return -1;
 	}
-	DIET_PARAM[2] = (secureStr2ul(getParam(argv, "-sw")))? : 60;
-	DIET_PARAM[3] = (secureStr2ul(getParam(argv, "-sp")))? : DIET_PARAM[1];
 	DIET_MODE = 1;
     }
 

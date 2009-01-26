@@ -44,7 +44,6 @@ plugin_scheduler_t init (plugin_scheduler_t p) {
 static slot_t * cbf_schedule(cluster_t cluster, job_t job) {
     slot_t  * slots;
     
-    job->run_time;
     slots = find_a_slot(cluster, job->nb_procs,
 			MSG_get_clock(), job->wall_time);
  
