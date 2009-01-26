@@ -63,6 +63,7 @@ static void fcfs_accept(cluster_t cluster, job_t job, slot_t * slots) {
     /* The start_time of the job is finally equal to the
        worst start_time among the best */
     job->start_time = slots[job->nb_procs-1]->start_time;
+    job->completion_time = job->start_time + job->run_time;
     
     /* we must push the task in its waiting queue(s) */
     for (i=0; i<job->nb_procs; i++) {

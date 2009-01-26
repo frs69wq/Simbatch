@@ -289,6 +289,7 @@ int SB_batch(int argc, char ** argv) {
 #endif
                     
                     job->state = DONE;
+                    job->completion_time = MSG_get_clock();
                     cluster_delete_done_job(cluster, job);
               
                     it = cluster_search_job(cluster, job->id, 
@@ -303,7 +304,7 @@ int SB_batch(int argc, char ** argv) {
 #ifdef OUTPUT
                     fprintf(fout, "%-15s\t%lf\t%lf\t%lf\t%lf\t\n",
                             job->name, job->entry_time, 
-                            job->start_time + NOISE, MSG_get_clock(), 
+                            job->start_time + NOISE, job->completion_time, 
                             MSG_get_clock() - job->start_time - NOISE);
 #endif
                     if (job->free_on_completion) {

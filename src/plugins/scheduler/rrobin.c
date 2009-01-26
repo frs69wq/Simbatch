@@ -57,6 +57,8 @@ static slot_t * rrobin_schedule(cluster_t cluster, job_t job) {
 	xbt_dynar_push(cluster->waiting_queue[proc], &job);
 	proc = (proc+1) % cluster->nb_nodes;
     }
+    
+    job->completion_time = job->start_time + job->run_time;
 
     return NULL;
 }

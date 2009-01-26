@@ -60,6 +60,7 @@ typedef struct _job {
     double output_size;
     double wall_time;
     double start_time;
+    double completion_time;
     double weight;
     unsigned long int user_id;
     unsigned long int id;
