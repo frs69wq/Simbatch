@@ -17,10 +17,12 @@ ENDIF(${CMAKE_C_COMPILER} STREQUAL "gcc" )
 # Create plugins
 ADD_LIBRARY(wld MODULE wld.c ${INC_FILE})
 ADD_LIBRARY(swf MODULE swf.c ${INC_FILE})
+ADD_LIBRARY(oar2-xml MODULE oar2-xml.c ${INC_FILE})
 
 TARGET_LINK_LIBRARIES(wld dl simgrid simbatch)
 TARGET_LINK_LIBRARIES(swf dl simgrid simbatch)
+TARGET_LINK_LIBRARIES(oar2-xml xml2 dl simgrid simbatch)
 
 # Install library in the lib dir at the root of the project
-INSTALL_TARGETS(/lib swf wld)
+INSTALL_TARGETS(/lib swf wld oar2-xml)
 

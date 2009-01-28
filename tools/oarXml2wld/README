@@ -1,0 +1,6 @@
+This program transforms a OAR XML file (result of oarstat) into 
+a wld file used in Simbatch
+
+This program has been tested only with OAR 2 XML files.
+For older versions, you can try, but it is likely the
+program will crash
