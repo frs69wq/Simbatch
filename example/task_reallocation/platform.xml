@@ -1,0 +1,96 @@
+<?xml version='1.0'?>
+<!DOCTYPE platform_description SYSTEM "surfxml.dtd">
+<platform_description version="1">
+
+  <!-- Cluster 0 -->
+  <cpu name="Batch0" power="3865000000"/>
+  <cpu name="Node0_0" power="3865000000"/>
+  <cpu name="Node0_1" power="3865000000"/>
+  <cpu name="Node0_2" power="3865000000"/>
+  <cpu name="Node0_3" power="3865000000"/>
+  <cpu name="Node0_4" power="3865000000"/>
+
+  <network_link name="loopback0" bandwidth="498000000" latency="0.0"/>
+  <network_link name="B0_0" bandwidth="1000000000" latency="0.0"/>
+  <network_link name="B0_1" bandwidth="1000000000" latency="0.0"/>
+  <network_link name="B0_2" bandwidth="1000000000" latency="0.0"/>
+  <network_link name="B0_3" bandwidth="1000000000" latency="0.0"/>
+  <network_link name="B0_4" bandwidth="1000000000" latency="0.0"/>
+  
+  <route src="Batch0" dst="Batch0"><route_element name="loopback0"/></route>
+
+  <route src="Batch0" dst="Node0_0"><route_element name="B0_0"/></route>
+  <route src="Batch0" dst="Node0_1"><route_element name="B0_1"/></route>
+  <route src="Batch0" dst="Node0_2"><route_element name="B0_2"/></route>
+  <route src="Batch0" dst="Node0_3"><route_element name="B0_3"/></route>
+  <route src="Batch0" dst="Node0_4"><route_element name="B0_4"/></route>
+
+  <route src="Node0_0" dst="Batch0"><route_element name="B0_0"/></route>
+  <route src="Node0_1" dst="Batch0"><route_element name="B0_1"/></route>
+  <route src="Node0_2" dst="Batch0"><route_element name="B0_2"/></route>
+  <route src="Node0_3" dst="Batch0"><route_element name="B0_3"/></route>
+  <route src="Node0_4" dst="Batch0"><route_element name="B0_4"/></route>
+
+  <!-- Cluster 1 -->
+  <cpu name="Batch1" power="3800000000"/>
+  <cpu name="Node1_0" power="3800000000"/>
+  <cpu name="Node1_1" power="3800000000"/>
+  <cpu name="Node1_2" power="3800000000"/>
+  <cpu name="Node1_3" power="3800000000"/>
+  <cpu name="Node1_4" power="3800000000"/>
+  
+  <network_link name="loopback1" bandwidth="498000000" latency="0.0"/>
+  <network_link name="B1_0" bandwidth="100000000" latency="0.0"/>
+  <network_link name="B1_1" bandwidth="100000000" latency="0.0"/>
+  <network_link name="B1_2" bandwidth="100000000" latency="0.0"/>
+  <network_link name="B1_3" bandwidth="100000000" latency="0.0"/>
+  <network_link name="B1_4" bandwidth="100000000" latency="0.0"/>
+  
+  <route src="Batch1" dst="Batch1"><route_element name="loopback1"/></route>
+  
+  <route src="Batch1" dst="Node1_0"><route_element name="B1_0"/></route>
+  <route src="Batch1" dst="Node1_1"><route_element name="B1_1"/></route>
+  <route src="Batch1" dst="Node1_2"><route_element name="B1_2"/></route>
+  <route src="Batch1" dst="Node1_3"><route_element name="B1_3"/></route>
+  <route src="Batch1" dst="Node1_4"><route_element name="B1_4"/></route>
+  
+  <route src="Node1_0" dst="Batch1"><route_element name="B1_0"/></route>
+  <route src="Node1_1" dst="Batch1"><route_element name="B1_1"/></route>
+  <route src="Node1_2" dst="Batch1"><route_element name="B1_2"/></route>
+  <route src="Node1_3" dst="Batch1"><route_element name="B1_3"/></route>
+  <route src="Node1_4" dst="Batch1"><route_element name="B1_4"/></route>
+	 
+  <!-- Meta-Scheduler --> 
+  <cpu name="MetaSched" power="3865000000"/>
+
+  <network_link name="M0" bandwidth="10000000000" latency="0.0"/>
+  <network_link name="M1" bandwidth="10000000000" latency="0.0"/>
+
+  <route src="MetaSched" dst="Batch0"><route_element name="M0"/></route>
+  <route src="MetaSched" dst="Batch1"><route_element name="M1"/></route>
+
+  <route src="Batch0" dst="MetaSched"><route_element name="M0"/></route>
+  <route src="Batch1" dst="MetaSched"><route_element name="M1"/></route>
+ 
+  <!-- client -->
+  <cpu name="Client" power="3865000000"/>
+  
+  <network_link name="C0" bandwidth="10000000000" latency="0.0"/>
+  <network_link name="C1" bandwidth="10000000000" latency="0.0"/>
+  <network_link name="C2" bandwidth="10000000000" latency="0.0"/>
+
+  <route src="Client" dst="MetaSched"><route_element name="C0"/></route>
+  <route src="MetaSched" dst="Client"><route_element name="C0"/></route>
+  <route src="Client" dst="Batch0"><route_element name="C1"/></route>
+  <route src="Batch0" dst="Client"><route_element name="C1"/></route>
+  <route src="Client" dst="Batch1"><route_element name="C2"/></route>
+  <route src="Batch1" dst="Client"><route_element name="C2"/></route>
+
+  <!-- Between clusters -->
+  <network_link name="B01" bandwidth="1000000000" latency="0.005"/>
+  
+  <route src="Batch0" dst="Batch1"><route_element name="B01"/></route>
+  <route src="Batch1" dst="Batch0"><route_element name="B01"/></route>
+
+</platform_description>
+
