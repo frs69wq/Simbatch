@@ -58,7 +58,7 @@ static slot_t * rrobin_schedule(cluster_t cluster, job_t job) {
 	proc = (proc+1) % cluster->nb_nodes;
     }
     
-    job->completion_time = job->start_time + job->run_time;
+    job->completion_time = job->start_time + job->wall_time;
 
     return NULL;
 }
