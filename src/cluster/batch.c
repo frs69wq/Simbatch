@@ -306,6 +306,7 @@ int SB_batch(int argc, char ** argv) {
                             job->name, job->entry_time, 
                             job->start_time + NOISE, job->completion_time, 
                             MSG_get_clock() - job->start_time - NOISE);
+		    fflush(fout);
 #endif
                     if (job->free_on_completion) {
 		      xbt_free(job->mapping);
@@ -345,7 +346,6 @@ int SB_batch(int argc, char ** argv) {
                 else if (!strcmp(task->name, "SB_DIET")) {
                     FILE * fdiet = fopen(DIET_FILE, "w"); 
                     slot_t * slots = NULL;
-                    int i = 0;
                     
                     if (!fdiet) {
                         DIET_MODE = 0;
@@ -384,7 +384,8 @@ int SB_batch(int argc, char ** argv) {
                     job_t job = MSG_task_get_data(task);
                     slot_t * slots = NULL;
 #ifdef VERBOSE
-                    printf("Prediction\n");
+                    printf("Prediction for %s on %s\n", job->name,
+			   MSG_host_get_name(MSG_host_self()));
 #endif
 #ifdef LOG	
                     fprintf(flog, "[%lf]\t%20s\tReceive \"%s\" from \"%s\"\n",
@@ -447,6 +448,9 @@ int SB_batch(int argc, char ** argv) {
                 
                 MSG_task_destroy(task);
                 task = NULL;
+#ifdef LOG
+		fflush(flog);		
+#endif
             }
             UPDATE_RSC_MNG();
         }
@@ -455,11 +459,11 @@ int SB_batch(int argc, char ** argv) {
     
     /* Clean */ 
 #ifdef OUTPUT
-#ifdef VERBOSE
     fclose(fout);
+#ifdef VERBOSE
     fprintf(stderr, "Close %s... ok\n", out_file);
-    free(out_file);
 #endif
+    free(out_file);
 #endif
 
     cluster_destroy(&cluster);
