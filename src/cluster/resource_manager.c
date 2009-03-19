@@ -72,7 +72,7 @@ int SB_resource_manager(int argc, char ** argv) {
     while (1) {
 	/* 0.0 makes MSG_task_get_with_time_out blocking */
 	ok = (waiting_time == 0.0)? MSG_TRANSFER_FAILURE:
-	    MSG_task_get_with_time_out(&task, RSC_MNG_PORT, waiting_time);
+	    MSG_task_get_with_timeout(&task, RSC_MNG_PORT, waiting_time);
         
 	if (ok == MSG_TRANSFER_FAILURE) {
             
@@ -188,7 +188,7 @@ static int supervise(int argc, char ** argv) {
 
     while (1) {
 
-	err = MSG_task_get_with_time_out(&task, *port, DBL_MAX);
+	err = MSG_task_get_with_timeout(&task, *port, DBL_MAX);
        
 	if (err == MSG_TRANSFER_FAILURE) { break; }
 

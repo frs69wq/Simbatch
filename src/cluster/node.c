@@ -36,7 +36,7 @@ int SB_node(int argc, char ** argv) {
 #endif
 	
 	/* Waiting for input comm */
-	MSG_task_get_with_time_out(&data, NODE_PORT, DBL_MAX);
+	MSG_task_get_with_timeout(&data, NODE_PORT, DBL_MAX);
 	if (data) {
 #ifdef LOG
 	    flog = config_get_log_file(MSG_host_get_name(

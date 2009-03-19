@@ -44,7 +44,7 @@ void generic_reschedule (cluster_t cluster, plugin_scheduler_t scheduler) {
     
     /* Reschedule the tasks (just those tat are not processing) */
     for (i = cluster->priority - 1; i>=0; i--) {
-	int cpt;
+	unsigned int cpt;
 	job_t job = NULL;
 	
 	xbt_dynar_foreach(cluster->queues[i], cpt, job) { reschedule(job); }
@@ -226,18 +226,19 @@ slot_t * select_n_slots(cluster_t cluster, xbt_dynar_t slots, int nb) {
     best_slots = xbt_malloc(nb * sizeof(*best_slots));
     
     for (i=0; i<nb; i++) {
-	int cursor = 0, node = 0;
-	slot_t winning_slot = NULL;
-	
-	xbt_dynar_foreach(slots, cursor, s) {
-		if (!winning_slot) winning_slot = s;
-		if (winning_slot->start_time > s->start_time) {
-		    winning_slot = s;
-		    node = cursor;
-		}
+      unsigned int cursor = 0;
+      unsigned node = 0;
+      slot_t winning_slot = NULL;
+      
+      xbt_dynar_foreach(slots, cursor, s) {
+	if (!winning_slot) winning_slot = s;
+	if (winning_slot->start_time > s->start_time) {
+	  winning_slot = s;
+	  node = cursor;
 	}
-	/* we retrieve the best bid of the market */
-	xbt_dynar_remove_at(slots, node, &(best_slots[i]));
+      }
+      /* we retrieve the best bid of the market */
+      xbt_dynar_remove_at(slots, node, &(best_slots[i]));
     }
     
     return best_slots;
@@ -274,7 +275,7 @@ inline void print_slot(slot_t * slots, int size) {
 
 
 inline void print_slots(xbt_dynar_t slots) {
-    int cursor = 0;
+    unsigned int cursor = 0;
     slot_t s;
     
     xbt_dynar_foreach(slots, cursor, s) {
@@ -286,7 +287,7 @@ inline void print_slots(xbt_dynar_t slots) {
 
 /* Return the next job to schedule in the queue nb */
 job_t next_job_to_schedule_in_queue(xbt_dynar_t queue) {
-    int cpt;
+    unsigned int cpt;
     job_t job = NULL;
 
     /* No jobs in the queue */ 

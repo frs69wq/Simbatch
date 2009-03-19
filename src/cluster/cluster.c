@@ -157,7 +157,7 @@ void cluster_clean(cluster_t cluster) {
 
 
 int cluster_search_job(cluster_t cluster, int job_id, xbt_dynar_t dynar) {
-    int cpt = 0;
+    unsigned int cpt = 0;
     job_t job = NULL;
     
     xbt_dynar_foreach(dynar, cpt, job) {   
@@ -172,7 +172,7 @@ void cluster_print(cluster_t cluster) {
     
     printf("Affichage\n");
     for (i=0; i<cluster->nb_nodes; ++i) {
-	int cpt;
+	unsigned int cpt;
         job_t job;
 	
 	printf("\n****** %s => %lu tasks ******\n", cluster->nodes[i]->name,

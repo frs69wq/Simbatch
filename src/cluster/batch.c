@@ -13,6 +13,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <float.h>
+#include <errno.h>
 
 /* Simgrid headers */
 #include <xbt/asserts.h>
@@ -177,7 +178,7 @@ int SB_batch(int argc, char ** argv) {
     msg_stack = xbt_fifo_new();
     /* Receiving messages and put them in a stack */
     while (1) {
-        err = MSG_task_get_with_time_out(&task, CLIENT_PORT, DBL_MAX);	
+        err = MSG_task_get_with_timeout(&task, CLIENT_PORT, DBL_MAX);	
         if (err == MSG_TRANSFER_FAILURE) {
             if (!msg_stack) xbt_fifo_free(msg_stack);
             break;
