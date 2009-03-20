@@ -69,12 +69,11 @@ static void fcfs_accept(cluster_t cluster, job_t job, slot_t * slots) {
         job->mapping[i] = slots[i]->node;
         xbt_dynar_push(cluster->waiting_queue[slots[i]->node], &job);
     }
+
+    job->completion_time = slots[0]->start_time + slots[0]->duration;
    
     for (i=0;i<job->nb_procs;i++)
         xbt_free(slots[i]);
     xbt_free(slots);
-
-    job->completion_time = job->start_time + job->wall_time;
-
 }
  

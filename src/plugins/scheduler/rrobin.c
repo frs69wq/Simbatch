@@ -46,8 +46,10 @@ static slot_t * rrobin_schedule(cluster_t cluster, job_t job) {
 	
 	/* a speedup could be to not return a bid (no reusability) */
 	b = get_last_slot(cluster, k);
-	if (b->start_time > job->start_time)
+	if (b->start_time > job->start_time) {
 	    job->start_time = b->start_time;
+	    job->completion_time = b->start_time + b->duration;
+	}
 	k = (k+1) % cluster->nb_nodes;
 	xbt_free(b);
     }
@@ -57,8 +59,6 @@ static slot_t * rrobin_schedule(cluster_t cluster, job_t job) {
 	xbt_dynar_push(cluster->waiting_queue[proc], &job);
 	proc = (proc+1) % cluster->nb_nodes;
     }
-    
-    job->completion_time = job->start_time + job->wall_time;
 
     return NULL;
 }
