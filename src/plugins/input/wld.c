@@ -2,7 +2,7 @@
 /* This file is part of the Simbatch project                                */
 /* written by Jean-Sebastien Gay, ENS Lyon                                  */
 /*                                                                          */
-/* Copyright (c) 2007 Jean-Sebastien Gay. All rights reserved.              */
+/* Copyright (c) 2009 Simbatch Tean. All rights reserved.                   */
 /*                                                                          */
 /* This program is free software; you can redistribute it and/or modify it  */
 /* under the terms of the license (GNU LGPL) which comes with this package. */
@@ -39,7 +39,8 @@ plugin_input_t init_input(plugin_input_t p) {
  * 4 -> ouput_size : amount of data to transfert after
  * 5 -> requested time : define the end size of a reservation
  * 6 -> nb_procs : nb procs requested for a task   
- * 7 -> priority : priority of the task
+ * 7 -> service : type of job
+ * 8 -> priority : priority of the task
  */
 static xbt_fifo_t wld_parse(const char * wld_file, const char * name) {
     int i = 1;

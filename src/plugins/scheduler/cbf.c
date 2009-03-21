@@ -59,6 +59,6 @@ static void cbf_accept(cluster_t cluster, job_t job, slot_t * slots) {
 	xbt_dynar_insert_at(cluster->waiting_queue[slots[i]->node], 
 			    slots[i]->position, &job);
     }
-    job->completion_time = slots[0]->start_time + slots[0]->duration;    
+    job->completion_time = job->start_time + job->wall_time;    
     xbt_free(slots);
 }

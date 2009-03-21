@@ -48,7 +48,7 @@ static slot_t * rrobin_schedule(cluster_t cluster, job_t job) {
 	b = get_last_slot(cluster, k);
 	if (b->start_time > job->start_time) {
 	    job->start_time = b->start_time;
-	    job->completion_time = b->start_time + b->duration;
+	    job->completion_time = b->start_time + job->wall_time;
 	}
 	k = (k+1) % cluster->nb_nodes;
 	xbt_free(b);
