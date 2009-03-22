@@ -52,7 +52,7 @@ void generic_reschedule (cluster_t cluster, plugin_scheduler_t scheduler) {
 }
 
 
-inline void free_slot(void * d) {
+void free_slot(void * d) {
     xbt_free((*(slot_t *)d));
 }
 

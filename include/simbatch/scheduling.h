@@ -48,7 +48,7 @@ job_t next_job_to_schedule(cluster_t cluster);
 
 
 /* usefull to build xbt_dynar of bids (xbt dynar request) */
-__inline__ void free_slot(void * d);
+void free_slot(void * d);
 
 /* print a xbt dynar of slots */
 __inline__ void print_slots(xbt_dynar_t slots);
