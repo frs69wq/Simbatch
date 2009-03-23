@@ -280,7 +280,6 @@ int SB_batch(int argc, char ** argv) {
                     int it;
                     
                     job = MSG_task_get_data(task);
-                    
 #ifdef LOG	
                     fprintf(flog, "[%lf]\t%20s\tReceive \"%s\" from \"%s\" \n",
                             MSG_get_clock(), PROCESS_NAME(), task->name,
@@ -323,23 +322,33 @@ int SB_batch(int argc, char ** argv) {
                     int it;
                     
                     job = MSG_task_get_data(task);
-
-                    cluster_delete_done_job(cluster, job);
-              
-                    it = cluster_search_job(cluster, job->id, 
-                                            cluster->reservations);
-                    if (it == -1) { 
+		    
+		    if (job->state != WAITING) {
+		      MSG_task_put(
+				   MSG_task_create("CANCEL_KO", 0.0, 0.0, NULL),
+				   sender, SED_CHANNEL);
+		    }
+		    else {
+		      cluster_delete_done_job(cluster, job);
+		      
+		      it = cluster_search_job(cluster, job->id, 
+					      cluster->reservations);
+		      if (it == -1) { 
                         it = cluster_search_job(cluster, job->id, 
                                                 cluster->queues[job->priority]);
                         xbt_dynar_remove_at(cluster->queues[job->priority], 
-                                             it, NULL);
-                    }
-                    else { 
-                      xbt_dynar_remove_at(cluster->reservations, it, NULL); 
-                    }
-                    
-                    /* The system becomes stable again, we can now reschedule */
-                    scheduler->reschedule(cluster, scheduler);
+					    it, NULL);
+		      }
+		      else { 
+			xbt_dynar_remove_at(cluster->reservations, it, NULL); 
+		      }
+		      
+		      /* The system becomes stable again, we can reschedule */
+		      scheduler->reschedule(cluster, scheduler);
+		      MSG_task_put(
+				   MSG_task_create("CANCEL_OK", 0.0, 0.0, NULL),
+				   sender, SED_CHANNEL);
+		    }
                 }
                 
                 
