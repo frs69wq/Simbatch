@@ -17,8 +17,7 @@
 
 
 /* Config structure */
-typedef struct
-{
+typedef struct config_t {
   xmlDocPtr doc;
   xmlNodePtr root;
   xmlXPathContextPtr context;
