@@ -9,6 +9,12 @@
 /****************************************************************************/
 
 
+/**
+ * \file job.h
+ * Define the job_t, slot_t and state_t datatypes .
+ */
+
+
 #ifndef _JOB_H_
 #define _JOB_H_
 
@@ -17,7 +23,7 @@
 /*
  * States a job can have
  */
-typedef enum _state_t {
+typedef enum state_t {
     WAITING    = 0,
     LOADING    = 1,
     PROCESSING = 2,
