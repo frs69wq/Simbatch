@@ -9,10 +9,25 @@
 /****************************************************************************/
 
 
+/**
+ * \file node.h
+ * Define the SB_node process.
+ * Every SB_process process is a MSG_process.
+ */
+
+
 #ifndef _NODE_H_
 #define _NODE_H_
 
-/* Actions performed by a node */
-int SB_node(int argc, char ** argv);
+/**
+ * SB_node process.
+ * A node or comtpuation node represents a node of a cluster. Its role is to
+ * execute jobs sent by the SB_batch process. Nodes are created by simgrid from
+ * the deployments.xml and platform.xml files.
+ * \param argc number of parmeters in **argv.
+ * \param **argv array containing the parameters.
+ */
+int
+SB_node(int argc, char ** argv);
 
 #endif
