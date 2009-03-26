@@ -9,13 +9,15 @@
 /****************************************************************************/
 
 
-#ifndef _BATCH_H_
-#define _BATCH_H_
-
 /**
  * \file batch.h
- * Define the batch process.
+ * Define the SB_batch process.
+ * Every SB_process process is a MSG_process.
  */
+
+
+#ifndef _BATCH_H_
+#define _BATCH_H_
 
 
 /**
@@ -35,7 +37,7 @@
  * PF_INIT to initialize the batch
  *
  * \param argc number of parameters transmitted to the SB_batch process.
- * \param **argv array containing the parameters. argc and argc are 
+ * \param **argv array containing the parameters. argc and **argv are 
  * automacilly filled by simgrid when parsing the deployment.xml file.
  * \return an error code.
  */
