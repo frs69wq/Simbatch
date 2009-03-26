@@ -8,6 +8,10 @@
 /* under the terms of the license (GNU LGPL) which comes with this package. */
 /****************************************************************************/
 
+/**
+ * \file cluster.h
+ * Define the cluster MSG_process.
+ */
 
 #ifndef _CLUSTER_H_
 #define _CLUSTER_H_
@@ -84,7 +88,7 @@ cluster_search_job(cluster_t cluster, int job_id, xbt_dynar_t dynar);
 
 /**
  * Delete a job in the cluster.
- * This function is called when the job becomes done. All the SB_ACK have benn
+ * This function is called when the job becomes done. All the SB_ACK have been
  * been received. So The job should be at the first place in the scheduling
  * table as it is in a running state.
  * \param cluster the cluster repreentation.
@@ -94,17 +98,17 @@ void
 cluster_delete_done_job(cluster_t cluster, job_t job);
 
 /** 
- * Prints some infos on a cluster.
+ * Print some informations on a cluster.
  * Used as a debug function.
  * \param the cluster representation. 
  */
 void 
 cluster_print(cluster_t cluster);
 
-/* return the number of priority queue for the cluster 
- * Unused Function in the project
+/*
+ * \return return the number of priority queue for the cluster 
  * 
  */
-/* int get_nb_queues(char * value);*/
+/* int get_nb_queues(char * value); */
 
 #endif 
