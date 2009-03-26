@@ -9,8 +9,10 @@
 /****************************************************************************/
 
 
-
-/*
+/**
+ * \file client.h
+ * Define some client MSG_processes.
+ * Every SB_process process is a MSG_process.
  * This file should be removes. They were disgned for running tests.
  * Those clients could move in the example directory.
  */
