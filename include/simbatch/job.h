@@ -11,7 +11,10 @@
 
 /**
  * \file job.h
- * Define the job_t, slot_t and state_t datatypes .
+ * Define the job, slot and state datatypes.
+ * \todo better coding style:
+ * typedef job_t {...} job_t;
+ * typedef job_t *m_job_t; etc... 
  */
 
 
@@ -20,8 +23,8 @@
 
 #include <msg/msg.h>
 
-/*
- * States a job can have
+/**
+ * States a job can have.
  */
 typedef enum state_t {
     WAITING    = 0,
@@ -34,69 +37,48 @@ typedef enum state_t {
 } state_t;
 
 
-/*
- * Job Definition:
- * - name: Name of the job 
- * - submit_time: time client send the job
- * - entry_time: time the job entered for the first time in the batch
- * - run_time: time needed to run
- * - input_size: Size to be transferred before execution
- * - output_size: size of produced data
- * - wall_time: Duration for a slot requested by the job
- * - start_time: time teh job started execution
- * - weight: a weight given by some heuristic (used by HPF)
- * - user_id: id given by the user
- * - id: id given by the batch
- * - priority: priority of a job
- * - nb_proc: Number of procs needed
- * - service: Service that can execute the job
- * - mapping: proc affected for the job
- * - state: current state of a job
- * - source: the m_host_t which send the task
- * - free_on_completion: says if the job should be freed when completed
- * - data: some datas
+/**
+ * Job structure.
+ * Simbatch defines a job strutures to add informations to simbatch m_task_t
+ * types.
  */
-
 typedef struct _job {
-    char name[15];
-    double submit_time;
-    double entry_time;
-    double run_time;
-    double input_size;
-    double output_size;
-    double wall_time;
-    double start_time;
-    double completion_time;
-    double weight;
-    unsigned long int user_id;
-    unsigned long int id;
-    int priority;
-    int nb_procs;
-    unsigned int service;
-    int * mapping;
-    state_t state;
-    m_host_t source;
-    int free_on_completion;
-    void * data;
+    char name[15];      /*!< Name of the job. */
+    double submit_time; /*!< Time client send the job. */
+    double entry_time;  /*!< First time the job enters the batch. */
+    double run_time;    /*!< Time needed to run. */
+    double input_size;  /*!< Size to be transferred before execution. */
+    double output_size; /*!< Size of produced data. */
+    double wall_time;   /*!< Duration for a slot requested by the job. */
+    double start_time;  /*!< Time when job starts its execution. */
+    double completion_time;     /*!< Time when job completes its execution. */
+    double weight;              /*!< A weight given by some heuristic. */
+    unsigned long int user_id;  /*!< Jobs'id given by the user. */
+    unsigned long int id;   /*!< Jobs'id given by the batch */
+    int priority;       /*<! priority of a job. */
+    int nb_procs;       /*<! Number of procs needed. */
+    unsigned int service;   /*<! Service that can execute the job. */
+    int * mapping;      /*<! Proc affected for the job. */
+    state_t state;      /*<! Current state of a job. */
+    m_host_t source;    /*<! The m_host_t which send the task. */
+    int free_on_completion; /*<! Job to free when completed */
+    void * data;        /*<! some datas */
 } * job_t;
 
 
-/* 
- * Slot (or non-job) definition : 
- * node : node number which owns the slot
- * position : slot position in the waiting queue
- * start_time : start time of the slot
- * duration : slot duration
- * host : usefull for a metascheduler
- * data : could be usefull
+/**
+ * Slot definition.
+ * In the Gantt diagram, it exists two kind of slots: empty and full slots.
+ * They define the time available or unavailable on a cluster.
+ * Only full slots are technically existing in Simbatch.
  */
 typedef struct _slot {
-    int node;
-    int position;
-    double start_time;
-    double duration;
-    m_host_t host;
-    void * data;
+    int node;           /*<! Number designing the job owning the slot. */
+    int position;       /*<! Position in the waiting queue. */
+    double start_time;  /*<! Start time of the slot.*/
+    double duration;    /*<! Slot duration. */
+    m_host_t host;      /*<! Usefull for a metascheduler. */
+    void * data;        /*<! Could be usefull. */
 } slot, * slot_t;
 
 

@@ -24,7 +24,7 @@
  * Simulates the behavior of a Batch system.
  *
  * The behaviour of the batch process consists in responding to incoming 
- * messages and to schedule jobs sent by clients. Messages are MSG_task 
+ * messages and to schedule jobs sent by clients. Messages are m_task_t 
  * datatype provided by the simgrid library.
  *
  * Here is a short description of the different tasks received:

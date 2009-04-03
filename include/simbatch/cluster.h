@@ -25,29 +25,15 @@
 /**
  * Cluster definition.
  * This is a representation of the cluster for the SB_bacth process.
+ * \todo typedef cluster_t {...} cluster_t, *m_cluster_t;
  */
 typedef struct {
-    
-    /** Number of slaves. */
-    int nb_nodes;
-    
-    /** Number of priority level available for a task. 
-     *  Each level has its own queue. 
-     */
-    int priority;
-    
-    /** List of slaves. */
-    m_host_t *nodes;
-    
-    /** Trace of tasks actually in the systeme (batch + cluster). */
-    xbt_dynar_t *queues;
-    
-    /** Scheduling tabe or Gantt diagramm. */
-    xbt_dynar_t *waiting_queue;
-    
-    /** Reservation queue */ 
-    xbt_dynar_t reservations;
-    
+    int nb_nodes;   /*<! Number of slaves. */
+    int priority;   /*<! Number of priority level available for a task. */
+    m_host_t *nodes;    /*<! List of slaves. */
+    xbt_dynar_t *queues;    /*<! Trace the tasks (batch + cluster). */
+    xbt_dynar_t *waiting_queue; /*<! Scheduling table or Gantt diagramm. */
+    xbt_dynar_t reservations;   /*<! Reservation queue. */ 
 } *cluster_t;
 
 
