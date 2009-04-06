@@ -22,11 +22,16 @@
 #include "scheduling.h"
 
 /************* Functions *************/
-static slot_t * fcfs_schedule(cluster_t cluster, job_t job);
-static void fcfs_accept(cluster_t cluster, job_t job, slot_t * slots);
+static slot_t *
+fcfs_schedule(m_cluster_t cluster, job_t job);
+
+static void
+fcfs_accept(m_cluster_t cluster, job_t job, slot_t *slots);
 
 /**************** Code ***************/
-plugin_scheduler_t init (plugin_scheduler_t p) {
+plugin_scheduler_t
+init (plugin_scheduler_t p)
+{
     p->schedule = fcfs_schedule;
     p->reschedule = generic_reschedule;
     p->accept = fcfs_accept;
@@ -34,9 +39,12 @@ plugin_scheduler_t init (plugin_scheduler_t p) {
     return p;
 }
 
-static slot_t * fcfs_schedule(cluster_t cluster, job_t job) {
+
+static slot_t *
+fcfs_schedule(m_cluster_t cluster, job_t job)
+{
     int i = 0;
-    slot_t * best_slots = NULL;
+    slot_t *best_slots = NULL;
     xbt_dynar_t slots = NULL;
     
     slots = xbt_dynar_new(sizeof(slot_t), free_slot);
@@ -57,7 +65,9 @@ static slot_t * fcfs_schedule(cluster_t cluster, job_t job) {
     return best_slots;
 }
 
-static void fcfs_accept(cluster_t cluster, job_t job, slot_t * slots) {
+static void
+fcfs_accept(m_cluster_t cluster, job_t job, slot_t *slots)
+{
     int i=0;
     
     /* The start_time of the job is finally equal to the
