@@ -18,27 +18,26 @@
 #include "plugin.h"
 
 
-int launch_plugin(void ** handle, void * plugin, const char * plugin_name, const char * init_fct)
+int
+launch_plugin(void **handle, void *plugin, const char *plugin_name,
+              const char *init_fct)
 {
-    void * (*init) (void * p);
+    void * (*init) (void *p);
     
     *handle = dlopen(plugin_name, RTLD_LAZY);
-    if (!*handle) 
-    {
+    if (!*handle) {
         fprintf(stderr, "dlopen %s\n", dlerror());
         return 1;
     }
     
     init = dlsym(*handle, init_fct);
-    if (!init) 
-    {
+    if (!init) {
         fprintf(stderr, "dlsym %s\n", dlerror());
         dlclose(*handle);
         return 1;
     }
     
-    if (!init(plugin)) 
-    {
+    if (!init(plugin)) {
         fprintf(stderr, "init %s\n", dlerror());
         dlclose(*handle);
         return 1;
@@ -48,27 +47,25 @@ int launch_plugin(void ** handle, void * plugin, const char * plugin_name, const
 }
 
 
-int launch_plugin2(pluginInfo_t plugin)
+int
+launch_plugin2(pluginInfo_t plugin)
 {
-    void * (*init) (void * p);
+    void * (*init) (void *p);
     
     plugin->handle = dlopen(plugin->name, RTLD_LAZY);
-    if (plugin->handle == NULL) 
-    {
+    if (plugin->handle == NULL) {
         fprintf(stderr, "dlopen %s\n", dlerror());
         return 1;
     }
     
     init = dlsym(plugin->handle, plugin->init_fct);
-    if (!init) 
-    {
+    if (!init) {
         fprintf(stderr, "dlsym %s\n", dlerror());
         dlclose(plugin->handle);
         return 1;
     }
     
-    if (!init(plugin->content)) 
-    {
+    if (!init(plugin->content)) {
         fprintf(stderr, "init %s\n", dlerror());
         dlclose(plugin->handle);
         return 1;
@@ -78,13 +75,15 @@ int launch_plugin2(pluginInfo_t plugin)
 }
 
 
-inline void close_plugin(void * handle)
+inline void
+close_plugin(void *handle)
 {
     dlclose(handle);
 }
 
 
-inline void close_pluginInfo(void * data)
+inline void
+close_pluginInfo(void *data)
 {
     pluginInfo_t p = (pluginInfo_t)data;
     
@@ -104,11 +103,12 @@ inline void close_pluginInfo(void * data)
 }
 
 
-pluginInfo_t SB_request_plugin(const char * init_function, const size_t size)
+pluginInfo_t
+SB_request_plugin(const char *init_function, const size_t size)
 {
   pluginInfo_t plugin = NULL;
   char request[128];
-  const char * plugin_name;
+  const char *plugin_name;
 
   /*** Plug in ***/
 #ifdef VERBOSE
@@ -119,19 +119,17 @@ pluginInfo_t SB_request_plugin(const char * init_function, const size_t size)
 	  MSG_host_get_name(MSG_host_self()));
   
   plugin_name = config_get_value(request);
-  if (plugin_name == NULL)
-    {
+  if (plugin_name == NULL) {
 #ifdef VERBOSE
       fprintf(stderr, "failed\n");
       fprintf(stderr, "XPathError : %s\n", request);
 #endif 
       return NULL;
-    }
+  }
   
   /* search if the plugin have already been load */
   plugin = (pluginInfo_t)config_get_plugin(plugin_name); 
-  if (plugin == NULL)
-    {
+  if (plugin == NULL) {
       plugin = calloc(1, sizeof(*plugin));
       plugin->content = calloc(1, size);
       plugin->init_fct = init_function;
@@ -149,8 +147,8 @@ pluginInfo_t SB_request_plugin(const char * init_function, const size_t size)
     }
   
 #ifdef VERBOSE
-  fprintf(stderr, "ok\n");
+    fprintf(stderr, "ok\n");
 #endif
 
-  return plugin;
+    return plugin;
 }
