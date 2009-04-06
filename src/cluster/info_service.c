@@ -21,7 +21,8 @@
 
 
 /* Simbatch Information Service*/
-int SB_IS(int argc, char ** argv)
+int 
+SB_IS(int argc, char **argv)
 {
     return EXIT_SUCCESS;
 }
