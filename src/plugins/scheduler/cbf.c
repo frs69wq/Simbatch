@@ -28,11 +28,16 @@
 #include "plugin_scheduler.h"
 
 /************* Functions *************/
-static slot_t * cbf_schedule(cluster_t cluster, job_t job);
-static void cbf_accept(cluster_t cluster, job_t job, slot_t * slots);
+static slot_t *
+cbf_schedule(m_cluster_t cluster, job_t job);
+
+static void
+cbf_accept(m_cluster_t cluster, job_t job, slot_t *slots);
 
 /**************** Code ***************/
-plugin_scheduler_t init (plugin_scheduler_t p) {
+plugin_scheduler_t
+init(plugin_scheduler_t p)
+{
     p->schedule = cbf_schedule;
     p->reschedule = generic_reschedule;
     p->accept = cbf_accept;
@@ -41,23 +46,28 @@ plugin_scheduler_t init (plugin_scheduler_t p) {
 }
 
 
-static slot_t * cbf_schedule(cluster_t cluster, job_t job) {
-    slot_t  * slots;
+static slot_t *
+cbf_schedule(m_cluster_t cluster, job_t job)
+{
+    slot_t  *slots;
     
-    slots = find_a_slot(cluster, job->nb_procs,
-			MSG_get_clock(), job->wall_time);
+    slots = find_a_slot(cluster, job->nb_procs, MSG_get_clock(),
+                        job->wall_time);
  
     return slots;
 }
 
 
-static void cbf_accept(cluster_t cluster, job_t job, slot_t * slots) {
+static void
+cbf_accept(m_cluster_t cluster, job_t job, slot_t *slots)
+{
     int i = 0;
+    
     job->start_time = slots[0]->start_time;
     for (i=0; i<job->nb_procs; ++i) {
-	job->mapping[i] = slots[i]->node; 
-	xbt_dynar_insert_at(cluster->waiting_queue[slots[i]->node], 
-			    slots[i]->position, &job);
+        job->mapping[i] = slots[i]->node; 
+        xbt_dynar_insert_at(cluster->waiting_queue[slots[i]->node], 
+                            slots[i]->position, &job);
     }
     job->completion_time = job->start_time + job->wall_time;    
     xbt_free(slots);
