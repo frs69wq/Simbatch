@@ -81,7 +81,7 @@ int SB_batch(int argc, char ** argv) {
     FILE * flog = config_get_log_file(HOST_NAME());
 #endif
     
-    cluster_t cluster = NULL;
+    m_cluster_t cluster = NULL;
     pluginInfo_t plugin = NULL;
     plugin_scheduler_t scheduler = NULL;
     m_process_t wld_process = NULL;
