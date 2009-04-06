@@ -27,15 +27,16 @@
  * This is a representation of the cluster for the SB_bacth process.
  * \todo typedef cluster_t {...} cluster_t, *m_cluster_t;
  */
-typedef struct {
+typedef struct cluster_t {
     int nb_nodes;   /*<! Number of slaves. */
     int priority;   /*<! Number of priority level available for a task. */
     m_host_t *nodes;    /*<! List of slaves. */
     xbt_dynar_t *queues;    /*<! Trace the tasks (batch + cluster). */
     xbt_dynar_t *waiting_queue; /*<! Scheduling table or Gantt diagramm. */
     xbt_dynar_t reservations;   /*<! Reservation queue. */ 
-} *cluster_t;
+} cluster_t;
 
+typedef cluster_t *m_cluster_t;
 
 /**
  * Cluster constructor.
@@ -45,7 +46,7 @@ typedef struct {
  * \param **argv list of parameters.
  * \return a pointer on the cluster structure.
  */
-cluster_t
+m_cluster_t
 SB_request_cluster(int argc, char **argv);
 
 /**
@@ -53,14 +54,14 @@ SB_request_cluster(int argc, char **argv);
  * \param *cluster the cluster structure to be freed.
  */ 
 void
-cluster_destroy(cluster_t  *cluster);     
+cluster_destroy(m_cluster_t  *cluster);     
 
 /**
  * Remove jobs in WAITING state (waiting) from queues.
  * \param cluster the cluster containing the queues. 
  */
 void
-cluster_clean(cluster_t cluster);
+cluster_clean(m_cluster_t cluster);
 
 /**
  * Search a job by its id.
@@ -70,7 +71,7 @@ cluster_clean(cluster_t cluster);
  * \return -1 if the search failed, index of the job_id in dynar otherwise.
  */
 int 
-cluster_search_job(cluster_t cluster, int job_id, xbt_dynar_t dynar);
+cluster_search_job(m_cluster_t cluster, int job_id, xbt_dynar_t dynar);
 
 /**
  * Delete a job in the cluster.
@@ -81,7 +82,7 @@ cluster_search_job(cluster_t cluster, int job_id, xbt_dynar_t dynar);
  * \param job the job to delete from the scheduling table.
  */
 void 
-cluster_delete_done_job(cluster_t cluster, job_t job);
+cluster_delete_done_job(m_cluster_t cluster, job_t job);
 
 /** 
  * Print some informations on a cluster.
@@ -89,7 +90,7 @@ cluster_delete_done_job(cluster_t cluster, job_t job);
  * \param the cluster representation. 
  */
 void 
-cluster_print(cluster_t cluster);
+cluster_print(m_cluster_t cluster);
 
 /*
  * \return return the number of priority queue for the cluster 
