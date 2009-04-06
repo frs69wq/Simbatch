@@ -31,10 +31,13 @@ XBT_LOG_NEW_DEFAULT_CATEGORY(cluster,"Logging for the simulator scheduler");
 
 /******** Private functions **********/
 /* Create a new cluster */
-static cluster_t cluster_new(int argc, char ** argv, int nb);
+static
+m_cluster_t cluster_new(int argc, char **argv, int nb);
 
-static cluster_t cluster_new(int argc,char ** argv, int nb) {
-    cluster_t cluster;
+static m_cluster_t
+cluster_new(int argc, char **argv, int nb)
+{
+    m_cluster_t cluster;
     int i;
     
     /* Process organisation */
@@ -73,8 +76,10 @@ static cluster_t cluster_new(int argc,char ** argv, int nb) {
 
 /*********** Public functions **********/
 
-cluster_t  SB_request_cluster(int argc, char ** argv) {
-    cluster_t cluster = NULL;
+m_cluster_t
+SB_request_cluster(int argc, char **argv)
+{
+    m_cluster_t cluster = NULL;
     char request[128];
     const char * data;
     int nbQueue;
@@ -91,8 +96,8 @@ cluster_t  SB_request_cluster(int argc, char ** argv) {
     
     if (data == NULL) {
 #ifdef VERBOSE
-	fprintf(stderr, "failed\n");
-	fprintf(stderr, "XPathError : %s\n", request);
+        fprintf(stderr, "failed\n");
+        fprintf(stderr, "XPathError : %s\n", request);
 #endif
 	return NULL; 
     }
@@ -101,10 +106,10 @@ cluster_t  SB_request_cluster(int argc, char ** argv) {
     cluster = cluster_new(argc, argv, nbQueue);
     if (cluster == NULL) {
 #ifdef VERBOSE 
-	fprintf(stderr, "failed\n");
-	fprintf(stderr, "No nodes are defined for this cluster!\n");
+        fprintf(stderr, "failed\n");
+        fprintf(stderr, "No nodes are defined for this cluster!\n");
 #endif
-	return NULL;
+        return NULL;
     }
     
 #ifdef VERBOSE
@@ -116,7 +121,9 @@ cluster_t  SB_request_cluster(int argc, char ** argv) {
 }
 
 
-void cluster_destroy(cluster_t  * cluster) {
+void
+cluster_destroy(m_cluster_t  *cluster)
+{
     int i;
     
     xbt_dynar_free(&((*cluster))->reservations);
@@ -134,29 +141,33 @@ void cluster_destroy(cluster_t  * cluster) {
 }
 
 
-void cluster_clean(cluster_t cluster) {
+void
+cluster_clean(m_cluster_t cluster)
+{
     int i = 0;
     
     /* Clean the the scheduling table */
     for (i=0; i<cluster->nb_nodes; i++) {
-	int j = 0;
-
-	while (j < xbt_dynar_length(cluster->waiting_queue[i])) {
-	    job_t * job = NULL;  
+        
+        int j = 0;
+        while (j < xbt_dynar_length(cluster->waiting_queue[i])) {
+            job_t * job = NULL;  
 	    
-	    job = xbt_dynar_get_ptr(cluster->waiting_queue[i], j);
-	    if ((*job)->state == WAITING) {
-		job_t del;     
-		xbt_dynar_remove_at(cluster->waiting_queue[i], j, &del);
-	    }
-	    else 
-		++j; 
-	}
+            job = xbt_dynar_get_ptr(cluster->waiting_queue[i], j);
+            if ((*job)->state == WAITING) {
+                job_t del;     
+                xbt_dynar_remove_at(cluster->waiting_queue[i], j, &del);
+            }
+            else 
+                ++j; 
+        }
     }
 }
 
 
-int cluster_search_job(cluster_t cluster, int job_id, xbt_dynar_t dynar) {
+int
+cluster_search_job(m_cluster_t cluster, int job_id, xbt_dynar_t dynar)
+{
     int cpt = 0;
     job_t job = NULL;
     
@@ -167,7 +178,10 @@ int cluster_search_job(cluster_t cluster, int job_id, xbt_dynar_t dynar) {
     return -1;
 }
 
-void cluster_print(cluster_t cluster) {
+
+void
+cluster_print(m_cluster_t cluster)
+{
     int i = 0, size = 0;
     
     printf("Affichage\n");
@@ -192,21 +206,24 @@ void cluster_print(cluster_t cluster) {
 }
 
 
-void cluster_delete_done_job(cluster_t cluster, job_t job) {
+void
+cluster_delete_done_job(m_cluster_t cluster, job_t job) {
     int i;
     
     for (i=0; i<cluster->nb_nodes; ++i) {
-	job_t  * j = NULL;	
-	if (xbt_dynar_length(cluster->waiting_queue[i]) > 0) {
-	    j = (job_t *)xbt_dynar_get_ptr(cluster->waiting_queue[i], 0);
+        job_t  * j = NULL;	
+        if (xbt_dynar_length(cluster->waiting_queue[i]) > 0) {
+            j = (job_t *)xbt_dynar_get_ptr(cluster->waiting_queue[i], 0);
             if (job->id == (*j)->id)		
-		xbt_dynar_remove_at (cluster->waiting_queue[i], 0, NULL);
-	}
+                xbt_dynar_remove_at (cluster->waiting_queue[i], 0, NULL);
+        }
     }
 }
 
 /*
-int get_nb_queues(char * value) {
+int 
+ get_nb_queues(char *value)
+ {
     int nb = 0;
     
     if (!value)
