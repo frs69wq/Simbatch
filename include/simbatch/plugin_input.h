@@ -17,14 +17,14 @@
 /* File used to include parsers for different input files */
 
 /* API */
-typedef struct 
-{
-  xbt_fifo_t (*create_list) (const char * file, const char * name);
-} plugin_input, * plugin_input_t;
+typedef struct plugin_input {
+  xbt_fifo_t (*create_list) (const char *file, const char *name);
+} plugin_input, *plugin_input_t;
 
 
 /* Loading function */
-plugin_input_t init_input(plugin_input_t p);
+plugin_input_t
+init_input(plugin_input_t p);
 
 
 #endif
