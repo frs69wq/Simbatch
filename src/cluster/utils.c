@@ -19,23 +19,29 @@
 
 #include "utils.h"
 
-typedef struct { 
+typedef struct _async_param_t { 
     m_task_t task;
     m_host_t host;
     m_channel_t channel;
 } _async_param_t;
 
-static int _MSG_task_put(int argc, char ** argv);
+static int
+_MSG_task_put(int argc, char **argv);
 
 
-void xbt_fifo_sort(xbt_fifo_t fifo) {
-    auto int stringCmp(const void * t1, const void * t2);
-    int stringCmp(const void * t1, const void * t2) { 
-        return strcmp((*((m_task_t *) t1))->name, (*((m_task_t *) t2))->name);
+void
+xbt_fifo_sort(xbt_fifo_t fifo)
+{
+    auto int
+    stringCmp(const void *t1, const void *t2);
+    
+    int 
+    stringCmp(const void *t1, const void *t2) { 
+        return strcmp((*((m_task_t *)t1))->name, (*((m_task_t *)t2))->name);
     }
 
     int i = 0;
-    m_task_t * messages =  (m_task_t *)xbt_fifo_to_array(fifo);
+    m_task_t *messages = (m_task_t *)xbt_fifo_to_array(fifo);
     
     qsort(messages, xbt_fifo_size(fifo), sizeof(m_task_t), stringCmp);
     for (i=0; i<xbt_fifo_size(fifo); ++i) {
@@ -47,18 +53,25 @@ void xbt_fifo_sort(xbt_fifo_t fifo) {
 }
 
 
-static int _MSG_task_put(int argc, char ** argv) {
-    _async_param_t * p = (_async_param_t *)
-        MSG_process_get_data(MSG_process_self());
-    int err = MSG_task_put(p->task, p->host, p->channel);  
+static int
+_MSG_task_put(int argc, char **argv)
+{
+    int err;
+    _async_param_t *p = NULL;
+    
+    p = (_async_param_t *)MSG_process_get_data(MSG_process_self());
+    err = MSG_task_put(p->task, p->host, p->channel);
     xbt_free(p);
+    
     return err;
 }
 
 
-m_process_t MSG_task_async_put(m_task_t task, m_host_t host, m_channel_t channel) {
+m_process_t
+MSG_task_async_put(m_task_t task, m_host_t host, m_channel_t channel)
+{
     /* can't use a nested function for this :( */
-    _async_param_t * param = xbt_malloc(sizeof(*param));
+    _async_param_t *param = xbt_malloc(sizeof(*param));
     param->task = task;
     param->host = host;
     param->channel = channel;
