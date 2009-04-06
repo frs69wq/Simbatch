@@ -6,8 +6,10 @@ PEDANTIC_PARANOID_FREAK =       -Wshadow -Wcast-align -Wnonnull\
 REASONABLY_CAREFUL_DUDE =       -Wall -Wstrict-prototypes -Wcast-align -Wmissing-prototypes\
 				_Wnonnull -Wmissing-prototypes -Wmissing-declarations
 WARNINGS=$(PEDANTIC_PARANOID_FREAK)
-LDFLAGS=-L. -L/usr/local/lib/ -L../../lib/ -lsimgrid -lsimbatch
-INCLUDES=-I ../../include 
+SIMGRID_HOME=${HOME}/Library/Simgrid
+INCLUDES=-I$(SIMGRID_HOME)/include -I../../include 
+LD_PATH=-L. -L$(SIMGRID_HOME)/lib/ -L../../lib/
+LD_FLAGS=-lsimgrid -lsimbatch
 OPTS=-O0 -pipe
 DEBUG= # -pg -DDEBUG
 CFLAGS=$(WARNINGS) $(OPTS) $(DEBUG)
@@ -18,11 +20,11 @@ EXEC=batch
 all: $(EXEC)
 
 $(EXEC): $(OBJ)
-	gcc -o $@ $(OBJ) $(LDFLAGS) $(CFLAGS)
+	gcc -o $@ $(OBJ) $(LD_PATH) $(LD_FLAGS) $(CFLAGS)
 	strip $(EXEC)
 
 %.o: %.c
-	$(CC) -o $@ -c $< $(INCLUDES) $(CFLAGS)
+	$(CC) -c $< $(INCLUDES) $(CFLAGS)
 
 .PHONY: clean mrproper
 
