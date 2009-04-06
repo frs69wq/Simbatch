@@ -28,9 +28,12 @@
 
 #include "resource_manager.h"
 
-static int supervise(int argc, char ** argv);
+static int
+supervise(int argc, char **argv);
 
-static double get_next_wakeup_time(cluster_t cluster, job_t * job) {
+static double
+get_next_wakeup_time(m_cluster_t cluster, job_t *job)
+{
     double waiting_time = DBL_MAX;
     // int ppid = MSG_process_self_PPID();
 
@@ -49,8 +52,10 @@ static double get_next_wakeup_time(cluster_t cluster, job_t * job) {
 }  
 
 
-int SB_resource_manager(int argc, char ** argv) {
-    cluster_t cluster = (cluster_t) MSG_host_get_data(MSG_host_self());
+int
+SB_resource_manager(int argc, char **argv)
+{
+    m_cluster_t cluster = (m_cluster_t) MSG_host_get_data(MSG_host_self());
     unsigned int cpt_supervisors = 0;
     double waiting_time = DBL_MAX;
     xbt_dynar_t pool_of_supervisors = xbt_dynar_new(sizeof(m_process_t), 
@@ -71,63 +76,63 @@ int SB_resource_manager(int argc, char ** argv) {
     
     while (1) {
 	/* 0.0 makes MSG_task_get_with_time_out blocking */
-	ok = (waiting_time == 0.0)? MSG_TRANSFER_FAILURE:
-	    MSG_task_get_with_time_out(&task, RSC_MNG_PORT, waiting_time);
+        ok = (waiting_time == 0.0)? MSG_TRANSFER_FAILURE:
+            MSG_task_get_with_time_out(&task, RSC_MNG_PORT, waiting_time);
         
-	if (ok == MSG_TRANSFER_FAILURE) {
+        if (ok == MSG_TRANSFER_FAILURE) {
             
-	    /* No tasks in DBL_MAX of time, that's too long, bye */	    
-	    if (waiting_time == DBL_MAX) { xbt_fifo_free(msg_stack); break; }
+            /* No tasks in DBL_MAX of time, that's too long, bye */	    
+            if (waiting_time == DBL_MAX) { xbt_fifo_free(msg_stack); break; }
 	    
-	    /* Wake up because there is a job to send */
-	    if (waiting_time < DBL_MAX) {
-		m_process_t supervisor;
-		unsigned int  * port = NULL;		
+            /* Wake up because there is a job to send */
+            if (waiting_time < DBL_MAX) {
+                m_process_t supervisor;
+                unsigned int  *port = NULL;		
                 
 #ifdef DEBUG
-		fprintf(stderr, "[%lf]\t%20s\tIt's time, nb sup : %lu\n",
-			MSG_get_clock(), PROCESS_NAME(), 
-			xbt_dynar_length(pool_of_supervisors));
+                fprintf(stderr, "[%lf]\t%20s\tIt's time, nb sup : %lu\n",
+                        MSG_get_clock(), PROCESS_NAME(), 
+                        xbt_dynar_length(pool_of_supervisors));
 #endif
 		
 		/* Handle the pool of supervisors */
-		if (xbt_dynar_length(pool_of_supervisors) == 0) {
-		    char name[20];
+                if (xbt_dynar_length(pool_of_supervisors) == 0) {
+                    char name[20];
 		    
-		    //assert(cpt_supervisors < cluster->nb_nodes);
-		    port = malloc(sizeof(unsigned int));
-		    *port = SUPERVISOR_PORT + cpt_supervisors;
-		    sprintf(name, "Supervisor%u", cpt_supervisors);
-		    supervisor = MSG_process_create(name, supervise, port, 
-						    MSG_host_self());
-		    xbt_dynar_push(pool_of_supervisors, &supervisor);
-		    ++cpt_supervisors;
-		}
+                    //assert(cpt_supervisors < cluster->nb_nodes);
+                    port = malloc(sizeof(unsigned int));
+                    *port = SUPERVISOR_PORT + cpt_supervisors;
+                    sprintf(name, "Supervisor%u", cpt_supervisors);
+                    supervisor = MSG_process_create(name, supervise, port, 
+                                                    MSG_host_self());
+                    xbt_dynar_push(pool_of_supervisors, &supervisor);
+                    ++cpt_supervisors;
+                }
                 
-		xbt_dynar_shift(pool_of_supervisors, &supervisor);
+                xbt_dynar_shift(pool_of_supervisors, &supervisor);
 #ifdef LOG
-		fprintf(flog, "[%lf]\t%20s\tDetach %s\n", MSG_get_clock(),
-			PROCESS_NAME(), MSG_process_get_name(supervisor));
+                fprintf(flog, "[%lf]\t%20s\tDetach %s\n", MSG_get_clock(),
+                        PROCESS_NAME(), MSG_process_get_name(supervisor));
 #endif
 #ifdef DEBUG
-		fprintf(stderr, "[%lf]\t%20s\tnb supervisors : %lu\n",
-			MSG_get_clock(), PROCESS_NAME(), 
-			xbt_dynar_length(pool_of_supervisors));
+                fprintf(stderr, "[%lf]\t%20s\tnb supervisors : %lu\n",
+                        MSG_get_clock(), PROCESS_NAME(), 
+                        xbt_dynar_length(pool_of_supervisors));
 #endif	    
-		/* Send the job to the supervisor that will manage it */
-		port = (unsigned int *)MSG_process_get_data(supervisor);
-		job->state = PROCESSING;
-		MSG_task_put(MSG_task_create("RUN", 0.0, 0.0, job),
-			     MSG_host_self(), *port);
-	    }
+                /* Send the job to the supervisor that will manage it */
+                port = (unsigned int *)MSG_process_get_data(supervisor);
+                job->state = PROCESSING;
+                MSG_task_put(MSG_task_create("RUN", 0.0, 0.0, job),
+                             MSG_host_self(), *port);
+            }
 	}
 	
 	
-	if (ok == MSG_OK) {
-            /* using a stack for avoiding losses in case of 
-               multiple incoming messages */
+        if (ok == MSG_OK) {
+            /* using a stack for avoiding losses */
+            /* in case of multiple incoming messages */
             xbt_fifo_push(msg_stack, task);
-	    while (MSG_task_Iprobe(RSC_MNG_PORT)) {
+            while (MSG_task_Iprobe(RSC_MNG_PORT)) {
                 task = NULL;
                 MSG_task_get(&task, RSC_MNG_PORT);
                 xbt_fifo_push(msg_stack, task);
@@ -143,10 +148,8 @@ int SB_resource_manager(int argc, char ** argv) {
                     fprintf(stderr, "[%lf]\t%20s\tUpdate\n", MSG_get_clock(), 
                             PROCESS_NAME());
 #endif
-                }
-                
-                /* A Supervisor has finished and is available again */
-                else if (!strcmp(task->name, "RM_ATTACH")) {
+                } else if (!strcmp(task->name, "RM_ATTACH")) {
+                    /* A Supervisor has finished and is available again */
                     m_process_t supervisor = MSG_task_get_data(task);
 #ifdef LOG
                     fprintf(flog, "[%lf]\t%20s\tAttach %s\n", MSG_get_clock(),
@@ -163,8 +166,8 @@ int SB_resource_manager(int argc, char ** argv) {
                 task = NULL;
             }
         }
-        
-	waiting_time = get_next_wakeup_time(cluster, &job);
+    
+        waiting_time = get_next_wakeup_time(cluster, &job);
     }
     
 #ifdef VERBOSE
@@ -175,10 +178,11 @@ int SB_resource_manager(int argc, char ** argv) {
 }
 
 
-static int supervise(int argc, char ** argv) {
-    cluster_t cluster = (cluster_t) MSG_host_get_data(MSG_host_self());
-    unsigned int * port = (unsigned int *) 
-	MSG_process_get_data(MSG_process_self());
+static int
+supervise(int argc, char **argv)
+{
+    m_cluster_t cluster = (m_cluster_t)MSG_host_get_data(MSG_host_self());
+    unsigned int *port = (unsigned int *)MSG_process_get_data(MSG_process_self());
     MSG_error_t err;
     m_task_t task = NULL;
 
@@ -188,76 +192,75 @@ static int supervise(int argc, char ** argv) {
 
     while (1) {
 
-	err = MSG_task_get_with_time_out(&task, *port, DBL_MAX);
+        err = MSG_task_get_with_time_out(&task, *port, DBL_MAX);
        
-	if (err == MSG_TRANSFER_FAILURE) { break; }
+        if (err == MSG_TRANSFER_FAILURE) { break; }
 
         if (err == MSG_OK) {
-	    job_t job = NULL;
-	    m_host_t * hosts = NULL;
-	    m_task_t pTask = NULL;
-	    double * comm = NULL, * comp = NULL;
-	    int i = 0;
+            job_t job = NULL;
+            m_host_t *hosts = NULL;
+            m_task_t pTask = NULL;
+            double *comm = NULL;
+            double *comp = NULL;
+            int i = 0;
 
-	    job = MSG_task_get_data(task);
-	    MSG_task_destroy(task); 
-	    task = NULL;
+            job = MSG_task_get_data(task);
+            MSG_task_destroy(task); 
+            task = NULL;
            	
-	    /* Send input data TODO: use put_with_alarm */
+            /* Send input data TODO: use put_with_alarm */
             if (job->input_size > 0.0) {
-		MSG_task_put(
-		    MSG_task_create("DATA_IN", 0.0, job->input_size * 1000000,
-				    NULL),
-		    cluster->nodes[job->mapping[0]], NODE_PORT);
+                MSG_task_put(MSG_task_create("DATA_IN", 0.0,
+                                             job->input_size * 1000000, NULL),
+                             cluster->nodes[job->mapping[0]], NODE_PORT);
             }
 
-	    /* PTask creation & execution */
-	    comm = calloc(job->nb_procs, sizeof(double));
-	    comp = malloc(job->nb_procs * sizeof(double));
-	    hosts = malloc(job->nb_procs * sizeof(m_host_t));
-	    for (i=0; i<job->nb_procs; i++) {
-		hosts[i] = cluster->nodes[job->mapping[i]];
-		comp[i] = MSG_get_host_speed(hosts[i]) * job->run_time;
-	    }
-	    pTask = MSG_parallel_task_create(job->name, job->nb_procs, hosts, 
-					     comp, comm, NULL);
+            /* PTask creation & execution */
+            comm = calloc(job->nb_procs, sizeof(double));
+            comp = malloc(job->nb_procs * sizeof(double));
+            hosts = malloc(job->nb_procs * sizeof(m_host_t));
+            for (i=0; i<job->nb_procs; i++) {
+                hosts[i] = cluster->nodes[job->mapping[i]];
+                comp[i] = MSG_get_host_speed(hosts[i]) * job->run_time;
+            }
+            pTask = MSG_parallel_task_create(job->name, job->nb_procs, hosts, 
+                                             comp, comm, NULL);
 
 #ifdef LOG
-	    fprintf(flog, "[%lf]\t%20s\tProcessing job %s end: %lf\n", 
+            fprintf(flog, "[%lf]\t%20s\tProcessing job %s end: %lf\n", 
                     MSG_get_clock(), PROCESS_NAME(), job->name, 
                     MSG_get_clock() + job->run_time);
 #endif
 
-	    // MSG_parallel_task_execute(pTask);
-	    MSG_process_sleep(job->run_time);
+            // MSG_parallel_task_execute(pTask);
+            MSG_process_sleep(job->run_time);
 
-	    xbt_free(hosts); hosts = NULL;
-	    xbt_free(comm); comm = NULL;
-	    xbt_free(comp); comp = NULL;
-	    MSG_task_destroy(pTask); pTask = NULL;
+            xbt_free(hosts); hosts = NULL;
+            xbt_free(comm); comm = NULL;
+            xbt_free(comp); comp = NULL;
+            MSG_task_destroy(pTask); pTask = NULL;
 	
-	    /* Receive output data TODO: use get_with_alarm */
-	    if (job->output_size > 0.0) {
-                MSG_task_put(
-		    MSG_task_create("DATA_OUT", 0.0, job->output_size * 1000000,
-				    NULL),
-		    cluster->nodes[job->mapping[0]], NODE_PORT);
+            /* Receive output data TODO: use get_with_alarm */
+            if (job->output_size > 0.0) {
+                MSG_task_put(MSG_task_create("DATA_OUT", 0.0,
+                                             job->output_size * 1000000, NULL),
+                             cluster->nodes[job->mapping[0]], NODE_PORT);
 		
 #ifdef LOG
-		fprintf(flog, "[%lf]\t%20s\tReceive output data from %s\n",
-			MSG_get_clock(), PROCESS_NAME(),
-			MSG_host_get_name(cluster->nodes[job->mapping[0]]));
+                fprintf(flog, "[%lf]\t%20s\tReceive output data from %s\n",
+                        MSG_get_clock(), PROCESS_NAME(),
+                        MSG_host_get_name(cluster->nodes[job->mapping[0]]));
 #endif
-	    }
+            }
 
-	    /* Finish - ask to be in the pool again */
-	    MSG_task_put(
-                MSG_task_create("RM_ATTACH", 0.0, 0.0, MSG_process_self()),
-                MSG_host_self(), RSC_MNG_PORT);
+            /* Finish - ask to be in the pool again */
+            MSG_task_put(MSG_task_create("RM_ATTACH", 0.0, 0.0,
+                                         MSG_process_self()),
+                         MSG_host_self(), RSC_MNG_PORT);
 	    
             MSG_task_put(MSG_task_create("SB_ACK", 0.0, 0.0, job),
-			 MSG_host_self(), CLIENT_PORT);
-	}
+                         MSG_host_self(), CLIENT_PORT);
+        }
     }
 
     xbt_free(port);
