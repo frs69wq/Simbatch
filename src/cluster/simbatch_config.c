@@ -23,7 +23,7 @@
 #include "simbatch_config.h"
 
 /* DIET integration */
-char * DIET_FILE = NULL;
+char *DIET_FILE = NULL;
 unsigned long int DIET_PARAM[2] = {0, 0};
 int DIET_MODE = 0;
 
@@ -31,7 +31,7 @@ int DIET_MODE = 0;
 static int nbBatch;
 
 /* Simbatch platform config */
-static config_t * config;
+static config_t *config;
 
 /* Dictionnary to shared plugin between batch */
 static xbt_dict_t book_of_plugin;
@@ -39,53 +39,61 @@ static xbt_dict_t book_of_plugin;
 /* Dictionnary to shared log file handlers */
 #ifdef LOG
 static xbt_dict_t book_of_log;
-static void close_log_file(void * data);
+
+static void
+close_log_file(void *data);
 #endif
 
 /*** Private functions ***/ 
-static int parseCmdLine(int argc, char * argv[]);
+static int
+parseCmdLine(int argc, char *argv[]);
+
 #ifdef LOG
-static void close_log_file(void * data);
+static void
+close_log_file(void *data);
 #endif
 
-static int parseCmdLine(int argc, char * argv[]) {
-    char * allowed[] = {"-f", "-o", "-tw", "-tp", NULL};
-    char * needed[] = {"-f", NULL};
-    char * neededWithDIET[] = {"-o", "-tw", "-tp", NULL};
-    char * withParams[] = {"-f", "-o", "-tw", "-tp", NULL};
+static int
+parseCmdLine(int argc, char *argv[]) {
+    char *allowed[] = {"-f", "-o", "-tw", "-tp", NULL};
+    char *needed[] = {"-f", NULL};
+    char *neededWithDIET[] = {"-o", "-tw", "-tp", NULL};
+    char *withParams[] = {"-f", "-o", "-tw", "-tp", NULL};
     
     if (controlParams(argv, withParams, needed, allowed)) {
 #ifdef VERBOSE
-	fprintf (stderr, "Usage: %s -f config.xml\n", argv[0]);
+        fprintf (stderr, "Usage: %s -f config.xml\n", argv[0]);
 #endif
-	return -1;
+        return -1;
     }
     
     if (isPresent(argv, "-o")) {
-	if (controlParams(argv, withParams, neededWithDIET, allowed)) {
+        if (controlParams(argv, withParams, neededWithDIET, allowed)) {
 #ifdef VERBOSE
-	    fprintf (stderr, 
-		     "Usage: %s -f config.xml -o diet_file -tw uint -tp uint\n", argv[0]);
+            fprintf (stderr, 
+                     "Usage: %s -f config.xml -o diet_file -tw uint -tp uint\n"
+                    , argv[0]);
 #endif
 	    return -1;
-	} 
+        } 
         DIET_FILE = getParam(argv, "-o");
-	DIET_PARAM[0] = secureStr2ul(getParam(argv, "-tw"));
-	DIET_PARAM[1] = secureStr2ul(getParam(argv, "-tp"));
-	if (!DIET_PARAM[0] || !DIET_PARAM[1]) {
+        DIET_PARAM[0] = secureStr2ul(getParam(argv, "-tw"));
+        DIET_PARAM[1] = secureStr2ul(getParam(argv, "-tp"));
+        if (!DIET_PARAM[0] || !DIET_PARAM[1]) {
 #ifdef VERBOSE
-	    fprintf (stderr, "tw && tp must be an uint > 0\n");
+            fprintf (stderr, "tw && tp must be an uint > 0\n");
 #endif
-	    return -1;
-	}
-	DIET_MODE = 1;
+            return -1;
+        }
+        DIET_MODE = 1;
     }
 
     return 0;
 }
 
 #ifdef LOG
-static void close_log_file(void * data) {
+static void
+close_log_file(void *data) {
     FILE * flog = (FILE *)data;
     fclose(flog);
     
@@ -95,9 +103,11 @@ static void close_log_file(void * data) {
 }
 
 
-void config_init_log_file(void) {
+void
+config_init_log_file(void)
+{
     xmlXPathObjectPtr xmlobject = NULL;
-    const char * r = "/config/batch";
+    const char *r = "/config/batch";
     
 #ifdef VERBOSE
     fprintf(stderr, "Init log files : \n");
@@ -105,11 +115,11 @@ void config_init_log_file(void) {
     xmlobject = config_get(r);
     if (xmlobject == NULL) {
 #ifdef VERBOSE
-	fprintf(stderr, "failed\n");
-	fprintf(stderr, "XPathError : %s\n", r);
+        fprintf(stderr, "failed\n");
+        fprintf(stderr, "XPathError : %s\n", r);
 #endif
-	free(config);
-	exit(2);
+        free(config);
+        exit(2);
     }
     
     if (xmlobject->type == XPATH_NODESET)
@@ -118,40 +128,43 @@ void config_init_log_file(void) {
 	    
 	    fprintf(stderr, "\tnb log file : %d\n", xmlobject->nodesetval->nodeNr);
 	    for (i=0; i<xmlobject->nodesetval->nodeNr; ++i) {
-		char * logfile = NULL;
-		FILE * flog = NULL;
-		xmlChar * batchName = xmlGetProp(xmlobject->nodesetval->nodeTab[i], 
-						 BAD_CAST("host"));
+            char *logfile = NULL;
+            FILE *flog = NULL;
+            xmlChar *batchName = xmlGetProp(xmlobject->nodesetval->nodeTab[i], 
+                                            BAD_CAST("host"));
 		
-		logfile = calloc(xmlStrlen(batchName) + 5, sizeof(char));
-		sprintf(logfile, "%s.log", batchName);
-		flog = (FILE *)xbt_dict_get_or_null(book_of_log, 
+            logfile = calloc(xmlStrlen(batchName) + 5, sizeof(char));
+            sprintf(logfile, "%s.log", batchName);
+            flog = (FILE *)xbt_dict_get_or_null(book_of_log, 
 						    (char *)batchName);
-		if (flog == NULL) {
-		    flog = fopen(logfile, "w");
-		    xbt_dict_set(book_of_log, (char *)batchName, flog, 
-				 close_log_file);
+            if (flog == NULL) {
+                flog = fopen(logfile, "w");
+                xbt_dict_set(book_of_log, (char *)batchName, flog, 
+                             close_log_file);
 #ifdef VERBOSE
-		    fprintf(stderr, "\tlog file : %s\n", logfile);
+                fprintf(stderr, "\tlog file : %s\n", logfile);
 #endif
-		    free(logfile);
-		}
+                free(logfile);
+            }
 	    }
 	}
 }
 
 
-FILE * config_get_log_file(const char * hostname) {
-    FILE * floc = (FILE *)xbt_dict_get_or_null(book_of_log, hostname);
+FILE *
+config_get_log_file(const char *hostname)
+{
+    FILE *floc = (FILE *)xbt_dict_get_or_null(book_of_log, hostname);
     
     return (floc != NULL)? floc: stderr;
 }
 #endif
 
 
-
-config_t * config_load(const char * config_file) {
-    config_t * c;
+config_t *
+config_load(const char *config_file)
+{
+    config_t *c;
     
     c = malloc(sizeof(*c));
     if (c == NULL)
@@ -174,7 +187,9 @@ config_t * config_load(const char * config_file) {
 }
 
 
-void config_close(void) {
+void 
+config_close(void)
+{
     --nbBatch;
     if (nbBatch == 0) {
 #ifdef VERBOSE
@@ -185,11 +200,13 @@ void config_close(void) {
 }
 
 
-xmlXPathObjectPtr config_get(const char * _xpath) {
+xmlXPathObjectPtr
+config_get(const char *_xpath)
+{
     xmlXPathObjectPtr xmlobject = NULL;
-    const xmlChar * xpath = BAD_CAST(_xpath);
+    const xmlChar *xpath = BAD_CAST(_xpath);
     
-  /* Rquete XPath*/
+    /* Rquete XPath*/
     xmlobject = xmlXPathEval(xpath, config->context);
     if (xmlobject == NULL)
 	return NULL;
@@ -214,7 +231,7 @@ const char * config_get_value(const char * _xpath) {
     xmlobject = xmlXPathEval(xpath, config->context);
 
     if (xmlobject == NULL)
-	return NULL;
+        return NULL;
     
     if (xmlobject->type == XPATH_NODESET) { 
         if (xmlobject->nodesetval != NULL) { 
@@ -235,9 +252,11 @@ const char * config_get_value(const char * _xpath) {
 }
 
 
-int config_get_nb_nodes(const char * _xpath) {
+int
+config_get_nb_nodes(const char *_xpath)
+{
     xmlXPathObjectPtr xmlobject = NULL;
-    const xmlChar * xpath = BAD_CAST(_xpath);
+    const xmlChar *xpath = BAD_CAST(_xpath);
     
     /* Rquete XPath*/
     xmlobject = xmlXPathEval(xpath, config->context);
@@ -254,9 +273,11 @@ int config_get_nb_nodes(const char * _xpath) {
 }
 
 
-inline const char * config_get_platform_file(void) {
-    const char * platform_file = config_get_value(
-        "/config/global/file[@type=\"platform\"]/text()");
+inline const char *
+config_get_platform_file(void)
+{
+    const char *platform_file = config_get_value(
+                            "/config/global/file[@type=\"platform\"]/text()");
     
 #ifdef VERBOSE
     fprintf(stderr, "Platform file : ");
@@ -270,8 +291,7 @@ inline const char * config_get_platform_file(void) {
         
         free(config);
         exit(2);
-    }
-    else {
+    } else {
 #ifdef VERBOSE
         fprintf(stderr, "%s\n", platform_file);
 #endif
@@ -280,90 +300,98 @@ inline const char * config_get_platform_file(void) {
 }
 
 
-inline const char * config_get_deployment_file(void) {
-    const char * deployment_file;
+inline const char *
+config_get_deployment_file(void)
+{
+    const char *deployment_file;
     
 #ifdef VERBOSE
     fprintf(stderr, "Deployment file : ");
 #endif
     deployment_file = 
-	config_get_value("/config/global/file[@type=\"deployment\"]/text()");
+        config_get_value("/config/global/file[@type=\"deployment\"]/text()");
+    
     if (deployment_file == NULL) {
 #ifdef VERBOSE
-	fprintf(stderr, "failed\n");
-	fprintf(stderr, 
-		"XPathError: /config/global/file[@type=\"deployment\"]/text()");
+        fprintf(stderr, "failed\n");
+        fprintf(stderr, 
+                "XPathError: /config/global/file[@type=\"deployment\"]/text()");
 #endif
-	free(config);
-	exit(2);
-    }
-    else {
+        free(config);
+        exit(2);
+    } else {
 #ifdef VERBOSE
-	fprintf(stderr, "%s\n", deployment_file);
+        fprintf(stderr, "%s\n", deployment_file);
 #endif
-	return deployment_file;
+        return deployment_file;
     }    
 }
 
 
-inline const char * config_get_trace_file(void) {
-    const char * trace_file;
+inline const char *
+config_get_trace_file(void)
+{
+    const char *trace_file;
     
     trace_file = config_get_value(
 	"/config/global/file[@type=\"trace\"]/text()");
     
 #ifdef VERBOSE
     if (trace_file == NULL)
-	fprintf(stderr, "Trace file : None\n");
+        fprintf(stderr, "Trace file : None\n");
     else
-	fprintf(stderr, "Trace file : %s\n", trace_file);
+        fprintf(stderr, "Trace file : %s\n", trace_file);
 #endif
     
     return trace_file;
 }
 
 
-inline void * config_get_plugin(const char * plugin_name) {
+inline void *
+config_get_plugin(const char *plugin_name) {
     return xbt_dict_get_or_null(book_of_plugin, plugin_name);
 }
 
 
-inline void config_set_plugin(const char * plugin_name, void * plugin, 
-			      void * close_plugin) {
+inline void
+config_set_plugin(const char *plugin_name, void *plugin, void *close_plugin)
+{
     xbt_dict_set(book_of_plugin, plugin_name, plugin, close_plugin);
 }
 
 
-void simbatch_init(int * argc, char ** argv) {
-    const char * config_file;    
-    const char * deployment_file;
+void
+simbatch_init(int *argc, char **argv)
+{
+    const char *config_file;    
+    const char *deployment_file;
     int nbBatchDeployed = 0;
     
     if (parseCmdLine(*argc, argv)) {
-	xbt_die("Error parsing command line");
+        xbt_die("Error parsing command line");
     }
     config_file = getParam(argv, "-f");
     
 #ifdef VERBOSE
     {
-	int i = 0;
-	fprintf(stderr, "*** Global init ***\n");
-	fprintf(stderr, "DIET MODE %s\n", (DIET_MODE)? "enabled": "disable");
-	fprintf(stderr, "DIET FILE %s\n", (DIET_FILE)? DIET_FILE: "disable");
-	for (i=0; i<4; ++i)
-	    fprintf(stderr, "DIET_PARAM[%d] = %lu\n", i, DIET_PARAM[i]);
-	fprintf(stderr, "Loading config file %s... ", config_file);
+        int i = 0;
+        fprintf(stderr, "*** Global init ***\n");
+        fprintf(stderr, "DIET MODE %s\n", (DIET_MODE)? "enabled": "disable");
+        fprintf(stderr, "DIET FILE %s\n", (DIET_FILE)? DIET_FILE: "disable");
+        for (i=0; i<4; ++i)
+            fprintf(stderr, "DIET_PARAM[%d] = %lu\n", i, DIET_PARAM[i]);
+        fprintf(stderr, "Loading config file %s... ", config_file);
     }
 #endif
 	
     config = config_load(config_file);
     if (config == NULL) {
 #ifdef VERBOSE
-	fprintf(stderr, "failed\n");
-	fprintf(stderr, "Usage : %s -f simbatch_config.xml\n", argv[0]);
+        fprintf(stderr, "failed\n");
+        fprintf(stderr, "Usage : %s -f simbatch_config.xml\n", argv[0]);
 #endif
-	free(config);
-	xbt_die("Cant'load config file");
+        free(config);
+        xbt_die("Cant'load config file");
     }
     
 #ifdef VERBOSE
@@ -380,21 +408,21 @@ void simbatch_init(int * argc, char ** argv) {
      * So i do a context switch instead of changing my functions
      */
     {
-	config_t * config_backup = config;
+        config_t * config_backup = config;
 	
-	config = config_load(deployment_file);
-	if (config == NULL) {
+        config = config_load(deployment_file);
+        if (config == NULL) {
 #ifdef VERBOSE 
-	    fprintf(stderr, "failed\n");
+            fprintf(stderr, "failed\n");
 #endif
-	    free(config_backup);
-	    xbt_die("Cant'load deployment file");
-	}
+            free(config_backup);
+            xbt_die("Cant'load deployment file");
+        }
 	
-	nbBatchDeployed = config_get_nb_nodes(
-	    "/platform_description/process[@function=\"SB_batch\"]");
-	free(config);
-	config = config_backup;
+        nbBatchDeployed = config_get_nb_nodes(
+                    "/platform_description/process[@function=\"SB_batch\"]");
+        free(config);
+        config = config_backup;
     }
     
     if (nbBatchDeployed != nbBatch) {
@@ -424,7 +452,9 @@ void simbatch_init(int * argc, char ** argv) {
 }
 
 
-inline void simbatch_clean(void) {
+inline void
+simbatch_clean(void)
+{
     if (config != NULL)
         free(config);
     
