@@ -113,7 +113,7 @@ config_init_log_file(void)
     fprintf(stderr, "Init log files : \n");
 #endif
     xmlobject = config_get(r);
-    if (xmlobject == NULL) {
+    if (!xmlobject) {
 #ifdef VERBOSE
         fprintf(stderr, "failed\n");
         fprintf(stderr, "XPathError : %s\n", r);
@@ -123,31 +123,35 @@ config_init_log_file(void)
     }
     
     if (xmlobject->type == XPATH_NODESET)
-	if (xmlobject->nodesetval != NULL) {
-	    int i = 0;
+        if (xmlobject->nodesetval) {
+            int i = 0;
 	    
-	    fprintf(stderr, "\tnb log file : %d\n", xmlobject->nodesetval->nodeNr);
-	    for (i=0; i<xmlobject->nodesetval->nodeNr; ++i) {
-            char *logfile = NULL;
-            FILE *flog = NULL;
-            xmlChar *batchName = xmlGetProp(xmlobject->nodesetval->nodeTab[i], 
-                                            BAD_CAST("host"));
+            fprintf(stderr, "\tnb log file : %d\n",
+                    xmlobject->nodesetval->nodeNr);
+            
+            for (i=0; i<xmlobject->nodesetval->nodeNr; ++i) {
+                char *logfile = NULL;
+                FILE *flog = NULL;
+                xmlChar *batchName; 
+                
+                batchName = xmlGetProp(xmlobject->nodesetval->nodeTab[i], 
+                                       BAD_CAST("host"));
 		
-            logfile = calloc(xmlStrlen(batchName) + 5, sizeof(char));
-            sprintf(logfile, "%s.log", batchName);
-            flog = (FILE *)xbt_dict_get_or_null(book_of_log, 
-						    (char *)batchName);
-            if (flog == NULL) {
-                flog = fopen(logfile, "w");
-                xbt_dict_set(book_of_log, (char *)batchName, flog, 
-                             close_log_file);
+                logfile = calloc(xmlStrlen(batchName) + 5, sizeof(char));
+                sprintf(logfile, "%s.log", batchName);
+                flog = (FILE *)xbt_dict_get_or_null(book_of_log, 
+                                                    (char *)batchName);
+                if (!flog) {
+                    flog = fopen(logfile, "w");
+                    xbt_dict_set(book_of_log, (char *)batchName, flog, 
+                                 close_log_file);
 #ifdef VERBOSE
-                fprintf(stderr, "\tlog file : %s\n", logfile);
+                    fprintf(stderr, "\tlog file : %s\n", logfile);
 #endif
-                free(logfile);
+                    free(logfile);
+                }
             }
-	    }
-	}
+        }
 }
 
 
@@ -156,7 +160,7 @@ config_get_log_file(const char *hostname)
 {
     FILE *floc = (FILE *)xbt_dict_get_or_null(book_of_log, hostname);
     
-    return (floc != NULL)? floc: stderr;
+    return (floc)? floc: stderr;
 }
 #endif
 
@@ -167,12 +171,12 @@ config_load(const char *config_file)
     config_t *c;
     
     c = malloc(sizeof(*c));
-    if (c == NULL)
+    if (!c)
         return NULL;
     
     /* Analyse du fichier */
     c->doc = xmlParseFile(config_file);
-    if (c->doc == NULL) {
+    if (!c->doc) {
         free(c);
         return NULL;
     }
@@ -208,12 +212,12 @@ config_get(const char *_xpath)
     
     /* Rquete XPath*/
     xmlobject = xmlXPathEval(xpath, config->context);
-    if (xmlobject == NULL)
-	return NULL;
+    if (!xmlobject)
+        return NULL;
     
     if (xmlobject->type == XPATH_NODESET)
-	if (xmlobject->nodesetval != NULL)
-	    return xmlobject;
+        if (xmlobject->nodesetval)
+            return xmlobject;
     
     xmlXPathFreeObject(xmlobject);
     
@@ -230,11 +234,11 @@ const char * config_get_value(const char * _xpath) {
     /* Rquete XPath*/
     xmlobject = xmlXPathEval(xpath, config->context);
 
-    if (xmlobject == NULL)
+    if (!xmlobject)
         return NULL;
     
     if (xmlobject->type == XPATH_NODESET) { 
-        if (xmlobject->nodesetval != NULL) { 
+        if (xmlobject->nodesetval) { 
             /* nodeNr = nb nodes in struct nodesetval */ 
             if (xmlobject->nodesetval->nodeNr > 0) {
                 xmlNodePtr n;
@@ -260,11 +264,11 @@ config_get_nb_nodes(const char *_xpath)
     
     /* Rquete XPath*/
     xmlobject = xmlXPathEval(xpath, config->context);
-    if (xmlobject == NULL)
+    if (!xmlobject)
         return -1;
     
     if (xmlobject->type == XPATH_NODESET)
-        if (xmlobject->nodesetval != NULL)
+        if (xmlobject->nodesetval)
             return xmlobject->nodesetval->nodeNr;
     
     xmlXPathFreeObject(xmlobject);
@@ -276,17 +280,17 @@ config_get_nb_nodes(const char *_xpath)
 inline const char *
 config_get_platform_file(void)
 {
-    const char *platform_file = config_get_value(
-                            "/config/global/file[@type=\"platform\"]/text()");
+    const char *request = "/config/global/file[@type=\"platform\"]/text()";
+    char *ko = "XPathError: /config/global/file[@type=\"platform\"]/text()";
+    const char *platform_file = config_get_value(request);
     
 #ifdef VERBOSE
     fprintf(stderr, "Platform file : ");
 #endif
-    if (platform_file == NULL) {
+    if (!platform_file) {
 #ifdef VERBOSE
         fprintf(stderr, "failed\n");
-        fprintf(stderr, 
-		"XPathError : /config/global/file[@type=\"platform\"]/text()");
+        fprintf(stderr, ko);
 #endif
         
         free(config);
@@ -304,18 +308,17 @@ inline const char *
 config_get_deployment_file(void)
 {
     const char *deployment_file;
-    
+    const char *request = "/config/global/file[@type=\"deployment\"]/text()";
+    char *ko = "XPathError: /config/global/file[@type=\"deployment\"]/text()";
 #ifdef VERBOSE
     fprintf(stderr, "Deployment file : ");
 #endif
-    deployment_file = 
-        config_get_value("/config/global/file[@type=\"deployment\"]/text()");
     
-    if (deployment_file == NULL) {
+    deployment_file = config_get_value(request);
+    if (!deployment_file) {
 #ifdef VERBOSE
         fprintf(stderr, "failed\n");
-        fprintf(stderr, 
-                "XPathError: /config/global/file[@type=\"deployment\"]/text()");
+        fprintf(stderr, ko);
 #endif
         free(config);
         exit(2);
@@ -332,12 +335,12 @@ inline const char *
 config_get_trace_file(void)
 {
     const char *trace_file;
+    const char *request = "/config/global/file[@type=\"trace\"]/text()";
     
-    trace_file = config_get_value(
-	"/config/global/file[@type=\"trace\"]/text()");
+    trace_file = config_get_value(request);
     
 #ifdef VERBOSE
-    if (trace_file == NULL)
+    if (!trace_file)
         fprintf(stderr, "Trace file : None\n");
     else
         fprintf(stderr, "Trace file : %s\n", trace_file);
@@ -365,6 +368,8 @@ simbatch_init(int *argc, char **argv)
 {
     const char *config_file;    
     const char *deployment_file;
+    const char *request = "/config/global/file[@type=\"deployment\"]/text()";
+    const char *req = "/platform_description/process[@function=\"SB_batch\"]";
     int nbBatchDeployed = 0;
     
     if (parseCmdLine(*argc, argv)) {
@@ -385,7 +390,7 @@ simbatch_init(int *argc, char **argv)
 #endif
 	
     config = config_load(config_file);
-    if (config == NULL) {
+    if (!config) {
 #ifdef VERBOSE
         fprintf(stderr, "failed\n");
         fprintf(stderr, "Usage : %s -f simbatch_config.xml\n", argv[0]);
@@ -400,8 +405,7 @@ simbatch_init(int *argc, char **argv)
 #endif
     
     nbBatch = config_get_nb_nodes("/config/batch");
-    deployment_file = config_get_value(
-	"/config/global/file[@type=\"deployment\"]/text()");
+    deployment_file = config_get_value(request);
     
     /* 
      * A bit dirty - I need just one value in the deployment file 
@@ -411,7 +415,7 @@ simbatch_init(int *argc, char **argv)
         config_t * config_backup = config;
 	
         config = config_load(deployment_file);
-        if (config == NULL) {
+        if (!config) {
 #ifdef VERBOSE 
             fprintf(stderr, "failed\n");
 #endif
@@ -419,8 +423,7 @@ simbatch_init(int *argc, char **argv)
             xbt_die("Cant'load deployment file");
         }
 	
-        nbBatchDeployed = config_get_nb_nodes(
-                    "/platform_description/process[@function=\"SB_batch\"]");
+        nbBatchDeployed = config_get_nb_nodes(req);
         free(config);
         config = config_backup;
     }
@@ -455,7 +458,7 @@ simbatch_init(int *argc, char **argv)
 inline void
 simbatch_clean(void)
 {
-    if (config != NULL)
+    if (config)
         free(config);
     
 #ifdef LOG
