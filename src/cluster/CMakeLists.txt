@@ -16,6 +16,6 @@ ADD_LIBRARY(simbatch SHARED ${SRC_FILE} ${INC_FILE})
 
 TARGET_LINK_LIBRARIES(simbatch simgrid dl xml2 z m)
 
-# Install library in the lib dir at the root of the project
-INSTALL_TARGETS(/lib simbatch)
+# Install library in the ${CMAKE_INSTALL_PREFIX}/{INSTALL_DIR} directory
+INSTALL_TARGETS(${INSTALL_DIR} simbatch)
 

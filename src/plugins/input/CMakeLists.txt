@@ -23,6 +23,6 @@ TARGET_LINK_LIBRARIES(wld dl simgrid simbatch)
 TARGET_LINK_LIBRARIES(swf dl simgrid simbatch)
 TARGET_LINK_LIBRARIES(oar2-xml xml2 dl simgrid simbatch)
 
-# Install library in the lib dir at the root of the project
-INSTALL_TARGETS(/lib swf wld oar2-xml)
+# Install library in the ${CMAKE_INSTALL_PREFIX}/${INSTALL_DIR} directory
+INSTALL_TARGETS(${INSTALL_DIR} swf wld oar2-xml)
 

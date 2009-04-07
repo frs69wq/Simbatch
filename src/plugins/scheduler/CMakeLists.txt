@@ -23,6 +23,6 @@ TARGET_LINK_LIBRARIES(rrobin dl simgrid simbatch)
 TARGET_LINK_LIBRARIES(fcfs dl simgrid simbatch)
 TARGET_LINK_LIBRARIES(cbf dl simgrid simbatch)
 
-# Install library in the lib dir at the root of the project
-INSTALL_TARGETS(/lib rrobin fcfs cbf)
+# Install library in the ${CMAKE_INSTALL_PREFIX}/${INSTALL_DIR} directory
+INSTALL_TARGETS(${INSTALL_DIR} rrobin fcfs cbf)
 

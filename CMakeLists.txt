@@ -38,7 +38,8 @@ MESSAGE(STATUS "or define the libraries path yourself for your specfic arch")
 
 #-------------------------- SOME VARIABLES -------------------------------
 # Fixe le path pour le make install
-SET(CMAKE_INSTALL_PREFIX ${SIMBATCH_SOURCE_DIR})
+SET(CMAKE_INSTALL_PREFIX ${SIMBATCH_SOURCE_DIR} CACHE PATH "Set the path prefix for simbatch install")
+SET(INSTALL_DIR lib CACHE PATH "Set the directory for the install PREFIX/DIR")
 SET(SIMGRID_HOME /usr/local CACHE PATH "Set the path for the Simgrid installation directory")
 
 # --------------------- OPTIONS OF THE PROJECT -----------------------------
