@@ -23,7 +23,7 @@
 /**
  * Simulates the behavior of a Batch system.
  *
- * The behaviour of the batch process consists in responding to incoming 
+ * The behavior of the batch process consists in responding to incoming 
  * messages and to schedule jobs sent by clients. Messages are m_task_t 
  * datatype provided by the simgrid library.
  *
@@ -35,6 +35,9 @@
  * SED_PRED to perform a prediction of when the task will be able to execute.
  * SED_HPF (work in progess)
  * PF_INIT to initialize the batch
+ *
+ * Each batch has to be described in its own section in a simbatch.xml file.
+ * It determines which scheduler use and other informaions.
  *
  * \param argc number of parameters transmitted to the SB_batch process.
  * \param **argv array containing the parameters. argc and **argv are 

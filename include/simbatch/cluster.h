@@ -25,13 +25,12 @@
 /**
  * Cluster definition.
  * This is a representation of the cluster for the SB_bacth process.
- * \todo typedef cluster_t {...} cluster_t, *m_cluster_t;
  */
 typedef struct cluster_t {
-    int nb_nodes;   /*<! Number of slaves. */
-    int priority;   /*<! Number of priority level available for a task. */
+    int nb_nodes;       /*<! Number of slaves. */
+    int priority;       /*<! Number of priority level available for a task. */
     m_host_t *nodes;    /*<! List of slaves. */
-    xbt_dynar_t *queues;    /*<! Trace the tasks (batch + cluster). */
+    xbt_dynar_t *queues;        /*<! Trace the tasks (batch + cluster). */
     xbt_dynar_t *waiting_queue; /*<! Scheduling table or Gantt diagramm. */
     xbt_dynar_t reservations;   /*<! Reservation queue. */ 
 } cluster_t;
@@ -41,7 +40,7 @@ typedef cluster_t *m_cluster_t;
 /**
  * Cluster constructor.
  * The cluster representation is built with the parameters defined in the
- * deployment.xml files.
+ * deployment.xml file and the simbatch.xml file.
  * \param argc number of parameters.
  * \param **argv list of parameters.
  * \return a pointer on the cluster structure.

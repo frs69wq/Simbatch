@@ -23,8 +23,9 @@
 /** 
  * Request the name of the external load file.
  * External load is a load wich a SB_batch process is dealing with before a 
- * SB_client submit its own jobs.
- * The request is made by using a DOM parser and XML Queries provided by the
+ * SB_client submit its own jobs. The file and plugin to use are set in the
+ * simbatch.xml file.
+ * The request is made by using a DOM parser and XPath provided by the
  * libxml2. This is an easy way for getting informations but it shows some
  * disadvantages :
  * - simgrid already uses xml parser with flexml => useless depency?
