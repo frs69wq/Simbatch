@@ -36,7 +36,7 @@ int main(int argc, char ** argv) {
      * params have to be called with the same name */
     MSG_function_register("SB_client", SB_client);
     /* The batch */
-    MSG_function_register("SB_batch", SB_batch);
+    MSG_function_register("SB_batch_new", SB_batch_new);
     /* Node of the Cluster */
     MSG_function_register("SB_node", SB_node);
     

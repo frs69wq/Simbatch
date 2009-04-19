@@ -6,7 +6,7 @@
       <argument value="Batch1" />
   </process>
   <!-- The Scheduler process (with some arguments) -->
-  <process host="Batch1" function="SB_batch">
+  <process host="Batch1" function="SB_batch_new">
      <argument value="Node1" />	
      <argument value="Node2" />
      <argument value="Node3" />

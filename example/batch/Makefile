@@ -7,8 +7,9 @@ REASONABLY_CAREFUL_DUDE =       -Wall -Wstrict-prototypes -Wcast-align -Wmissing
 				_Wnonnull -Wmissing-prototypes -Wmissing-declarations
 WARNINGS=$(PEDANTIC_PARANOID_FREAK)
 SIMGRID_HOME=${HOME}/Library/Simgrid
+SIMBATCH_HOME=${HOME}/Library/Simbatch
 INCLUDES=-I$(SIMGRID_HOME)/include -I../../include 
-LD_PATH=-L. -L$(SIMGRID_HOME)/lib/ -L../../lib/
+LD_PATH=-L. -L$(SIMGRID_HOME)/lib/ -L$(SIMBATCH_HOME)
 LD_FLAGS=-lsimgrid -lsimbatch
 OPTS=-O0 -pipe
 DEBUG= # -pg -DDEBUG
