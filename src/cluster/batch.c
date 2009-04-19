@@ -180,7 +180,9 @@ int SB_batch(int argc, char ** argv) {
     while (1) {
         err = MSG_task_get_with_time_out(&task, CLIENT_PORT, DBL_MAX);	
         if (err == MSG_TRANSFER_FAILURE) {
-            if (!msg_stack) xbt_fifo_free(msg_stack);
+            if (!msg_stack) 
+                /* Pb with wbt_fifo_free out of the loop. */
+                xbt_fifo_free(msg_stack);
             break;
         }
         if (err == MSG_OK) {
@@ -223,7 +225,9 @@ int SB_batch(int argc, char ** argv) {
                         job->mapping = xbt_malloc(job->nb_procs * sizeof(int));
                         xbt_dynar_push(cluster->queues[job->priority], &job); 
                         
-                        /* ask to the plugin to schedule and accept this new task */
+                        /* ask to the plugin to schedule 
+                         * and accept this new task.
+                         */
                         scheduler->accept(cluster, job,
                                           scheduler->schedule(cluster, job));
                     }
