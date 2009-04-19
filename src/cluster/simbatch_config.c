@@ -244,7 +244,8 @@ const char * config_get_value(const char * _xpath) {
                 xmlNodePtr n;
 		
                 n = xmlobject->nodesetval->nodeTab[0];
-                if ((n->type == XML_TEXT_NODE) || (n->type == XML_CDATA_SECTION_NODE))
+                if ((n->type == XML_TEXT_NODE) || 
+                    (n->type == XML_CDATA_SECTION_NODE))
                     value = n->content;
             }
         }
@@ -410,7 +411,7 @@ simbatch_init(int *argc, char **argv)
     /* 
      * A bit dirty - I need just one value in the deployment file 
      * So i do a context switch instead of changing my functions
-     */
+     *//*
     {
         config_t * config_backup = config;
 	
@@ -444,7 +445,7 @@ simbatch_init(int *argc, char **argv)
     
     fprintf(stderr, "Number of batch defined  : %d\n", nbBatch);
 #endif
-    
+    */
     book_of_plugin = xbt_dict_new(); 
     
 #ifdef LOG
