@@ -47,4 +47,7 @@
 int 
 SB_batch(int argc, char **argv);
 
+int 
+SB_batch_new(int argc, char **argv);
+
 #endif
