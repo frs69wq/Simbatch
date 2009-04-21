@@ -88,7 +88,7 @@ SB_resource_manager(int argc, char **argv)
             if (waiting_time < DBL_MAX) {
                 m_process_t supervisor;
                 unsigned int  *port = NULL;		
-                
+                job->state = PROCESSING;
 #ifdef DEBUG
                 fprintf(stderr, "[%lf]\t%20s\tIt's time, nb sup : %lu\n",
                         MSG_get_clock(), PROCESS_NAME(), 
@@ -121,7 +121,7 @@ SB_resource_manager(int argc, char **argv)
 #endif	    
                 /* Send the job to the supervisor that will manage it */
                 port = (unsigned int *)MSG_process_get_data(supervisor);
-                job->state = PROCESSING;
+                
                 MSG_task_put(MSG_task_create("RUN", 0.0, 0.0, job),
                              MSG_host_self(), *port);
             }

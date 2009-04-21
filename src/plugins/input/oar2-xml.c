@@ -169,7 +169,8 @@ static void end_elt(void *user_data, const xmlChar *name) {
         job->output_size = 0.0;
         job->priority = 0;
         job->service = 0;
-        
+        job->mapping = NULL;
+
         /** Parsed values from config file **/
         sprintf(job->name, "%s%s", name, infos[0]);
         job->user_id = atol(infos[0]);

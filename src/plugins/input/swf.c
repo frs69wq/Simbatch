@@ -85,6 +85,7 @@ static xbt_fifo_t swf_parse(const char * swf_file, const char * name)
 	  job->state = WAITING;
 	  job->priority = 0;
 	  job->free_on_completion = 1;
+	  job->mapping = NULL;
 	  sprintf(job->name,"%s%d", name, i++);
 	  xbt_fifo_push(list,job);
 #ifdef DEBUG

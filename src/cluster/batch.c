@@ -306,8 +306,8 @@ int SB_batch(int argc, char ** argv) {
                     }
                     else { xbt_dynar_remove_at(cluster->reservations, it, NULL); }
 #ifdef OUTPUT
-                    fprintf(fout, "%-15s\t%lf\t%lf\t%lf\t%lf\t\n",
-                            job->name, job->entry_time, 
+                    fprintf(fout, "%-15s\t%d\t%lf\t%lf\t%lf\t%lf\t\n",
+                            job->name, job->nb_procs, job->entry_time, 
                             job->start_time + NOISE, job->completion_time, 
                             MSG_get_clock() - job->start_time - NOISE);
 		    fflush(fout);

@@ -421,9 +421,9 @@ check_ACK(context_t self, m_task_t task)
         xbt_dynar_remove_at(self.cluster->reservations, it, NULL);
     }
     
-    fprintf(self.fout, "%-15s\t%lf\t%lf\t%lf\t%lf\t\n", job->name,
-            job->entry_time, job->start_time + NOISE, job->completion_time, 
-            MSG_get_clock() - job->start_time - NOISE);
+    fprintf(self.fout, "%-15s\t%d\t%lf\t%lf\t%lf\t%lf\t\n", job->name,
+            job->nb_procs, job->entry_time, job->start_time + NOISE, 
+	    job->completion_time, MSG_get_clock() - job->start_time - NOISE);
     fflush(self.fout);
     
     if (job->free_on_completion) {
