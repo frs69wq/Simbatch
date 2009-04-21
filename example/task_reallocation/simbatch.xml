@@ -1,20 +1,25 @@
 <config>
-  
+
   <global>
     <file type="platform">platform.xml</file>
-    <file type="deployment">deployment.xml</file>
+    <file type="deployment">deployment100.xml</file>
   </global>
-  
+
   <batch host="Batch0">
     <plugin>libfcfs.so</plugin>
-    <!--<load>1.wld</load>
-    <parser>libwld.so</parser>-->
     <priority_queue>
       <number>3</number>
     </priority_queue>
   </batch>
-  
+
   <batch host="Batch1">
+    <plugin>libfcfs.so</plugin>
+    <priority_queue>
+      <number>3</number>
+    </priority_queue>
+  </batch>
+
+  <batch host="Batch2">
     <plugin>libfcfs.so</plugin>
     <priority_queue>
       <number>3</number>

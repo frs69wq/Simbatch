@@ -1,0 +1,289 @@
+<?xml version='1.0'?>
+<!DOCTYPE platform_description SYSTEM "surfxml.dtd">
+<platform_description version="1">
+
+  <process host="Client" function="client">
+    <argument value="jobs.txt"/>
+    <argument value="MetaSched"/>
+  </process>
+
+  <process host="MetaSched" function="metaSched">
+    <argument value="Client"/>
+    <argument value="Batch0"/>
+    <argument value="Batch1"/>
+    <argument value="Batch2"/>
+  </process>
+
+  <process host="MetaSched" function="resched">
+    <argument value="1000"/>
+    <argument value="1000000"/>
+  </process>
+
+  <!-- Cluster 0 -->
+  <process host="Batch0" function="sed">
+    <argument value="MetaSched"/>
+    <argument value="Batch0"/>
+    <argument value="perfs.txt"/>
+  </process>
+  <process host="Batch0" function="SB_batch">
+    <argument value="Node0_0"/>
+    <argument value="Node0_1"/>
+    <argument value="Node0_2"/>
+    <argument value="Node0_3"/>
+    <argument value="Node0_4"/>
+    <argument value="Node0_5"/>
+    <argument value="Node0_6"/>
+    <argument value="Node0_7"/>
+    <argument value="Node0_8"/>
+    <argument value="Node0_9"/>
+    <argument value="Node0_10"/>
+    <argument value="Node0_11"/>
+    <argument value="Node0_12"/>
+    <argument value="Node0_13"/>
+    <argument value="Node0_14"/>
+    <argument value="Node0_15"/>
+    <argument value="Node0_16"/>
+    <argument value="Node0_17"/>
+    <argument value="Node0_18"/>
+    <argument value="Node0_19"/>
+    <argument value="Node0_20"/>
+    <argument value="Node0_21"/>
+    <argument value="Node0_22"/>
+    <argument value="Node0_23"/>
+    <argument value="Node0_24"/>
+    <argument value="Node0_25"/>
+    <argument value="Node0_26"/>
+    <argument value="Node0_27"/>
+    <argument value="Node0_28"/>
+    <argument value="Node0_29"/>
+    <argument value="Node0_30"/>
+    <argument value="Node0_31"/>
+    <argument value="Node0_32"/>
+    <argument value="Node0_33"/>
+    <argument value="Node0_34"/>
+    <argument value="Node0_35"/>
+    <argument value="Node0_36"/>
+    <argument value="Node0_37"/>
+    <argument value="Node0_38"/>
+    <argument value="Node0_39"/>
+  </process>
+  <process host="Node0_0" function="SB_node"/>
+  <process host="Node0_1" function="SB_node"/>
+  <process host="Node0_2" function="SB_node"/>
+  <process host="Node0_3" function="SB_node"/>
+  <process host="Node0_4" function="SB_node"/>
+  <process host="Node0_5" function="SB_node"/>
+  <process host="Node0_6" function="SB_node"/>
+  <process host="Node0_7" function="SB_node"/>
+  <process host="Node0_8" function="SB_node"/>
+  <process host="Node0_9" function="SB_node"/>
+  <process host="Node0_10" function="SB_node"/>
+  <process host="Node0_11" function="SB_node"/>
+  <process host="Node0_12" function="SB_node"/>
+  <process host="Node0_13" function="SB_node"/>
+  <process host="Node0_14" function="SB_node"/>
+  <process host="Node0_15" function="SB_node"/>
+  <process host="Node0_16" function="SB_node"/>
+  <process host="Node0_17" function="SB_node"/>
+  <process host="Node0_18" function="SB_node"/>
+  <process host="Node0_19" function="SB_node"/>
+  <process host="Node0_20" function="SB_node"/>
+  <process host="Node0_21" function="SB_node"/>
+  <process host="Node0_22" function="SB_node"/>
+  <process host="Node0_23" function="SB_node"/>
+  <process host="Node0_24" function="SB_node"/>
+  <process host="Node0_25" function="SB_node"/>
+  <process host="Node0_26" function="SB_node"/>
+  <process host="Node0_27" function="SB_node"/>
+  <process host="Node0_28" function="SB_node"/>
+  <process host="Node0_29" function="SB_node"/>
+  <process host="Node0_30" function="SB_node"/>
+  <process host="Node0_31" function="SB_node"/>
+  <process host="Node0_32" function="SB_node"/>
+  <process host="Node0_33" function="SB_node"/>
+  <process host="Node0_34" function="SB_node"/>
+  <process host="Node0_35" function="SB_node"/>
+  <process host="Node0_36" function="SB_node"/>
+  <process host="Node0_37" function="SB_node"/>
+  <process host="Node0_38" function="SB_node"/>
+  <process host="Node0_39" function="SB_node"/>
+
+  <!-- Cluster 1 -->
+  <process host="Batch1" function="sed">
+    <argument value="MetaSched"/>
+    <argument value="Batch1"/>
+    <argument value="perfs.txt"/>
+  </process>
+  <process host="Batch1" function="SB_batch">
+    <argument value="Node1_0"/>
+    <argument value="Node1_1"/>
+    <argument value="Node1_2"/>
+    <argument value="Node1_3"/>
+    <argument value="Node1_4"/>
+    <argument value="Node1_5"/>
+    <argument value="Node1_6"/>
+    <argument value="Node1_7"/>
+    <argument value="Node1_8"/>
+    <argument value="Node1_9"/>
+    <argument value="Node1_10"/>
+    <argument value="Node1_11"/>
+    <argument value="Node1_12"/>
+    <argument value="Node1_13"/>
+    <argument value="Node1_14"/>
+    <argument value="Node1_15"/>
+    <argument value="Node1_16"/>
+    <argument value="Node1_17"/>
+    <argument value="Node1_18"/>
+    <argument value="Node1_19"/>
+    <argument value="Node1_20"/>
+    <argument value="Node1_21"/>
+    <argument value="Node1_22"/>
+    <argument value="Node1_23"/>
+    <argument value="Node1_24"/>
+    <argument value="Node1_25"/>
+    <argument value="Node1_26"/>
+    <argument value="Node1_27"/>
+    <argument value="Node1_28"/>
+    <argument value="Node1_29"/>
+    <argument value="Node1_30"/>
+    <argument value="Node1_31"/>
+    <argument value="Node1_32"/>
+    <argument value="Node1_33"/>
+    <argument value="Node1_34"/>
+    <argument value="Node1_35"/>
+    <argument value="Node1_36"/>
+    <argument value="Node1_37"/>
+    <argument value="Node1_38"/>
+    <argument value="Node1_39"/>
+  </process>
+  <process host="Node1_0" function="SB_node"/>
+  <process host="Node1_1" function="SB_node"/>
+  <process host="Node1_2" function="SB_node"/>
+  <process host="Node1_3" function="SB_node"/>
+  <process host="Node1_4" function="SB_node"/>
+  <process host="Node1_5" function="SB_node"/>
+  <process host="Node1_6" function="SB_node"/>
+  <process host="Node1_7" function="SB_node"/>
+  <process host="Node1_8" function="SB_node"/>
+  <process host="Node1_9" function="SB_node"/>
+  <process host="Node1_10" function="SB_node"/>
+  <process host="Node1_11" function="SB_node"/>
+  <process host="Node1_12" function="SB_node"/>
+  <process host="Node1_13" function="SB_node"/>
+  <process host="Node1_14" function="SB_node"/>
+  <process host="Node1_15" function="SB_node"/>
+  <process host="Node1_16" function="SB_node"/>
+  <process host="Node1_17" function="SB_node"/>
+  <process host="Node1_18" function="SB_node"/>
+  <process host="Node1_19" function="SB_node"/>
+  <process host="Node1_20" function="SB_node"/>
+  <process host="Node1_21" function="SB_node"/>
+  <process host="Node1_22" function="SB_node"/>
+  <process host="Node1_23" function="SB_node"/>
+  <process host="Node1_24" function="SB_node"/>
+  <process host="Node1_25" function="SB_node"/>
+  <process host="Node1_26" function="SB_node"/>
+  <process host="Node1_27" function="SB_node"/>
+  <process host="Node1_28" function="SB_node"/>
+  <process host="Node1_29" function="SB_node"/>
+  <process host="Node1_30" function="SB_node"/>
+  <process host="Node1_31" function="SB_node"/>
+  <process host="Node1_32" function="SB_node"/>
+  <process host="Node1_33" function="SB_node"/>
+  <process host="Node1_34" function="SB_node"/>
+  <process host="Node1_35" function="SB_node"/>
+  <process host="Node1_36" function="SB_node"/>
+  <process host="Node1_37" function="SB_node"/>
+  <process host="Node1_38" function="SB_node"/>
+  <process host="Node1_39" function="SB_node"/>
+
+  <!-- Cluster 2 -->
+  <process host="Batch2" function="sed">
+    <argument value="MetaSched"/>
+    <argument value="Batch2"/>
+    <argument value="perfs.txt"/>
+  </process>
+  <process host="Batch2" function="SB_batch">
+    <argument value="Node2_0"/>
+    <argument value="Node2_1"/>
+    <argument value="Node2_2"/>
+    <argument value="Node2_3"/>
+    <argument value="Node2_4"/>
+    <argument value="Node2_5"/>
+    <argument value="Node2_6"/>
+    <argument value="Node2_7"/>
+    <argument value="Node2_8"/>
+    <argument value="Node2_9"/>
+    <argument value="Node2_10"/>
+    <argument value="Node2_11"/>
+    <argument value="Node2_12"/>
+    <argument value="Node2_13"/>
+    <argument value="Node2_14"/>
+    <argument value="Node2_15"/>
+    <argument value="Node2_16"/>
+    <argument value="Node2_17"/>
+    <argument value="Node2_18"/>
+    <argument value="Node2_19"/>
+    <argument value="Node2_20"/>
+    <argument value="Node2_21"/>
+    <argument value="Node2_22"/>
+    <argument value="Node2_23"/>
+    <argument value="Node2_24"/>
+    <argument value="Node2_25"/>
+    <argument value="Node2_26"/>
+    <argument value="Node2_27"/>
+    <argument value="Node2_28"/>
+    <argument value="Node2_29"/>
+    <argument value="Node2_30"/>
+    <argument value="Node2_31"/>
+    <argument value="Node2_32"/>
+    <argument value="Node2_33"/>
+    <argument value="Node2_34"/>
+    <argument value="Node2_35"/>
+    <argument value="Node2_36"/>
+    <argument value="Node2_37"/>
+    <argument value="Node2_38"/>
+    <argument value="Node2_39"/>
+  </process>
+  <process host="Node2_0" function="SB_node"/>
+  <process host="Node2_1" function="SB_node"/>
+  <process host="Node2_2" function="SB_node"/>
+  <process host="Node2_3" function="SB_node"/>
+  <process host="Node2_4" function="SB_node"/>
+  <process host="Node2_5" function="SB_node"/>
+  <process host="Node2_6" function="SB_node"/>
+  <process host="Node2_7" function="SB_node"/>
+  <process host="Node2_8" function="SB_node"/>
+  <process host="Node2_9" function="SB_node"/>
+  <process host="Node2_10" function="SB_node"/>
+  <process host="Node2_11" function="SB_node"/>
+  <process host="Node2_12" function="SB_node"/>
+  <process host="Node2_13" function="SB_node"/>
+  <process host="Node2_14" function="SB_node"/>
+  <process host="Node2_15" function="SB_node"/>
+  <process host="Node2_16" function="SB_node"/>
+  <process host="Node2_17" function="SB_node"/>
+  <process host="Node2_18" function="SB_node"/>
+  <process host="Node2_19" function="SB_node"/>
+  <process host="Node2_20" function="SB_node"/>
+  <process host="Node2_21" function="SB_node"/>
+  <process host="Node2_22" function="SB_node"/>
+  <process host="Node2_23" function="SB_node"/>
+  <process host="Node2_24" function="SB_node"/>
+  <process host="Node2_25" function="SB_node"/>
+  <process host="Node2_26" function="SB_node"/>
+  <process host="Node2_27" function="SB_node"/>
+  <process host="Node2_28" function="SB_node"/>
+  <process host="Node2_29" function="SB_node"/>
+  <process host="Node2_30" function="SB_node"/>
+  <process host="Node2_31" function="SB_node"/>
+  <process host="Node2_32" function="SB_node"/>
+  <process host="Node2_33" function="SB_node"/>
+  <process host="Node2_34" function="SB_node"/>
+  <process host="Node2_35" function="SB_node"/>
+  <process host="Node2_36" function="SB_node"/>
+  <process host="Node2_37" function="SB_node"/>
+  <process host="Node2_38" function="SB_node"/>
+  <process host="Node2_39" function="SB_node"/>
+
+</platform_description>

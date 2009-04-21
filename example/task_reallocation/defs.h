@@ -8,6 +8,7 @@
 #define NB_CHANNEL 10000
 #define MS_CHAN 42
 #define MS_JOB_CHAN 1234
+#define MS_CANCEL_CHAN 5678
 #define SED_CHAN 10
 #define CLIENT_CHAN 666
 
@@ -20,6 +21,7 @@ typedef struct _SGjob {
   int nb_procs;
   unsigned int service;
   unsigned int priority;
+  double wall_time;
 } * SG_job_t;
 
 typedef struct _winner {

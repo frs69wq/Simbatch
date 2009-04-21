@@ -2,12 +2,17 @@
 #include "sed.h"
 #include "metaSched.h"
 #include "simbatch.h"
-#include "xbt.h"
 #include "defs.h"
 #include <stdlib.h>
+#include <stdio.h>
 
 int main (int argc, char** argv) {
   srand(1);
+
+  FILE * f = fopen("temps.txt", "w");
+  fprintf(f, "");
+  fclose(f);
+
   /* initialisation */
   SB_global_init(&argc, argv);
   MSG_global_init(&argc, argv);
