@@ -27,10 +27,10 @@ MESSAGE(STATUS "If everything is ok, don't forget to do the following thing :")
 IF (UNIX)
 	IF (APPLE)
 		MESSAGE(STATUS "*************** MACOSX USER ***************")
-		MESSAGE(STATUS "export DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH:${SIMBATCH_SOURCE_DIR}/lib/")
+		MESSAGE(STATUS "export DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH:${CMAKE_INSTALL_PREFIX}${INSTALL_DIR}")
 	ELSE (APPLE)
 		MESSAGE(STATUS "*************** LINUX USER ***************") 
-		MESSAGE(STATUS "export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${SIMBATCH_SOURCE_DIR}/lib/")
+		MESSAGE(STATUS "export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${CMAKE_INSTALL_DIR}${INSTALL_DIR}")
 	ENDIF (APPLE)
 ENDIF (UNIX)
 
@@ -39,7 +39,7 @@ MESSAGE(STATUS "or define the libraries path yourself for your specfic arch")
 #-------------------------- SOME VARIABLES -------------------------------
 # Fixe le path pour le make install
 SET(CMAKE_INSTALL_PREFIX ${SIMBATCH_SOURCE_DIR} CACHE PATH "Set the path prefix for simbatch install")
-SET(INSTALL_DIR lib CACHE PATH "Set the directory for the install PREFIX/DIR")
+SET(INSTALL_DIR /lib CACHE PATH "Set the directory for the install {PREFIX}{DIR}")
 SET(SIMGRID_HOME /usr/local CACHE PATH "Set the path for the Simgrid installation directory")
 
 # --------------------- OPTIONS OF THE PROJECT -----------------------------
@@ -88,7 +88,7 @@ IF (WARN)
 ENDIF (WARN)
 
 IF (PARANOID)
-	SET (W_FLAGS "-Wshadow -Wcast-align -Wnonnull -Waggregate-return -Wmissing-prototypes -Wmissing-declarations -Wstrict-prototypes -Wredundant-decls -Wnested-externs -Wpointer-arith -Wwrite-strings -finline-functions -Wall")
+	SET (W_FLAGS "-Wall -Wextra")
 ENDIF (PARANOID)
 
 IF (OPT OR WARN)
