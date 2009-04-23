@@ -1,13 +1,7 @@
 CC=gcc
-PEDANTIC_PARANOID_FREAK =       -Wshadow -Wcast-align -Wnonnull\
-                                -Waggregate-return -Wmissing-prototypes -Wmissing-declarations \
-                                -Wstrict-prototypes -Wredundant-decls -Wnested-externs \
-                                -Wpointer-arith -Wwrite-strings -finline-functions -Wall
-REASONABLY_CAREFUL_DUDE =       -Wall -Wstrict-prototypes -Wcast-align -Wmissing-prototypes\
-				_Wnonnull -Wmissing-prototypes -Wmissing-declarations
-WARNINGS=$(PEDANTIC_PARANOID_FREAK)
-SIMGRID_HOME=${HOME}/Library/Simgrid
-SIMBATCH_HOME=${HOME}/Library/Simbatch
+WARNINGS=-Wall -Wextra
+SIMGRID_HOME=${HOME}/Library/MyLibs/simgrid
+SIMBATCH_HOME=../../lib
 INCLUDES=-I$(SIMGRID_HOME)/include -I../../include 
 LD_PATH=-L. -L$(SIMGRID_HOME)/lib/ -L$(SIMBATCH_HOME)
 LD_FLAGS=-lsimgrid -lsimbatch
