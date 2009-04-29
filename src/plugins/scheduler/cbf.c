@@ -70,5 +70,8 @@ cbf_accept(m_cluster_t cluster, job_t job, slot_t *slots)
                             slots[i]->position, &job);
     }
     job->completion_time = job->start_time + job->wall_time;    
+    
+    for (i=0;i<cluster->nb_nodes;i++)
+        xbt_free(slots[i]);
     xbt_free(slots);
 }
