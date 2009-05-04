@@ -282,7 +282,7 @@ inline const char *
 config_get_platform_file(void)
 {
     const char *request = "/config/global/file[@type=\"platform\"]/text()";
-    char *ko = "XPathError: /config/global/file[@type=\"platform\"]/text()";
+    //const char *ko = "XPathError: /config/global/file[@type=\"platform\"]/text()";
     const char *platform_file = config_get_value(request);
     
 #ifdef VERBOSE
@@ -291,7 +291,7 @@ config_get_platform_file(void)
     if (!platform_file) {
 #ifdef VERBOSE
         fprintf(stderr, "failed\n");
-        fprintf(stderr, ko);
+        //fprintf(stderr, ko);
 #endif
         
         free(config);
@@ -310,7 +310,7 @@ config_get_deployment_file(void)
 {
     const char *deployment_file;
     const char *request = "/config/global/file[@type=\"deployment\"]/text()";
-    char *ko = "XPathError: /config/global/file[@type=\"deployment\"]/text()";
+    //char *ko = "XPathError: /config/global/file[@type=\"deployment\"]/text()";
 #ifdef VERBOSE
     fprintf(stderr, "Deployment file : ");
 #endif
@@ -319,7 +319,7 @@ config_get_deployment_file(void)
     if (!deployment_file) {
 #ifdef VERBOSE
         fprintf(stderr, "failed\n");
-        fprintf(stderr, ko);
+        //fprintf(stderr, ko);
 #endif
         free(config);
         exit(2);

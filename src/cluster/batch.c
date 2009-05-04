@@ -221,7 +221,7 @@ int SB_batch(int argc, char ** argv) {
                         job->entry_time = MSG_get_clock();
                         /* Noise */
                         job->run_time += NOISE;
-                        if (job->mapping != NULL) xbt_free(job->mapping);
+			if (job->mapping != NULL) xbt_free(job->mapping);
                         job->mapping = xbt_malloc(job->nb_procs * sizeof(int));
                         xbt_dynar_push(cluster->queues[job->priority], &job); 
                         
