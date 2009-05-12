@@ -11,6 +11,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #include <string.h>
 #include <float.h>
 #include <errno.h>
@@ -216,8 +217,12 @@ SB_batch_new(int argc, char *argv[])
     
     self.cluster = cluster;
     self.scheduler = scheduler;
+#ifdef LOG
     self.flog = flog;
+#endif
+#ifdef OUTPUT
     self.fout = fout;
+#endif
     
     msg_stack = xbt_fifo_new();
     /* Receiving messages and put them in a stack */
@@ -259,7 +264,7 @@ get_task(xbt_fifo_t msg_stack)
 {
     MSG_error_t err = MSG_TRANSFER_FAILURE;
     m_task_t task = NULL;
-    int ok = 0;
+    bool ok = false;
     
     err = MSG_task_get_with_time_out(&task, CLIENT_PORT, DBL_MAX);	
     if (err == MSG_OK) {
@@ -272,7 +277,7 @@ get_task(xbt_fifo_t msg_stack)
         }
         
         xbt_fifo_sort(msg_stack);
-        ok = 1;
+        ok = true;
     }
     return ok;
 }
@@ -350,8 +355,10 @@ schedule_task(context_t self, m_task_t task, int *job_cpt)
         self.scheduler->accept(self.cluster, job,
                                self.scheduler->schedule(self.cluster, job));
     } else {
+#ifdef LOG
         fprintf(self.flog, "[%lf]\t%20s\t%s canceled: not enough ressource\n",
                 MSG_get_clock(), PROCESS_NAME(), job->name);
+#endif
     }    
 }
 
@@ -366,13 +373,15 @@ reserve_slot(context_t self, m_task_t task, int *job_cpt)
     
     job->id = (*job_cpt)++;
 	
+#ifdef LOG
     fprintf(self.flog, "[%lf]\t%20s\tReceive \"%s\" from \"%s\"\n",
             MSG_get_clock(), PROCESS_NAME(), job->name, 
             MSG_host_get_name(sender));
-
+#endif
+    
     slot = find_a_slot(self.cluster, job->nb_procs, job->start_time,
                        job->wall_time);
-    printf("Slot: \n");
+    fprintf(stdout, "Slot: \n");
     print_slot(slot, self.cluster->nb_nodes);
     /* check reservation validity */
     if (slot[job->nb_procs-1]->start_time == job->start_time) {
@@ -387,7 +396,7 @@ reserve_slot(context_t self, m_task_t task, int *job_cpt)
         }
         ASEND_OK();
     } else {
-        printf("Reservation impossible");
+        fprintf(stdout, "Reservation impossible");
         ASEND_KO();
         xbt_free(slot);
         xbt_free(job);
@@ -402,11 +411,13 @@ check_ACK(context_t self, m_task_t task)
     /* m_host_t sender = MSG_task_get_source(task); */
     int it;
     
+#ifdef LOG
     fprintf(self.flog, "[%lf]\t%20s\tReceive \"%s\" from \"%s\" \n",
             MSG_get_clock(), PROCESS_NAME(), task->name,
             MSG_process_get_name(MSG_task_get_sender(task)));
     fprintf(self.flog, "[%lf]\t%20s\t%s done\n", 
             MSG_get_clock(), PROCESS_NAME(), job->name);
+#endif
     
     job->state = DONE;
     job->completion_time = MSG_get_clock();
@@ -421,11 +432,13 @@ check_ACK(context_t self, m_task_t task)
         xbt_dynar_remove_at(self.cluster->reservations, it, NULL);
     }
     
+#ifdef OUTPUT
     fprintf(self.fout, "%-15s\t%d\t%lf\t%lf\t%lf\t%lf\t\n", job->name,
             job->nb_procs, job->entry_time, job->start_time + NOISE, 
 	    job->completion_time, MSG_get_clock() - job->start_time - NOISE);
     fflush(self.fout);
-    
+#endif    
+
     if (job->free_on_completion) {
         xbt_free(job->mapping);
         xbt_free(job);
@@ -474,7 +487,9 @@ answer_to_DIET(context_t self)
     
     if (!fdiet) {
         DIET_MODE = 0;
+#ifdef VERBOSE
         fprintf(stderr, "%s: %s\n", DIET_FILE, strerror(errno));
+#endif
     }
     
     job_t job =  xbt_malloc(sizeof(*job));
@@ -510,13 +525,17 @@ predict_schedule(context_t self, m_task_t task)
     m_host_t sender = MSG_task_get_source(task);
     slot_t * slots = NULL;
     
-    printf("Prediction for %s on %s\n", job->name,
-           MSG_host_get_name(MSG_host_self()));
-	
+#ifdef VERBOSE
+    fprintf(stdout, "Prediction for %s on %s\n", job->name,
+            MSG_host_get_name(MSG_host_self()));
+#endif
+    
+#ifdef LOG
     fprintf(self.flog, "[%lf]\t%20s\tReceive \"%s\" from \"%s\"\n",
             MSG_get_clock(), PROCESS_NAME(), job->name,
             MSG_host_get_name(sender));
-    
+#endif
+
     if (job->nb_procs <= self.cluster->nb_nodes) {
         if (job->priority >= self.cluster->priority) {
             job->priority = self.cluster->priority - 1;
@@ -546,7 +565,7 @@ eval_HPF(context_t self, m_task_t task)
     double * weight = xbt_malloc(sizeof(double));
     m_task_t HPF_value = NULL;
     
-    printf("Heuristique\n");
+    fprintf(stdout, "Heuristique\n");
     
     if (job->nb_procs > self.cluster->nb_nodes) {
         printf("SB_CLUSTER_KO\n");
@@ -554,12 +573,13 @@ eval_HPF(context_t self, m_task_t task)
         HPF_value = MSG_task_create("SB_CLUSTER_KO", 0.0, 0.0, weight);
     } else {
         slot_t * slots = self.scheduler->schedule(self.cluster, job);
-        double waitT = (slots[0]->start_time - MSG_get_clock())?:1;
+        double waitT = (slots[0]->start_time - MSG_get_clock())?: 1;
         
         host_speed = MSG_get_host_speed(MSG_host_self());
         *weight = (self.cluster->nb_nodes * host_speed) / waitT;
         HPF_value = MSG_task_create("SB_HPF", 0.0, 0.0, weight);
-        xbt_free(slots), slots = NULL;
+        xbt_free(slots);
+        slots = NULL;
     }
     MSG_task_async_put(HPF_value, sender, SED_CHANNEL);
 }
