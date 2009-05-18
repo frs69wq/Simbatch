@@ -86,4 +86,3 @@ fcfs_accept(m_cluster_t cluster, job_t job, slot_t *slots)
         xbt_free(slots[i]);
     xbt_free(slots);
 }
- 

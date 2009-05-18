@@ -49,12 +49,23 @@ init(plugin_scheduler_t p)
 static slot_t *
 cbf_schedule(m_cluster_t cluster, job_t job)
 {
-    slot_t  *slots;
-    
+    slot_t * slots;
+    slot_t * best_slots;
+    int i;
     slots = find_a_slot(cluster, job->nb_procs, MSG_get_clock(),
                         job->wall_time);
- 
-    return slots;
+    best_slots = xbt_malloc(job->nb_procs * sizeof(slot_t));
+    for (i = 0; i < cluster->nb_nodes; i++) {
+      if (i < job->nb_procs) {
+	best_slots[i] = slots[i];
+      }
+      else {
+	xbt_free(slots[i]);
+      }
+    }
+    xbt_free(slots);
+
+    return best_slots;
 }
 
 
@@ -71,7 +82,7 @@ cbf_accept(m_cluster_t cluster, job_t job, slot_t *slots)
     }
     job->completion_time = job->start_time + job->wall_time;    
     
-    for (i=0;i<cluster->nb_nodes;i++)
-        xbt_free(slots[i]);
+    for (i=0;i<job->nb_procs;i++)
+      xbt_free(slots[i]);
     xbt_free(slots);
 }
