@@ -413,7 +413,6 @@ int SB_batch(int argc, char ** argv) {
                         
                         job->entry_time = MSG_get_clock();
                         job->run_time += NOISE;
-                        job->mapping = xbt_malloc(job->nb_procs * sizeof(int)); 
 
                         slots = scheduler->schedule(cluster, job);
                         
