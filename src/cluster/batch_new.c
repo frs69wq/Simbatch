@@ -543,7 +543,7 @@ predict_schedule(context_t self, m_task_t task)
         
         job->entry_time = MSG_get_clock();
         job->run_time += NOISE;
-        job->mapping = xbt_malloc(job->nb_procs * sizeof(int)); 
+        /* job->mapping = xbt_malloc(job->nb_procs * sizeof(int)); */ 
         
         slots = self.scheduler->schedule(self.cluster, job);
         
