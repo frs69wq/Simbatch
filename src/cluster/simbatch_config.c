@@ -370,8 +370,7 @@ simbatch_init(int *argc, char **argv)
     const char *config_file;    
     const char *deployment_file;
     const char *request = "/config/global/file[@type=\"deployment\"]/text()";
-    const char *req = "/platform_description/process[@function=\"SB_batch\"]";
-    int nbBatchDeployed = 0;
+    //const char *req = "/platform_description/process[@function=\"SB_batch\"]";
     
     if (parseCmdLine(*argc, argv)) {
         xbt_die("Error parsing command line");

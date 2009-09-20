@@ -1,6 +1,6 @@
 CC=gcc
 WARNINGS=-Wall -Wextra
-SIMGRID_HOME=${HOME}/Library/MyLibs/simgrid
+SIMGRID_HOME=${HOME}/myroot
 SIMBATCH_HOME=../../lib
 INCLUDES=-I$(SIMGRID_HOME)/include -I../../include 
 LD_PATH=-L. -L$(SIMGRID_HOME)/lib/ -L$(SIMBATCH_HOME)
