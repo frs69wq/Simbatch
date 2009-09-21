@@ -15,6 +15,7 @@
 #include <float.h>
 
 #include <xbt/fifo.h>
+#include <xbt/ex.h>
 #include <xbt/sysdep.h>
 #include <msg/msg.h>
 
@@ -191,6 +192,7 @@ int sed(int argc, char ** argv) {
   int services[nbServices + 1];
   xbt_fifo_t msg_stack = xbt_fifo_new();
   int i = 0;
+  xbt_ex_t ex;
 
   /* Print the args of the sed */
   printf("%s - ", MSG_host_get_name(MSG_host_self()));
@@ -205,21 +207,19 @@ int sed(int argc, char ** argv) {
 
   while (1) {
     m_task_t task = NULL;
-    MSG_error_t err;
-
-    err = MSG_task_get_with_time_out(&task, SED_CHANNEL, DBL_MAX);
-        
-    if (err == MSG_TRANSFER_FAILURE) { break; }
-        
-    if (err == MSG_OK) {
-      xbt_fifo_push(msg_stack, task);
-      while (MSG_task_Iprobe(SED_CHANNEL)) {
-	task = NULL;
-	MSG_task_get(&task, SED_CHANNEL);
-	xbt_fifo_push(msg_stack, task);
-      } 
+    TRY {
+      MSG_task_get_with_timeout(&task, SED_CHANNEL, DBL_MAX);
     }
-
+    CATCH (ex) {
+      break;
+    }
+    xbt_fifo_push(msg_stack, task);
+    while (MSG_task_Iprobe(SED_CHANNEL)) {
+      task = NULL;
+      MSG_task_get(&task, SED_CHANNEL);
+      xbt_fifo_push(msg_stack, task);
+    } 
+    
     while (xbt_fifo_size(msg_stack)) {
       task = xbt_fifo_shift(msg_stack);
       /* If the task comes from the batch, it has to be transfered

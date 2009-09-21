@@ -17,6 +17,7 @@
 
 #include <xbt/sysdep.h>
 #include <xbt/dynar.h>
+#include <xbt/ex.h>
 #include <msg/msg.h>
 
 #include "simbatch_config.h"
@@ -35,7 +36,6 @@ static double
 get_next_wakeup_time(m_cluster_t cluster, job_t *job)
 {
     double waiting_time = DBL_MAX;
-    // int ppid = MSG_process_self_PPID();
 
     *job = next_job_to_schedule(cluster);
     waiting_time =
@@ -47,11 +47,6 @@ get_next_wakeup_time(m_cluster_t cluster, job_t *job)
       waiting_time = 0.0;
     }
     assert(waiting_time >= 0.0);
-
-/*     if (waiting_time != DBL_MAX) */
-/* 	fprintf(stderr, "[%lf] Waiting time: %lf\n", MSG_get_clock(), waiting_time); */
-/*     else */
-/* 	fprintf(stderr, "[%lf] Waiting time: %s\n", MSG_get_clock(), "DBL_MAX"); */
 
     return waiting_time;
 }  
@@ -69,7 +64,7 @@ SB_resource_manager(int argc, char **argv)
     job_t job;
     m_task_t task = NULL;
     MSG_error_t ok = MSG_OK;
-
+    xbt_ex_t ex;
     
 #ifdef LOG
     FILE * flog = config_get_log_file(HOST_NAME());
@@ -81,9 +76,13 @@ SB_resource_manager(int argc, char **argv)
     
     while (1) {
 	/* 0.0 makes MSG_task_get_with_time_out blocking */
-        ok = (waiting_time == 0.0)? MSG_TRANSFER_FAILURE:
-            MSG_task_get_with_time_out(&task, RSC_MNG_PORT, waiting_time);
-        
+        TRY{
+            ok = (waiting_time == 0.0)? MSG_TRANSFER_FAILURE:
+	        MSG_task_get_with_timeout(&task, RSC_MNG_PORT, waiting_time);
+	}
+	CATCH (ex) {
+	    ok = MSG_TRANSFER_FAILURE;
+	}
         if (ok == MSG_TRANSFER_FAILURE) {
             
             /* No tasks in DBL_MAX of time, that's too long, bye */	    
@@ -188,63 +187,61 @@ supervise(int argc, char **argv)
 {
   m_cluster_t cluster = (m_cluster_t)MSG_host_get_data(MSG_host_self());
   unsigned int *port = (unsigned int *)MSG_process_get_data(MSG_process_self());
-  MSG_error_t err;
   m_task_t task = NULL;
-  
+  xbt_ex_t ex;
+  job_t job = NULL;
+
 #ifdef LOG
   FILE * flog = config_get_log_file(HOST_NAME());
 #endif
   
   while (1) {
-
-    err = MSG_task_get_with_time_out(&task, *port, DBL_MAX);
-    
-    if (err == MSG_TRANSFER_FAILURE) { break; }
-    
-    if (err == MSG_OK) {
-      job_t job = NULL;
-      job = MSG_task_get_data(task);
-      MSG_task_destroy(task); 
-      task = NULL;
-      
-      /* Send input data TODO: use put_with_alarm */
-      if (job->input_size > 0.0) {
-	MSG_task_put(MSG_task_create("DATA_IN", 0.0,
-				     job->input_size * 1000000, NULL),
-		     cluster->nodes[job->mapping[0]], NODE_PORT);
-      }
-      
-#ifdef LOG
-      fprintf(flog, "[%lf]\t%20s\tProcessing job %s end: %lf\n", 
-	      MSG_get_clock(), PROCESS_NAME(), job->name, 
-	      MSG_get_clock() + job->run_time);
-#endif
-      
-      MSG_process_sleep(job->run_time);
-      
-      /* Receive output data TODO: use get_with_alarm */
-      if (job->output_size > 0.0) {
-	MSG_task_put(MSG_task_create("DATA_OUT", 0.0,
-				     job->output_size * 1000000, NULL),
-		     cluster->nodes[job->mapping[0]], NODE_PORT);
-	
-#ifdef LOG
-	fprintf(flog, "[%lf]\t%20s\tReceive output data from %s\n",
-		MSG_get_clock(), PROCESS_NAME(),
-		MSG_host_get_name(cluster->nodes[job->mapping[0]]));
-#endif
-      }
-      
-      /* Finish - ask to be in the pool again */
-      MSG_task_put(MSG_task_create("RM_ATTACH", 0.0, 0.0,
-				   MSG_process_self()),
-		   MSG_host_self(), RSC_MNG_PORT);
-      
-      MSG_task_put(MSG_task_create("SB_ACK", 0.0, 0.0, job),
-		   MSG_host_self(), CLIENT_PORT);
+    TRY {
+      MSG_task_get_with_timeout(&task, *port, DBL_MAX);
     }
+    CATCH (ex) {
+      break;
+    }
+    
+    job = MSG_task_get_data(task);
+    MSG_task_destroy(task); 
+    task = NULL;
+    
+    /* Send input data TODO: use put_with_alarm */
+    if (job->input_size > 0.0) {
+      MSG_task_put(MSG_task_create("DATA_IN", 0.0,
+				   job->input_size, NULL),
+		   cluster->nodes[job->mapping[0]], NODE_PORT);
+    }
+      
+#ifdef LOG
+    fprintf(flog, "[%lf]\t%20s\tStart Processing job %s end: %lf\n", 
+	    MSG_get_clock(), PROCESS_NAME(), job->name, 
+	    MSG_get_clock() + job->run_time);
+#endif
+    
+    MSG_process_sleep(job->run_time);
+    
+    /* Receive output data */
+    if (job->output_size > 0.0) {
+      MSG_task_put(MSG_task_create("DATA_OUT", 0.0,
+				   job->output_size, NULL),
+		   cluster->nodes[job->mapping[0]], NODE_PORT);
+#ifdef LOG
+      fprintf(flog, "[%lf]\t%20s\tReceive output data from %s\n",
+	      MSG_get_clock(), PROCESS_NAME(),
+	      MSG_host_get_name(cluster->nodes[job->mapping[0]]));
+#endif
+    }
+      
+    //Finish - ask to be in the pool again
+    MSG_task_put(MSG_task_create("RM_ATTACH", 0.0, 0.0,
+				 MSG_process_self()),
+		 MSG_host_self(), RSC_MNG_PORT); 
+    //Tell the batch the job is finished
+    MSG_task_put(MSG_task_create("SB_ACK", 0.0, 0.0, job),
+		 MSG_host_self(), CLIENT_PORT);
   }
-  
   xbt_free(port);
   return EXIT_SUCCESS;
 }

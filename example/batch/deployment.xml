@@ -1,19 +1,19 @@
 <?xml version='1.0'?>
-<!DOCTYPE platform_description SYSTEM "surfxml.dtd">
-<platform_description version="1">
+<!DOCTYPE platform SYSTEM "simgrid.dtd">
+<platform version="2">
   <!-- The Client process (with some arguments) -->
   <process host="Client" function="SB_client" >
-      <argument value="Batch1" />
+    <argument value="Batch1" />
   </process>
   <!-- The Scheduler process (with some arguments) -->
   <process host="Batch1" function="SB_batch">
-     <argument value="Node1" />	
-     <argument value="Node2" />
-     <argument value="Node3" />
-     <argument value="Node4" />
-     <argument value="Node5" />
-	 <argument value="Node6" />
-	 <argument value="Node7" />
+    <argument value="Node1" />	
+    <argument value="Node2" />
+    <argument value="Node3" />
+    <argument value="Node4" />
+    <argument value="Node5" />
+    <argument value="Node6" />
+    <argument value="Node7" />
   </process> 
   <process host="Node1" function="SB_node"/>
   <process host="Node2" function="SB_node"/>
@@ -22,5 +22,5 @@
   <process host="Node5" function="SB_node"/>
   <process host="Node6" function="SB_node"/>
   <process host="Node7" function="SB_node"/>
-</platform_description>
+</platform>
 

@@ -1,96 +1,76 @@
 <?xml version='1.0'?>
-<!DOCTYPE platform_description SYSTEM "surfxml.dtd">
-<platform_description version="1">
+<!DOCTYPE platform SYSTEM "simgrid.dtd">
+<platform version="2">
 
-  <!-- Cluster 0 -->
-  <cpu name="Batch0" power="3865000000"/>
-  <cpu name="Node0_0" power="3865000000"/>
-  <cpu name="Node0_1" power="3865000000"/>
-  <cpu name="Node0_2" power="3865000000"/>
-  <cpu name="Node0_3" power="3865000000"/>
-  <cpu name="Node0_4" power="3865000000"/>
+  <host id="Batch0" power="3865000000"/>
+  <host id="Node0_0" power="3865000000"/>
+  <host id="Node0_1" power="3865000000"/>
+  <host id="Node0_2" power="3865000000"/>
+  <host id="Node0_3" power="3865000000"/>
+  <host id="Node0_4" power="3865000000"/>
+  <host id="Batch1" power="3865000000"/>
+  <host id="Node1_0" power="3865000000"/>
+  <host id="Node1_1" power="3865000000"/>
+  <host id="Node1_2" power="3865000000"/>
+  <host id="Node1_3" power="3865000000"/>
+  <host id="Node1_4" power="3865000000"/>
+  <host id="Batch2" power="3865000000"/>
+  <host id="Node2_0" power="3865000000"/>
+  <host id="Node2_1" power="3865000000"/>
+  <host id="MetaSched" power="3865000000"/>
 
-  <network_link name="loopback0" bandwidth="498000000" latency="0.0"/>
-  <network_link name="B0_0" bandwidth="1000000000" latency="0.0"/>
-  <network_link name="B0_1" bandwidth="1000000000" latency="0.0"/>
-  <network_link name="B0_2" bandwidth="1000000000" latency="0.0"/>
-  <network_link name="B0_3" bandwidth="1000000000" latency="0.0"/>
-  <network_link name="B0_4" bandwidth="1000000000" latency="0.0"/>
+  <link id="loopback0" bandwidth="498000000" latency="0.0"/>
+  <link id="B0_0" bandwidth="1000000000" latency="0.0"/>
+  <link id="B0_1" bandwidth="1000000000" latency="0.0"/>
+  <link id="B0_2" bandwidth="1000000000" latency="0.0"/>
+  <link id="B0_3" bandwidth="1000000000" latency="0.0"/>
+  <link id="B0_4" bandwidth="1000000000" latency="0.0"/>
+  <link id="loopback1" bandwidth="4980000000" latency="0.0"/>
+  <link id="B1_0" bandwidth="1000000000" latency="0.0"/>
+  <link id="B1_1" bandwidth="1000000000" latency="0.0"/>
+  <link id="B1_2" bandwidth="1000000000" latency="0.0"/>
+  <link id="B1_3" bandwidth="1000000000" latency="0.0"/>
+  <link id="B1_4" bandwidth="1000000000" latency="0.0"/>
+  <link id="loopback2" bandwidth="4980000000" latency="0.0"/>
+  <link id="B2_0" bandwidth="1000000000" latency="0.0"/>
+  <link id="B2_1" bandwidth="1000000000" latency="0.0"/>
+  <link id="M0" bandwidth="10000000000" latency="0.0"/>
+  <link id="M1" bandwidth="10000000000" latency="0.0"/>
+  <link id="M2" bandwidth="10000000000" latency="0.0"/>
   
-  <route src="Batch0" dst="Batch0"><route_element name="loopback0"/></route>
+  <route src="Batch0" dst="Batch0"><link:ctn id="loopback0"/></route>
+  <route src="Batch0" dst="Node0_0"><link:ctn id="B0_0"/></route>
+  <route src="Batch0" dst="Node0_1"><link:ctn id="B0_1"/></route>
+  <route src="Batch0" dst="Node0_2"><link:ctn id="B0_2"/></route>
+  <route src="Batch0" dst="Node0_3"><link:ctn id="B0_3"/></route>
+  <route src="Batch0" dst="Node0_4"><link:ctn id="B0_4"/></route>
+  <route src="Node0_0" dst="Batch0"><link:ctn id="B0_0"/></route>
+  <route src="Node0_1" dst="Batch0"><link:ctn id="B0_1"/></route>
+  <route src="Node0_2" dst="Batch0"><link:ctn id="B0_2"/></route>
+  <route src="Node0_3" dst="Batch0"><link:ctn id="B0_3"/></route>
+  <route src="Node0_4" dst="Batch0"><link:ctn id="B0_4"/></route>
+  <route src="Batch1" dst="Batch1"><link:ctn id="loopback1"/></route>  
+  <route src="Batch1" dst="Node1_0"><link:ctn id="B1_0"/></route>
+  <route src="Batch1" dst="Node1_1"><link:ctn id="B1_1"/></route>
+  <route src="Batch1" dst="Node1_2"><link:ctn id="B1_2"/></route>
+  <route src="Batch1" dst="Node1_3"><link:ctn id="B1_3"/></route>
+  <route src="Batch1" dst="Node1_4"><link:ctn id="B1_4"/></route>
+  <route src="Node1_0" dst="Batch1"><link:ctn id="B1_0"/></route>
+  <route src="Node1_1" dst="Batch1"><link:ctn id="B1_1"/></route>
+  <route src="Node1_2" dst="Batch1"><link:ctn id="B1_2"/></route>
+  <route src="Node1_3" dst="Batch1"><link:ctn id="B1_3"/></route>
+  <route src="Node1_4" dst="Batch1"><link:ctn id="B1_4"/></route>
+  <route src="Batch2" dst="Batch2"><link:ctn id="loopback2"/></route>
+  <route src="Batch2" dst="Node2_0"><link:ctn id="B2_0"/></route>
+  <route src="Batch2" dst="Node2_1"><link:ctn id="B2_1"/></route>
+  <route src="Node2_0" dst="Batch2"><link:ctn id="B2_0"/></route>
+  <route src="Node2_1" dst="Batch2"><link:ctn id="B2_1"/></route>
+  <route src="MetaSched" dst="Batch0"><link:ctn id="M0"/></route>
+  <route src="MetaSched" dst="Batch1"><link:ctn id="M1"/></route>
+  <route src="MetaSched" dst="Batch2"><link:ctn id="M2"/></route>
+  <route src="Batch0" dst="MetaSched"><link:ctn id="M0"/></route>
+  <route src="Batch1" dst="MetaSched"><link:ctn id="M1"/></route>
+  <route src="Batch2" dst="MetaSched"><link:ctn id="M2"/></route>
 
-  <route src="Batch0" dst="Node0_0"><route_element name="B0_0"/></route>
-  <route src="Batch0" dst="Node0_1"><route_element name="B0_1"/></route>
-  <route src="Batch0" dst="Node0_2"><route_element name="B0_2"/></route>
-  <route src="Batch0" dst="Node0_3"><route_element name="B0_3"/></route>
-  <route src="Batch0" dst="Node0_4"><route_element name="B0_4"/></route>
-
-  <route src="Node0_0" dst="Batch0"><route_element name="B0_0"/></route>
-  <route src="Node0_1" dst="Batch0"><route_element name="B0_1"/></route>
-  <route src="Node0_2" dst="Batch0"><route_element name="B0_2"/></route>
-  <route src="Node0_3" dst="Batch0"><route_element name="B0_3"/></route>
-  <route src="Node0_4" dst="Batch0"><route_element name="B0_4"/></route>
-
-  <!-- Cluster 1 -->
-  <cpu name="Batch1" power="3865000000"/>
-  <cpu name="Node1_0" power="3865000000"/>
-  <cpu name="Node1_1" power="3865000000"/>
-  <cpu name="Node1_2" power="3865000000"/>
-  <cpu name="Node1_3" power="3865000000"/>
-  <cpu name="Node1_4" power="3865000000"/>
-  
-  <network_link name="loopback1" bandwidth="4980000000" latency="0.0"/>
-  <network_link name="B1_0" bandwidth="1000000000" latency="0.0"/>
-  <network_link name="B1_1" bandwidth="1000000000" latency="0.0"/>
-  <network_link name="B1_2" bandwidth="1000000000" latency="0.0"/>
-  <network_link name="B1_3" bandwidth="1000000000" latency="0.0"/>
-  <network_link name="B1_4" bandwidth="1000000000" latency="0.0"/>
-  
-  <route src="Batch1" dst="Batch1"><route_element name="loopback1"/></route>
-  
-  <route src="Batch1" dst="Node1_0"><route_element name="B1_0"/></route>
-  <route src="Batch1" dst="Node1_1"><route_element name="B1_1"/></route>
-  <route src="Batch1" dst="Node1_2"><route_element name="B1_2"/></route>
-  <route src="Batch1" dst="Node1_3"><route_element name="B1_3"/></route>
-  <route src="Batch1" dst="Node1_4"><route_element name="B1_4"/></route>
-  
-  <route src="Node1_0" dst="Batch1"><route_element name="B1_0"/></route>
-  <route src="Node1_1" dst="Batch1"><route_element name="B1_1"/></route>
-  <route src="Node1_2" dst="Batch1"><route_element name="B1_2"/></route>
-  <route src="Node1_3" dst="Batch1"><route_element name="B1_3"/></route>
-  <route src="Node1_4" dst="Batch1"><route_element name="B1_4"/></route>
-	 
-  <!-- Cluster 2 -->
-  <cpu name="Batch2" power="3865000000"/>
-  <cpu name="Node2_0" power="3865000000"/>
-  <cpu name="Node2_1" power="3865000000"/>
-  
-  <network_link name="loopback2" bandwidth="4980000000" latency="0.0"/>
-  <network_link name="B2_0" bandwidth="1000000000" latency="0.0"/>
-  <network_link name="B2_1" bandwidth="1000000000" latency="0.0"/>
-  
-  <route src="Batch2" dst="Batch2"><route_element name="loopback2"/></route>
-  
-  <route src="Batch2" dst="Node2_0"><route_element name="B2_0"/></route>
-  <route src="Batch2" dst="Node2_1"><route_element name="B2_1"/></route>
-  
-  <route src="Node2_0" dst="Batch2"><route_element name="B2_0"/></route>
-  <route src="Node2_1" dst="Batch2"><route_element name="B2_1"/></route>
-
-  <!-- Meta-Scheduler --> 
-  <cpu name="MetaSched" power="3865000000"/>
-
-  <network_link name="M0" bandwidth="10000000000" latency="0.0"/>
-  <network_link name="M1" bandwidth="10000000000" latency="0.0"/>
-  <network_link name="M2" bandwidth="10000000000" latency="0.0"/>
-
-  <route src="MetaSched" dst="Batch0"><route_element name="M0"/></route>
-  <route src="MetaSched" dst="Batch1"><route_element name="M1"/></route>
-  <route src="MetaSched" dst="Batch2"><route_element name="M2"/></route>
-
-  <route src="Batch0" dst="MetaSched"><route_element name="M0"/></route>
-  <route src="Batch1" dst="MetaSched"><route_element name="M1"/></route>
-  <route src="Batch2" dst="MetaSched"><route_element name="M2"/></route>
-
-</platform_description>
+</platform>
 

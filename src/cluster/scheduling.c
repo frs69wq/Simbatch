@@ -49,7 +49,7 @@ generic_reschedule(m_cluster_t cluster, plugin_scheduler_t scheduler)
     
     /* Reschedule the tasks (just those tat are not processing) */
     for (i = cluster->priority - 1; i>=0; i--) {
-        int cpt;
+        unsigned int cpt;
         job_t job = NULL;
 	
         xbt_dynar_foreach(cluster->queues[i], cpt, job) { reschedule(job); }
@@ -244,7 +244,7 @@ select_n_slots(m_cluster_t cluster, xbt_dynar_t slots, int nb)
     best_slots = xbt_malloc(nb * sizeof(*best_slots));
     
     for (i=0; i<nb; i++) {
-        int cursor = 0;
+        unsigned int cursor = 0;
         unsigned node = 0;
         slot_t winning_slot = NULL;
       
@@ -300,7 +300,7 @@ print_slot(slot_t *slots, int size)
 inline void
 print_slots(xbt_dynar_t slots)
 {
-    int cursor = 0;
+    unsigned int cursor = 0;
     slot_t s;
     
     xbt_dynar_foreach(slots, cursor, s) {
@@ -314,7 +314,7 @@ print_slots(xbt_dynar_t slots)
 job_t
 next_job_to_schedule_in_queue(xbt_dynar_t queue)
 {
-    int cpt;
+    unsigned int cpt;
     job_t job = NULL;
 
     /* No jobs in the queue */ 

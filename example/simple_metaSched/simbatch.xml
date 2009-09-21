@@ -1,5 +1,4 @@
-<config>
-  
+<config>  
   <global>
     <file type="platform">platform.xml</file>
     <file type="deployment">deployment.xml</file>
@@ -27,5 +26,4 @@
       <number>3</number>
     </priority_queue>
   </batch>
-
 </config>

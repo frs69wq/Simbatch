@@ -15,6 +15,7 @@
 
 #include <xbt/dict.h>
 #include <msg/msg.h>
+#include <xbt/ex.h>
 
 #include "simbatch_config.h"
 #include "utils.h"
@@ -26,34 +27,35 @@
 int
 SB_node(int argc, char **argv)
 { 
+  m_task_t data = NULL;
+  xbt_ex_t ex;
+#ifdef LOG
+  FILE * flog;
+#endif
+
 #ifdef VERBOSE
-    fprintf(stderr, "%s... ready\n", MSG_host_get_name(MSG_host_self())); 
+  fprintf(stderr, "%s... ready\n", MSG_host_get_name(MSG_host_self())); 
 #endif
-    while (1) {
-        // MSG_error_t err;
-        m_task_t data = NULL;
-
-#ifdef LOG
-        FILE * flog;
-#endif
-	
-        /* Waiting for input comm */
-        MSG_task_get_with_time_out(&data, NODE_PORT, DBL_MAX);
-        if (data) {
-#ifdef LOG
-            flog = config_get_log_file(
-                                MSG_host_get_name(MSG_task_get_source(data)));
-	    
-            if (!strcmp(data->name, "DATA_IN"))
-                fprintf(flog, "[%lf]\t%20s\tData Received from %s\n", 
-            MSG_get_clock(), PROCESS_NAME(), 
-			MSG_process_get_name(MSG_task_get_sender(data)));
-#endif
-            MSG_task_destroy(data), data = NULL;
-        } else
-            break;
-
+  while (1) {
+    
+    TRY {
+      /* Waiting for input comm */
+      MSG_task_get_with_timeout(&data, NODE_PORT, DBL_MAX);
+    }
+    CATCH (ex) {
+      break;
     }
     
-    return EXIT_SUCCESS;
+#ifdef LOG
+    flog = config_get_log_file(
+	     MSG_host_get_name(MSG_task_get_source(data))); 
+    if (!strcmp(data->name, "DATA_IN"))
+      fprintf(flog, "[%lf]\t%20s\tData Received from %s\n", 
+	      MSG_get_clock(), PROCESS_NAME(), 
+	      MSG_process_get_name(MSG_task_get_sender(data)));
+#endif
+    MSG_task_destroy(data);
+    data = NULL;
+  }
+  return EXIT_SUCCESS;
 }

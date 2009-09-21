@@ -18,6 +18,7 @@
 
 /* Simgrid headers */
 #include <xbt/asserts.h>
+#include <xbt/ex.h>
 #include <xbt/fifo.h>
 #include <xbt/dynar.h>
 #include <xbt/dict.h>
@@ -262,24 +263,25 @@ SB_batch(int argc, char *argv[])
 int
 get_task(xbt_fifo_t msg_stack)
 {
-  MSG_error_t err = MSG_TRANSFER_FAILURE;
   m_task_t task = NULL;
-  bool ok = false;
-    
-  err = MSG_task_get_with_time_out(&task, CLIENT_PORT, DBL_MAX);	
-  if (err == MSG_OK) {
-    xbt_fifo_push(msg_stack, task);
-        
-    while (MSG_task_Iprobe(CLIENT_PORT)) {
-      task = NULL;
-      MSG_task_get(&task, CLIENT_PORT);
-      xbt_fifo_push(msg_stack, task);
-    }
-        
-    xbt_fifo_sort(msg_stack);
-    ok = true;
+  xbt_ex_t ex;
+  
+  TRY {
+    MSG_task_get_with_timeout(&task, CLIENT_PORT, DBL_MAX);	
   }
-  return ok;
+  CATCH (ex) {
+    return false;
+  }
+  xbt_fifo_push(msg_stack, task);
+  
+  while (MSG_task_Iprobe(CLIENT_PORT)) {
+    task = NULL;
+    MSG_task_get(&task, CLIENT_PORT);
+    xbt_fifo_push(msg_stack, task);
+  }
+  
+  xbt_fifo_sort(msg_stack);
+  return true;
 }
 
 
