@@ -229,7 +229,7 @@ SB_batch(int argc, char *argv[])
   /* Receiving messages and put them in a stack */
   while (1) {
     int ok = get_task(msg_stack);
-        
+    
     if (!ok) {
       break;
     } else {
@@ -316,6 +316,11 @@ handle_task(context_t self, xbt_fifo_t msg_stack, int *job_cpt)
     } else if (!strcmp(task->name, "PF_INIT")) {
       /* get info for initializing. */
       init_pf(self, task);
+    } else {
+#ifdef VERBOSE
+      fprintf(stderr, "Unknown task (%s) received on %s\n",
+	      task->name, MSG_host_get_name(MSG_host_self()));
+#endif
     }
     MSG_task_destroy(task);
 #ifdef LOG
