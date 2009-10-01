@@ -285,6 +285,17 @@ get_task(xbt_fifo_t msg_stack)
 }
 
 
+/*
+ * Tasks are handled in their alphabetical order
+ * PF_INIT
+ * SB_ACK
+ * SB_CANCEL
+ * SB_DIET
+ * SB_RES
+ * SB_TASK
+ * SED_HPF
+ * SED PRED
+ */
 void
 handle_task(context_t self, xbt_fifo_t msg_stack, int *job_cpt)
 {
@@ -462,7 +473,7 @@ cancel_task(context_t self, m_task_t task)
   job_t job = MSG_task_get_data(task);
   m_host_t sender = MSG_task_get_source(task);
   int it;
-    
+  
   if (job->state != WAITING) {
     MSG_task_put(MSG_task_create("CANCEL_KO", 0.0, 0.0, NULL),
 		 sender, SED_CHANNEL);
@@ -471,7 +482,7 @@ cancel_task(context_t self, m_task_t task)
     it = cluster_search_job(self.cluster, job->id,
 			    self.cluster->reservations);
     if (it == -1) { 
-      it = cluster_search_job(self.cluster, job->id, 
+      it = cluster_search_job(self.cluster, job->id,
 			      self.cluster->queues[job->priority]);
       xbt_dynar_remove_at(self.cluster->queues[job->priority], it, NULL);
     } else { 

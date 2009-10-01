@@ -25,6 +25,11 @@ typedef struct _async_param_t {
     m_channel_t channel;
 } _async_param_t;
 
+typedef struct _async_param_t2 { 
+    m_task_t task;
+    char * mailbox;
+} _async_param_t2;
+
 static int
 _MSG_task_put(int argc, char **argv);
 
@@ -76,6 +81,31 @@ MSG_task_async_put(m_task_t task, m_host_t host, m_channel_t channel)
     param->host = host;
     param->channel = channel;
     return MSG_process_create("asyncSend", _MSG_task_put, (void *)param,
+                              MSG_host_self()); 
+}
+
+static int
+_MSG_task_send(int argc, char **argv)
+{
+    int err;
+    _async_param_t2 *p = NULL;
+    
+    p = (_async_param_t2 *)MSG_process_get_data(MSG_process_self());
+    err = MSG_task_send(p->task, p->mailbox);
+    xbt_free(p);
+    
+    return err;
+}
+
+
+m_process_t
+MSG_task_async_send(m_task_t task, char * mailbox)
+{
+    /* can't use a nested function for this :( */
+    _async_param_t2 *param = xbt_malloc(sizeof(*param));
+    param->task = task;
+    param->mailbox = mailbox;
+    return MSG_process_create("asyncSend", _MSG_task_send, (void *)param,
                               MSG_host_self()); 
 }
 
