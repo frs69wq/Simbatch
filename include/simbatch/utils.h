@@ -30,4 +30,7 @@ xbt_fifo_sort(xbt_fifo_t fifo);
 m_process_t
 MSG_task_async_put(m_task_t task, m_host_t host, m_channel_t channel);
 
+m_process_t
+MSG_task_async_send(m_task_t task, char * mailbox);
+
 #endif
