@@ -34,7 +34,6 @@ static xbt_fifo_t swf_parse(const char * swf_file, const char * name);
 plugin_input_t init_input(plugin_input_t p)
 {
   p->create_list = swf_parse;
-
   return p;
 }
 
@@ -56,45 +55,42 @@ static xbt_fifo_t swf_parse(const char * swf_file, const char * name)
   FILE * f = NULL;
   char buf[512];
   xbt_fifo_t list = NULL;
-
+  job_t job;
   
   /* Papa's got a brand new bag... */
-  if ((f = fopen(swf_file, "r")) == NULL)
-    {
-      fprintf (stderr,"%s:%d,fopen\n",__FILE__,__LINE__);
-      return NULL;
-    }
-
+  if ((f = fopen(swf_file, "r")) == NULL) {
+    fprintf (stderr,"%s:%d,fopen\n",__FILE__,__LINE__);
+    return NULL;
+  }
+  
   list = xbt_fifo_new();
   
-  while (fgets(buf,512,f) != NULL)
-    {
-      /* Comments */
-      if (buf[0] != ';')
-	{
-	  job_t job;
-		
-	  job = xbt_malloc(sizeof(*job));
-	  job->start_time = 0.0;
-	  /* Need to ajsust and keep only the usefull data */
-	  sscanf(buf,"%*d %lf %*d %lf %*d %*d %*d %d %lf %*d %*d %*d %*d %*d %*d %*d %*d %*d",\
-		 &(job->submit_time),&(job->run_time),&(job->nb_procs),&(job->wall_time));
-	  job->nb_procs /= 8;
-	  job->input_size = 0.0;
-	  job->output_size = job->input_size;
-	  job->state = WAITING;
-	  job->priority = 0;
-	  job->free_on_completion = 1;
-	  job->mapping = NULL;
-	  sprintf(job->name,"%s%d", name, i++);
-	  xbt_fifo_push(list,job);
+  while (fgets(buf,512,f) != NULL) {
+    /* Comments */
+    if (buf[0] != ';' && buf[0] != '\n') {
+      job = xbt_malloc(sizeof(*job));
+      job->start_time = 0.0;
+      /* Need to ajsust and keep only the usefull data */
+      sscanf(buf,"%d %lf %*d %lf %d %*d %*d %*d %lf %*d %*d %*d %*d %*d %*d %*d %*d %*d",
+	     &(job->user_id), &(job->submit_time), &(job->run_time), &(job->nb_procs), 
+	     &(job->wall_time));
+      job->nb_procs /= 8;
+      job->input_size = 0.0;
+      job->output_size = job->input_size;
+      job->state = WAITING;
+      job->priority = 0;
+      job->free_on_completion = 1;
+      job->deadline = -1;
+      job->mapping = NULL;
+      sprintf(job->name,"%s%d", name, i++);
+      xbt_fifo_push(list, job);
 #ifdef DEBUG
-	  printf("%s %lf %lf %d %lf\n", job->name, job->submit_time,\
-		 job->run_time, job->nb_procs, job->wall_time);
+      printf("%s %lf %lf %d %lf\n", job->name, job->submit_time,\
+	     job->run_time, job->nb_procs, job->wall_time);
 #endif
-	}
     }
+  }
   fclose(f);
-
+  
   return list;
 }

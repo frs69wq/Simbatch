@@ -25,9 +25,8 @@ static xbt_fifo_t wld_parse(const char * wld_file, const char * name);
 /***************************/
 
 plugin_input_t init_input(plugin_input_t p) {
-    p->create_list = wld_parse;
-    
-    return p;
+  p->create_list = wld_parse;  
+  return p;
 }
 
 /*
@@ -43,56 +42,55 @@ plugin_input_t init_input(plugin_input_t p) {
  * 8 -> priority : priority of the task
  */
 static xbt_fifo_t wld_parse(const char * wld_file, const char * name) {
-    int i = 1;
-    FILE * f = NULL;
-    char buf[512];
-    xbt_fifo_t list = NULL;
-    
+  int i = 1;
+  FILE * f = NULL;
+  char buf[512];
+  xbt_fifo_t list = NULL;
+  job_t job;
+  
 #ifdef VERBOSE
-    printf ("Parsing %s...", wld_file);
+  printf ("Parsing %s...", wld_file);
 #endif
-    
-    /* Papa's got a brand new bag... */
-    if ((f = fopen(wld_file, "r")) == NULL) {
-	fprintf (stderr, "%s:line %d, function %s, fopen failed : %s \n",\
-		 __FILE__, __LINE__, __func__, wld_file);
+  
+  /* Papa's got a brand new bag... */
+  if ((f = fopen(wld_file, "r")) == NULL) {
+    fprintf (stderr, "%s:line %d, function %s, fopen failed : %s \n",\
+	     __FILE__, __LINE__, __func__, wld_file);
 #ifdef VERBOSE
-	printf ("failed\n");
+    printf ("failed\n");
 #endif
-	return NULL;
-    }
-    
-    list = xbt_fifo_new();
-    
-    while (fgets(buf,512,f) != NULL) {
-	/* Comments */
-	if (buf[0] != ';') {
-	    job_t job;
-	    
-	    job = xbt_malloc(sizeof(*job));
-	    job->start_time = 0.0;
-	    /* Need to ajsust and keep only the usefull data */
-	    sscanf(buf,"%lu %lf %lf %lf %lf %lf %d %d %u", 
-                &(job->user_id), &(job->submit_time), &(job->run_time),
-                &(job->input_size), &(job->output_size), &(job->wall_time),
-                   &(job->nb_procs), &(job->priority), &(job->service));
-	    job->state = WAITING;
-	    job->free_on_completion = 1;
-	    job->mapping = NULL;
-	    sprintf(job->name, "%s%lu", name, job->user_id);
-	    xbt_fifo_push(list,job);
+    return NULL;
+  }
+  
+  list = xbt_fifo_new();
+  
+  while (fgets(buf,512,f) != NULL) {
+    /* Comments or empty lines*/
+    if (buf[0] != ';' && buf[0] != '\n') {
+      job = xbt_malloc(sizeof(*job));
+      job->start_time = 0.0;
+      sscanf(buf,"%lu %lf %lf %lf %lf %lf %d %d %u", 
+	     &(job->user_id), &(job->submit_time), &(job->run_time),
+	     &(job->input_size), &(job->output_size), &(job->wall_time),
+	     &(job->nb_procs), &(job->priority), &(job->service));
+      job->state = WAITING;
+      job->free_on_completion = 1;
+      job->mapping = NULL;
+      job->deadline = -1;
+      sprintf(job->name, "%s%lu", name, job->user_id);
+      xbt_fifo_push(list,job);
 #ifdef DEBUG
-	    printf("%s %lf %lf %lf %lf %d %u\n", job->name, job->submit_time,
-		   job->run_time, job->input_size, job->wall_time, 
-                   job->nb_procs, job->service);
+      printf("%s %lf %lf %lf %lf %d %u\n", job->name, job->submit_time,
+	     job->run_time, job->input_size, job->wall_time, 
+	     job->nb_procs, job->service);
 #endif
-	    }
     }
-    fclose(f);
-
+  }
+  fclose(f);
+  
 #ifdef VERBOSE
-    printf ("done\n");
+  printf ("done\n");
 #endif
-    
-    return list;
+  
+  return list;
 }
