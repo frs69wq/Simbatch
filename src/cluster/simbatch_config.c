@@ -125,10 +125,10 @@ config_init_log_file(void)
     if (xmlobject->type == XPATH_NODESET)
         if (xmlobject->nodesetval) {
             int i = 0;
-	    
+#ifdef VERBOSE
             fprintf(stderr, "\tnb log file : %d\n",
                     xmlobject->nodesetval->nodeNr);
-            
+#endif
             for (i=0; i<xmlobject->nodesetval->nodeNr; ++i) {
                 char *logfile = NULL;
                 FILE *flog = NULL;

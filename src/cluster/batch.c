@@ -41,21 +41,6 @@
 #include "plugin.h"
 #include "plugin_scheduler.h"
 
-#define UPDATE_RSC_MNG()  ({						\
-      MSG_task_put(MSG_task_create("SB_UPDATE", 0.0, 0.0, NULL),	\
-		   MSG_host_self(), RSC_MNG_PORT);			\
-    })
-
-#define ASEND_OK()  ({							\
-      MSG_task_async_put(MSG_task_create("SB_OK", 0.0, 0.0, NULL),	\
-			 sender, BATCH_OUT);				\
-    })
-
-#define ASEND_KO()  ({							\
-      MSG_task_async_put(MSG_task_create("SB_KO", 0.0, 0.0, NULL),	\
-			 sender, BATCH_OUT);				\
-    })
-
 /* Type declaration */
 typedef struct context_t {
   m_cluster_t cluster;
@@ -224,7 +209,9 @@ SB_batch(int argc, char *argv[])
 #ifdef OUTPUT
   self.fout = fout;
 #endif
-    
+  
+  char resource_manager_MB[256];
+  sprintf(resource_manager_MB, "resource_manager-%s", HOST_NAME());
   msg_stack = xbt_fifo_new();
   /* Receiving messages and put them in a stack */
   while (1) {
@@ -235,7 +222,9 @@ SB_batch(int argc, char *argv[])
     } else {
       handle_task(self, msg_stack, &job_cpt);
     }
-    UPDATE_RSC_MNG();
+    
+    MSG_task_send(MSG_task_create("SB_UPDATE", 0.0, 0.0, NULL), 
+		 resource_manager_MB);
   }
     
   if (msg_stack) {
@@ -264,23 +253,26 @@ int
 get_task(xbt_fifo_t msg_stack)
 {
   m_task_t task = NULL;
-  xbt_ex_t ex;
+  MSG_error_t err;
+  char name[256];
+
+  sprintf(name, "batch-%s", HOST_NAME());
   
-  TRY {
-    MSG_task_get_with_timeout(&task, CLIENT_PORT, DBL_MAX);	
-  }
-  CATCH (ex) {
+  err = MSG_task_receive_with_timeout(&task, name, DBL_MAX);	
+
+  if (err == MSG_TIMEOUT_FAILURE) {
     return false;
   }
+  
   xbt_fifo_push(msg_stack, task);
   
-  while (MSG_task_Iprobe(CLIENT_PORT)) {
+  while (MSG_task_listen(name)) {
     task = NULL;
-    MSG_task_get(&task, CLIENT_PORT);
+    MSG_task_receive(&task, name);
     xbt_fifo_push(msg_stack, task);
   }
   
-  xbt_fifo_sort(msg_stack);
+  xbt_fifo_alphabetically_sort(msg_stack);
   return true;
 }
 
@@ -388,6 +380,8 @@ reserve_slot(context_t self, m_task_t task, int *job_cpt)
   m_host_t sender = MSG_task_get_source(task);
   slot_t * slot = NULL;
   int it = 0;
+  char sender_MB[256];
+  sprintf(sender_MB, "client_MB-%s", MSG_host_get_name(sender));
     
   job->id = (*job_cpt)++;
 	
@@ -412,12 +406,15 @@ reserve_slot(context_t self, m_task_t task, int *job_cpt)
       xbt_dynar_insert_at(self.cluster->waiting_queue[slot[it]->node], 
 			  slot[it]->position, &job);
     }
-    ASEND_OK();
+
+    MSG_task_async_send(MSG_task_create("SB_OK", 0.0, 0.0, NULL),
+			sender_MB);
   } else {
     fprintf(stdout, "Reservation impossible");
-    ASEND_KO();
     xbt_free(slot);
     xbt_free(job);
+    MSG_task_async_send(MSG_task_create("SB_KO", 0.0, 0.0, NULL),
+			sender_MB);
   }
 }
 
@@ -426,7 +423,6 @@ void
 check_ACK(context_t self, m_task_t task)
 {
   job_t job = MSG_task_get_data(task);
-  /* m_host_t sender = MSG_task_get_source(task); */
   int it;
     
 #ifdef LOG
@@ -473,10 +469,12 @@ cancel_task(context_t self, m_task_t task)
   job_t job = MSG_task_get_data(task);
   m_host_t sender = MSG_task_get_source(task);
   int it;
+  char sender_MB[256];
+  sprintf(sender_MB, "client_MB-%s", MSG_host_get_name(sender));
   
   if (job->state != WAITING) {
-    MSG_task_put(MSG_task_create("CANCEL_KO", 0.0, 0.0, NULL),
-		 sender, SED_CHANNEL);
+    MSG_task_send(MSG_task_create("CANCEL_KO", 0.0, 0.0, NULL),
+		  sender_MB);
   } else {
     cluster_delete_done_job(self.cluster, job);
     it = cluster_search_job(self.cluster, job->id,
@@ -491,8 +489,8 @@ cancel_task(context_t self, m_task_t task)
         
     /* The system becomes stable again, we can reschedule */
     self.scheduler->reschedule(self.cluster, self.scheduler);
-    MSG_task_put(MSG_task_create("CANCEL_OK", 0.0, 0.0, NULL),
-		 sender, SED_CHANNEL);
+    MSG_task_send(MSG_task_create("CANCEL_OK", 0.0, 0.0, NULL),
+		 sender_MB);
   }
 }
 
@@ -542,10 +540,12 @@ predict_schedule(context_t self, m_task_t task)
   job_t job = MSG_task_get_data(task);
   m_host_t sender = MSG_task_get_source(task);
   slot_t * slots = NULL;
-    
+  char sender_MB[256];
+  sprintf(sender_MB, "client_MB-%s", MSG_host_get_name(sender));
+  
 #ifdef VERBOSE
   fprintf(stdout, "Prediction for %s on %s\n", job->name,
-	  MSG_host_get_name(MSG_host_self()));
+	  HOST_NAME());
 #endif
     
 #ifdef LOG
@@ -558,18 +558,17 @@ predict_schedule(context_t self, m_task_t task)
     if (job->priority >= self.cluster->priority) {
       job->priority = self.cluster->priority - 1;
     }
-        
+    
     job->entry_time = MSG_get_clock();
     job->run_time += NOISE;
-    /* job->mapping = xbt_malloc(job->nb_procs * sizeof(int)); */ 
-        
+    
     slots = self.scheduler->schedule(self.cluster, job);
-        
-    MSG_task_async_put(MSG_task_create("SB_PRED", 0.0, 0.0, slots),
-		       sender, SED_CHANNEL);
+    
+    MSG_task_async_send(MSG_task_create("SB_PRED", 0.0, 0.0, slots),
+		       sender_MB);
   } else {
-    MSG_task_async_put(MSG_task_create("SB_CLUSTER_KO", 0.0, 0.0, slots),
-		       sender, SED_CHANNEL);
+    MSG_task_async_send(MSG_task_create("SB_CLUSTER_KO", 0.0, 0.0, NULL),
+		       sender_MB);
   }
 }
 
@@ -579,10 +578,12 @@ eval_HPF(context_t self, m_task_t task)
 {
   job_t job = MSG_task_get_data(task);
   m_host_t sender = MSG_task_get_source(task);
+  char sender_MB[256];
   double host_speed = 0;
   double * weight = xbt_malloc(sizeof(double));
   m_task_t HPF_value = NULL;
-    
+  
+  sprintf(sender_MB, "client_MB-%s", MSG_host_get_name(sender));
   fprintf(stdout, "Heuristique\n");
     
   if (job->nb_procs > self.cluster->nb_nodes) {
@@ -599,7 +600,7 @@ eval_HPF(context_t self, m_task_t task)
     xbt_free(slots);
     slots = NULL;
   }
-  MSG_task_async_put(HPF_value, sender, SED_CHANNEL);
+  MSG_task_async_send(HPF_value, sender_MB);
 }
 
 
@@ -608,8 +609,10 @@ init_pf(context_t self, m_task_t task)
 {
   m_host_t sender = MSG_task_get_source(task);
   int * answer = xbt_malloc(sizeof(int));
-    
+  char sender_MB[256];
+  
+  sprintf(sender_MB, "client_MB-%s", MSG_host_get_name(sender));
   *answer = self.cluster->nb_nodes;
-  MSG_task_async_put(MSG_task_create("SB_INIT", 0.0, 0.0, answer),
-		     sender, SED_CHANNEL);
+  MSG_task_async_send(MSG_task_create("SB_INIT", 0.0, 0.0, answer),
+		     sender_MB);
 }

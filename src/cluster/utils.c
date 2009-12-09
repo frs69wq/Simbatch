@@ -21,21 +21,11 @@
 
 typedef struct _async_param_t { 
     m_task_t task;
-    m_host_t host;
-    m_channel_t channel;
+    char * mailbox;
 } _async_param_t;
 
-typedef struct _async_param_t2 { 
-    m_task_t task;
-    char * mailbox;
-} _async_param_t2;
-
-static int
-_MSG_task_put(int argc, char **argv);
-
-
 void
-xbt_fifo_sort(xbt_fifo_t fifo)
+xbt_fifo_alphabetically_sort(xbt_fifo_t fifo)
 {
     auto int
     stringCmp(const void *t1, const void *t2);
@@ -57,40 +47,13 @@ xbt_fifo_sort(xbt_fifo_t fifo)
     xbt_free(messages);
 }
 
-
 static int
-_MSG_task_put(int argc, char **argv)
+_MSG_task_send(int argc, char **argv)
 {
     int err;
     _async_param_t *p = NULL;
     
     p = (_async_param_t *)MSG_process_get_data(MSG_process_self());
-    err = MSG_task_put(p->task, p->host, p->channel);
-    xbt_free(p);
-    
-    return err;
-}
-
-
-m_process_t
-MSG_task_async_put(m_task_t task, m_host_t host, m_channel_t channel)
-{
-    /* can't use a nested function for this :( */
-    _async_param_t *param = xbt_malloc(sizeof(*param));
-    param->task = task;
-    param->host = host;
-    param->channel = channel;
-    return MSG_process_create("asyncSend", _MSG_task_put, (void *)param,
-                              MSG_host_self()); 
-}
-
-static int
-_MSG_task_send(int argc, char **argv)
-{
-    int err;
-    _async_param_t2 *p = NULL;
-    
-    p = (_async_param_t2 *)MSG_process_get_data(MSG_process_self());
     err = MSG_task_send(p->task, p->mailbox);
     xbt_free(p);
     
@@ -102,7 +65,7 @@ m_process_t
 MSG_task_async_send(m_task_t task, char * mailbox)
 {
     /* can't use a nested function for this :( */
-    _async_param_t2 *param = xbt_malloc(sizeof(*param));
+    _async_param_t *param = xbt_malloc(sizeof(*param));
     param->task = task;
     param->mailbox = mailbox;
     return MSG_process_create("asyncSend", _MSG_task_send, (void *)param,

@@ -39,7 +39,7 @@ const char * SB_request_external_load(void) {
 #endif
     
     sprintf(request, "/config/batch[@host=\"%s\"]/load/text()",\
-	    MSG_host_get_name(MSG_host_self())); 
+	    HOST_NAME()); 
     filename = config_get_value(request);
     
 #ifdef VERBOSE
@@ -62,7 +62,7 @@ const char * SB_request_parser(void) {
 #endif
     
     sprintf(request, "/config/batch[@host=\"%s\"]/parser/text()",\
-	    MSG_host_get_name(MSG_host_self())); 
+	    HOST_NAME()); 
     parserName = config_get_value(request);
 
 #ifdef VERBOSE
@@ -83,6 +83,9 @@ int SB_external_load(int argc, char ** argv) {
     void * handle = NULL;
     plugin_input plugin;
     xbt_fifo_t bag_of_tasks = NULL;
+    char batch_MB[256];
+    sprintf(batch_MB, "batch-%s", HOST_NAME());
+
 #ifdef LOG
     FILE * flog = config_get_log_file(HOST_NAME());
 #endif
@@ -114,8 +117,8 @@ int SB_external_load(int argc, char ** argv) {
 		    job->name, HOST_NAME());
 #endif		
             job->source = MSG_host_self();
-	    MSG_task_put(MSG_task_create("SB_TASK", 0, 0, job), 
-			 MSG_host_self(), CLIENT_PORT);
+	    MSG_task_send(MSG_task_create("SB_TASK", 0, 0, job), 
+			 batch_MB);
 	    time = job->submit_time;
 	}
 	xbt_fifo_free(bag_of_tasks);
@@ -123,11 +126,9 @@ int SB_external_load(int argc, char ** argv) {
 
     /* When everything has been submitted - ask question for DIET */ 
     if (DIET_MODE) {
-	MSG_task_put(MSG_task_create("SB_DIET", 0, 0, NULL), 
-		     MSG_host_self(), CLIENT_PORT);
+	MSG_task_send(MSG_task_create("SB_DIET", 0, 0, NULL), 
+		      batch_MB);
     }
     
     return EXIT_SUCCESS;  
 }
-
-

@@ -27,35 +27,36 @@
 int
 SB_node(int argc, char **argv)
 { 
-  m_task_t data = NULL;
-  xbt_ex_t ex;
+  m_task_t task = NULL;
+  char name[256];
+  MSG_error_t err = MSG_OK;
+  
+  sprintf(name, "Node-%s", HOST_NAME());
+
 #ifdef LOG
   FILE * flog;
 #endif
 
 #ifdef VERBOSE
-  fprintf(stderr, "%s... ready\n", MSG_host_get_name(MSG_host_self())); 
+  fprintf(stderr, "%s... ready\n", HOST_NAME()); 
 #endif
   while (1) {
-    
-    TRY {
-      /* Waiting for input comm */
-      MSG_task_get_with_timeout(&data, NODE_PORT, DBL_MAX);
-    }
-    CATCH (ex) {
+    /* Waiting for input comm */
+    err = MSG_task_receive_with_timeout(&task, name, DBL_MAX);
+    if (err == MSG_TIMEOUT_FAILURE) {
       break;
     }
     
 #ifdef LOG
     flog = config_get_log_file(
-	     MSG_host_get_name(MSG_task_get_source(data))); 
-    if (!strcmp(data->name, "DATA_IN"))
+	      MSG_host_get_name(MSG_task_get_source(task))); 
+    if (strcmp(task->name, "DATA_IN") == 0)
       fprintf(flog, "[%lf]\t%20s\tData Received from %s\n", 
 	      MSG_get_clock(), PROCESS_NAME(), 
-	      MSG_process_get_name(MSG_task_get_sender(data)));
+	      MSG_process_get_name(MSG_task_get_sender(task)));
 #endif
-    MSG_task_destroy(data);
-    data = NULL;
+    MSG_task_destroy(task);
+    task = NULL;
   }
   return EXIT_SUCCESS;
 }

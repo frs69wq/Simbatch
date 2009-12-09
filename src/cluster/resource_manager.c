@@ -42,10 +42,13 @@ get_next_wakeup_time(m_cluster_t cluster, job_t *job)
   if(*job != NULL) {
     waiting_time = (*job)->start_time - MSG_get_clock();
   }
-  
+
+  //can happen because of double approx
   if (waiting_time < 0.0) {
+#ifdef DEBUG
     printf("[%lf] waiting_time: %lf, job: %s startTime: %lf\n",
 	   MSG_get_clock(), waiting_time, (*job)->name, (*job)->start_time);
+#endif
     waiting_time = 0.0;
   }
   assert(waiting_time >= 0.0);
@@ -63,11 +66,11 @@ SB_resource_manager(int argc, char **argv)
   xbt_dynar_t pool_of_supervisors = xbt_dynar_new(sizeof(m_process_t), 
 						  NULL);
   xbt_fifo_t msg_stack = xbt_fifo_new();
-  job_t job;
+  job_t job = NULL;
   m_task_t task = NULL;
-  xbt_ex_t ex;
-  int start = 1;
-    
+  char name[256];
+  MSG_error_t err = MSG_OK;
+  
 #ifdef LOG
   FILE * flog = config_get_log_file(HOST_NAME());
 #endif
@@ -75,63 +78,28 @@ SB_resource_manager(int argc, char **argv)
 #ifdef VERBOSE
   fprintf(stderr, "Resource manager: ready\n");
 #endif
-    
+  
+  sprintf(name, "resource_manager-%s", HOST_NAME());
+  
   while (1) {
-    start = 1;
-    TRY{
-      //0.0 makes MSG_task_get_with_time_out blocking
-      if (waiting_time > 0.0) {
-	MSG_task_get_with_timeout(&task, RSC_MNG_PORT, waiting_time);
-	
-	//if we received a task, we should not start another one
-	start = 0;
-	xbt_fifo_push(msg_stack, task);
-	while (MSG_task_Iprobe(RSC_MNG_PORT)) {
-	  task = NULL;
-	  MSG_task_get(&task, RSC_MNG_PORT);
-	  xbt_fifo_push(msg_stack, task);
-	}
-	xbt_fifo_sort(msg_stack);
-	while (xbt_fifo_size(msg_stack)) {
-	  task = xbt_fifo_shift(msg_stack);
-	  if (!strcmp(task->name, "SB_UPDATE")) {
-#ifdef DEBUG
-	    fprintf(stderr, "[%lf]\t%20s\tUpdate\n", MSG_get_clock(), 
-		    PROCESS_NAME());
-#endif
-	  } else if (!strcmp(task->name, "RM_ATTACH")) {
-	    /* A Supervisor has finished and is available again */
-	    m_process_t supervisor = MSG_task_get_data(task);
-#ifdef LOG
-	    fprintf(flog, "[%lf]\t%20s\tAttach %s\n", MSG_get_clock(),
-		    PROCESS_NAME(), MSG_process_get_name(supervisor));
-#endif
-	    xbt_dynar_push(pool_of_supervisors, &supervisor);
-#ifdef DEBUG
-	    fprintf(stderr, "[%lf]\t%20s\tnb supervisors : %lu\n", 
-		    MSG_get_clock(), PROCESS_NAME(), 
-		    xbt_dynar_length(pool_of_supervisors));
-#endif
-	  }
-	  MSG_task_destroy(task); 
-	  task = NULL;
-	}
-      }
+    //0.0 makes MSG_task_get_with_time_out blocking
+    if (waiting_time == 0.0) {
+      err = MSG_TIMEOUT_FAILURE;
     }
-    CATCH (ex) {
+    else {
+      err = MSG_task_receive_with_timeout(&task, name, waiting_time);
+    }
+    
+    if (err == MSG_TIMEOUT_FAILURE) {
       //if we reach DBL_MAX, we should exit 
       if (waiting_time == DBL_MAX) { 
 	xbt_fifo_free(msg_stack); 
 	break; 
       }
-    }
-    
-    //there is a task to start except if we received 
-    //another one while waiting
-    if (start) {
-      /* Wake up because there is a job to send */
+      
+      //otherwise, there is a task to execute
       m_process_t supervisor;
-      unsigned int  *port = NULL;		
+      unsigned int  *port = NULL;
       job->state = PROCESSING;
 #ifdef DEBUG
       fprintf(stderr, "[%lf]\t%20s\tIt's time, nb sup : %lu\n",
@@ -142,10 +110,8 @@ SB_resource_manager(int argc, char **argv)
       /* Handle the pool of supervisors */
       if (xbt_dynar_length(pool_of_supervisors) == 0) {
 	char name[20];
-		    
-	//assert(cpt_supervisors < cluster->nb_nodes);
 	port = malloc(sizeof(unsigned int));
-	*port = SUPERVISOR_PORT + cpt_supervisors;
+	*port = cpt_supervisors;
 	sprintf(name, "Supervisor%u", cpt_supervisors);
 	supervisor = MSG_process_create(name, supervise, port, 
 					MSG_host_self());
@@ -162,12 +128,51 @@ SB_resource_manager(int argc, char **argv)
       fprintf(stderr, "[%lf]\t%20s\tnb supervisors : %lu\n",
 	      MSG_get_clock(), PROCESS_NAME(), 
 	      xbt_dynar_length(pool_of_supervisors));
-#endif	    
+#endif 
+      
       /* Send the job to the supervisor that will manage it */
+      char supervisor_MB[256];
       port = (unsigned int *)MSG_process_get_data(supervisor);
-                
-      MSG_task_put(MSG_task_create("RUN", 0.0, 0.0, job),
-		   MSG_host_self(), *port);
+      sprintf(supervisor_MB, "supervisor-%s-%u", HOST_NAME(), *port);
+      MSG_task_send(MSG_task_create("RUN", 0.0, 0.0, job),
+		   supervisor_MB);
+    }
+    
+    if (err == MSG_OK) {
+      xbt_fifo_push(msg_stack, task);
+      while (MSG_task_listen(name)) {
+	task = NULL;
+	MSG_task_receive(&task, name);
+	xbt_fifo_push(msg_stack, task);
+      }
+      
+      xbt_fifo_alphabetically_sort(msg_stack);
+      
+      while (xbt_fifo_size(msg_stack)) {
+	task = xbt_fifo_shift(msg_stack);
+	if (!strcmp(task->name, "SB_UPDATE")) {
+#ifdef DEBUG
+	  fprintf(stderr, "[%lf]\t%20s\tUpdate\n", MSG_get_clock(), 
+		  PROCESS_NAME());
+#endif
+	} 
+	else if (!strcmp(task->name, "RM_ATTACH")) {
+	  /* A Supervisor has finished and is available again */
+	  m_process_t supervisor = (m_process_t)MSG_task_get_data(task);
+#ifdef LOG
+	  fprintf(flog, "[%lf]\t%20s\tAttach %s\n", MSG_get_clock(),
+		  PROCESS_NAME(), MSG_process_get_name(supervisor));
+#endif
+	  xbt_dynar_push(pool_of_supervisors, &supervisor);
+#ifdef DEBUG
+	  fprintf(stderr, "[%lf]\t%20s\tnb supervisors : %lu\n", 
+		  MSG_get_clock(), PROCESS_NAME(), 
+		  xbt_dynar_length(pool_of_supervisors));
+#endif
+	}
+	MSG_task_destroy(task); 
+	task = NULL;
+      }
     }
     
     waiting_time = get_next_wakeup_time(cluster, &job);
@@ -186,60 +191,72 @@ supervise(int argc, char **argv)
 {
   m_cluster_t cluster = (m_cluster_t)MSG_host_get_data(MSG_host_self());
   unsigned int *port = (unsigned int *)MSG_process_get_data(MSG_process_self());
+  char name[256];
+  char batch_MB[256];
+  char resource_manager_MB[256];
   m_task_t task = NULL;
-  xbt_ex_t ex;
   job_t job = NULL;
-
+  MSG_error_t err = MSG_OK;
+  double sleep_duration;
+  
 #ifdef LOG
   FILE * flog = config_get_log_file(HOST_NAME());
 #endif
   
+  sprintf(name, "supervisor-%s-%u", HOST_NAME(), *port);
+  sprintf(batch_MB, "batch-%s", HOST_NAME());
+  sprintf(resource_manager_MB, "resource_manager-%s", HOST_NAME());
   while (1) {
-    TRY {
-      MSG_task_get_with_timeout(&task, *port, DBL_MAX);
-    }
-    CATCH (ex) {
+    err = MSG_task_receive_with_timeout(&task, name, DBL_MAX);
+    if (err == MSG_TIMEOUT_FAILURE) {
       break;
     }
     
-    job = MSG_task_get_data(task);
+    job = (job_t)MSG_task_get_data(task);
     MSG_task_destroy(task); 
     task = NULL;
     
     /* Send input data TODO: use put_with_alarm */
+    char node_MB[256];
+    sprintf(node_MB, "Node-%s", MSG_host_get_name(cluster->nodes[job->mapping[0]]));
     if (job->input_size > 0.0) {
-      MSG_task_put(MSG_task_create("DATA_IN", 0.0,
+      MSG_task_send(MSG_task_create("DATA_IN", 0.0,
 				   job->input_size, NULL),
-		   cluster->nodes[job->mapping[0]], NODE_PORT);
+		   node_MB);
     }
-      
+    
+    sleep_duration = job->run_time;
+    if (job->wall_time < sleep_duration) {
+      sleep_duration = job->wall_time;
+    }
+
 #ifdef LOG
     fprintf(flog, "[%lf]\t%20s\tStart Processing job %s end: %lf\n", 
 	    MSG_get_clock(), PROCESS_NAME(), job->name, 
-	    MSG_get_clock() + job->run_time);
+	    MSG_get_clock() + sleep_duration);
 #endif
     
-    MSG_process_sleep(job->run_time);
+    MSG_process_sleep(sleep_duration);
     
     /* Receive output data */
     if (job->output_size > 0.0) {
-      MSG_task_put(MSG_task_create("DATA_OUT", 0.0,
+      MSG_task_send(MSG_task_create("DATA_OUT", 0.0,
 				   job->output_size, NULL),
-		   cluster->nodes[job->mapping[0]], NODE_PORT);
+		   node_MB);
 #ifdef LOG
       fprintf(flog, "[%lf]\t%20s\tReceive output data from %s\n",
 	      MSG_get_clock(), PROCESS_NAME(),
 	      MSG_host_get_name(cluster->nodes[job->mapping[0]]));
 #endif
     }
-      
+    
     //Finish - ask to be in the pool again
-    MSG_task_put(MSG_task_create("RM_ATTACH", 0.0, 0.0,
+    MSG_task_send(MSG_task_create("RM_ATTACH", 0.0, 0.0,
 				 MSG_process_self()),
-		 MSG_host_self(), RSC_MNG_PORT); 
+		 resource_manager_MB); 
     //Tell the batch the job is finished
-    MSG_task_put(MSG_task_create("SB_ACK", 0.0, 0.0, job),
-		 MSG_host_self(), CLIENT_PORT);
+    MSG_task_send(MSG_task_create("SB_ACK", 0.0, 0.0, job),
+		 batch_MB);
   }
   xbt_free(port);
   return EXIT_SUCCESS;
