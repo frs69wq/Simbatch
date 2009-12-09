@@ -55,6 +55,7 @@ _MSG_task_send(int argc, char **argv)
     
     p = (_async_param_t *)MSG_process_get_data(MSG_process_self());
     err = MSG_task_send(p->task, p->mailbox);
+    xbt_free(p->mailbox);
     xbt_free(p);
     
     return err;
@@ -67,7 +68,8 @@ MSG_task_async_send(m_task_t task, char * mailbox)
     /* can't use a nested function for this :( */
     _async_param_t *param = xbt_malloc(sizeof(*param));
     param->task = task;
-    param->mailbox = mailbox;
+    param->mailbox = xbt_malloc(256 * sizeof(char)); 
+    strcpy(param->mailbox, mailbox);
     return MSG_process_create("asyncSend", _MSG_task_send, (void *)param,
                               MSG_host_self()); 
 }

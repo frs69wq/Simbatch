@@ -380,7 +380,7 @@ reserve_slot(context_t self, m_task_t task, int *job_cpt)
   slot_t * slot = NULL;
   int it = 0;
   char sender_MB[256];
-  sprintf(sender_MB, "client_MB-%s", MSG_host_get_name(sender));
+  sprintf(sender_MB, "client-%s", MSG_host_get_name(sender));
     
   job->id = (*job_cpt)++;
 	
@@ -469,7 +469,7 @@ cancel_task(context_t self, m_task_t task)
   m_host_t sender = MSG_task_get_source(task);
   int it;
   char sender_MB[256];
-  sprintf(sender_MB, "client_MB-%s", MSG_host_get_name(sender));
+  sprintf(sender_MB, "client-%s", MSG_host_get_name(sender));
   
   if (job->state != WAITING) {
     MSG_task_send(MSG_task_create("CANCEL_KO", 0.0, 0.0, NULL),
@@ -540,7 +540,7 @@ predict_schedule(context_t self, m_task_t task)
   m_host_t sender = MSG_task_get_source(task);
   slot_t * slots = NULL;
   char sender_MB[256];
-  sprintf(sender_MB, "client_MB-%s", MSG_host_get_name(sender));
+  sprintf(sender_MB, "client-%s", MSG_host_get_name(sender));
   
 #ifdef VERBOSE
   fprintf(stdout, "Prediction for %s on %s\n", job->name,
@@ -582,7 +582,7 @@ eval_HPF(context_t self, m_task_t task)
   double * weight = xbt_malloc(sizeof(double));
   m_task_t HPF_value = NULL;
   
-  sprintf(sender_MB, "client_MB-%s", MSG_host_get_name(sender));
+  sprintf(sender_MB, "client-%s", MSG_host_get_name(sender));
   fprintf(stdout, "Heuristique\n");
     
   if (job->nb_procs > self.cluster->nb_nodes) {
@@ -608,9 +608,9 @@ init_pf(context_t self, m_task_t task)
 {
   m_host_t sender = MSG_task_get_source(task);
   int * answer = xbt_malloc(sizeof(int));
-  char sender_MB[256];
+  char sender_MB [256];
   
-  sprintf(sender_MB, "client_MB-%s", MSG_host_get_name(sender));
+  sprintf(sender_MB, "client-%s", MSG_host_get_name(sender));
   *answer = self.cluster->nb_nodes;
   MSG_task_async_send(MSG_task_create("SB_INIT", 0.0, 0.0, answer),
 		     sender_MB);
