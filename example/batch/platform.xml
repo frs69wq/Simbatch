@@ -1,7 +1,6 @@
 <?xml version='1.0'?>
 <!DOCTYPE platform SYSTEM "simgrid.dtd">
 <platform version="2">
-  <host id="Client" power="97340000"/>
   <host id="Batch1" power="98095000"/>
   <host id="Node1" power="76296000"/>
   <host id="Node2" power="76296000"/>
@@ -12,7 +11,6 @@
   <host id="Node7" power="76296000"/>
 
   <link id="loopback" bandwidth="498000000" latency="0.0"/>
-  <link id="0" bandwidth="41279125" latency="0.0"/>
   <link id="1" bandwidth="41279125" latency="5.9904e-05"/>
   <link id="2" bandwidth="41279125" latency="5.9904e-05"/>
   <link id="3" bandwidth="41279125" latency="5.9904e-05"/>
@@ -23,7 +21,6 @@
   
   <route src="Batch1" dst="Batch1"><link:ctn id="loopback"/></route>
   <!-- Simple topologie -->
-  <route src="Client" dst="Batch1"><link:ctn id="0"/></route>
   <route src="Batch1" dst="Node1"><link:ctn id="1"/></route>
   <route src="Batch1" dst="Node2"><link:ctn id="2"/></route>
   <route src="Batch1" dst="Node3"><link:ctn id="3"/></route>

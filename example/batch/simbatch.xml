@@ -12,7 +12,7 @@
     <plugin>libcbf.so</plugin>
     <!-- Use this line as a client or to simulate a
 	 dedicated platform. Otherwise comment it -->
-    <load>../input/std/1.wld</load> 
+    <load>load.wld</load> 
     <parser>libwld.so</parser>
     <priority_queue>
       <number>3</number>

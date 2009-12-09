@@ -1,10 +1,6 @@
 <?xml version='1.0'?>
 <!DOCTYPE platform SYSTEM "simgrid.dtd">
 <platform version="2">
-  <!-- The Client process (with some arguments) -->
-  <process host="Client" function="SB_client" >
-    <argument value="Batch1" />
-  </process>
   <!-- The Scheduler process (with some arguments) -->
   <process host="Batch1" function="SB_batch">
     <argument value="Node1" />	
