@@ -23,7 +23,6 @@
 #include "simbatch_config.h"
 #include "scheduling.h"
 #include "utils.h"
-#include "ports.h"
 #include "cluster.h"
 #include "job.h"
 

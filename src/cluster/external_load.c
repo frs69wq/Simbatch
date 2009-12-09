@@ -19,7 +19,6 @@
 
 #include "simbatch_config.h"
 #include "utils.h"
-#include "ports.h"
 #include "job.h"
 
 #include "plugin.h"

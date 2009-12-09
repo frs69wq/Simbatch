@@ -27,7 +27,6 @@
 /* Simbatch headers */
 #include "simbatch_config.h"
 #include "utils.h"
-#include "ports.h"
 #include "cluster.h"
 #include "job.h"
 #include "scheduling.h"
