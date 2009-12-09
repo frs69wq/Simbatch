@@ -1,21 +1,24 @@
 CC=gcc
-LDFLAGS=-L. -L/usr/local/lib/ -L../../lib/ -L/home/gcharrie/myroot/lib/ -lsimgrid -lsimbatch -lwld
-INCLUDES=-I ../../include -I /home/gcharrie/myroot/include
-OPTS=-O0 -pipe
+WARNINGS=-Wall -Wextra
+SIMGRID_HOME=${HOME}/myroot
+SIMBATCH_HOME=../..
+INCLUDES=-I$(SIMGRID_HOME)/include -I${SIMBATCH_HOME}/include 
+LD_PATH=-L. -L$(SIMGRID_HOME)/lib/ -L$(SIMBATCH_HOME)/lib
+LD_FLAGS=-lsimgrid -lsimbatch
+OPTS=-O2 -pipe
 DEBUG= # -pg -DDEBUG
 CFLAGS=$(WARNINGS) $(OPTS) $(DEBUG)
 SRC=$(wildcard *.c)
 OBJ=$(SRC:.c=.o)
-EXEC=emample
+EXEC=simple_metasched
 
 all: $(EXEC)
 
 $(EXEC): $(OBJ)
-	gcc -o $@ $(OBJ) $(LDFLAGS) $(CFLAGS)
-	strip $(EXEC)
+	gcc -o $@ $(OBJ) $(LD_PATH) $(LD_FLAGS) $(CFLAGS)
 
 %.o: %.c
-	$(CC) -o $@ -c $< $(INCLUDES) $(CFLAGS)
+	$(CC) -c $< $(INCLUDES) $(CFLAGS)
 
 .PHONY: clean mrproper
 

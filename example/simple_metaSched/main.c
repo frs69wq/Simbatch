@@ -92,21 +92,23 @@ double * getSpeedCoef(const m_host_t * clusters, const int nbClusters) {
  * the number of nodes on the cluster
  */
 int * getNbNodesPF(const m_host_t * clusters, const int nbClusters) {
-  int i=0;
+  int i = 0;
   int * clusterInfo = xbt_malloc(sizeof(int) * nbClusters);
-  
+  m_task_t task = NULL;
+  int * data;
+  char cluster_MB[256];
+  char name[256] = "metasched_MB";
   /* For each cluster, we ask the number of nodes */
   for (i=0; i<nbClusters; ++i) {
-    m_task_t task = NULL;
-    int * data;
-       
-    MSG_task_put(MSG_task_create("PF_INIT", 0, 0, NULL), clusters[i],
-		 SED_CHANNEL);
-    MSG_task_get(&task, MS_CHANNEL);
+    sprintf(cluster_MB, "client-%s", MSG_host_get_name(clusters[i]));
+    MSG_task_send(MSG_task_create("PF_INIT", 0, 0, NULL), cluster_MB);
+    MSG_task_receive_with_timeout(&task, name, DBL_MAX);
+    //MSG_task_receive(&task, name);
     data = (int *)MSG_task_get_data(task);
     clusterInfo[i] = *data;
     xbt_free(data);
     MSG_task_destroy(task);
+    task = NULL;
   }
     
   return clusterInfo;
@@ -130,9 +132,9 @@ int metaSched(int argc, char ** argv) {
   plugin_input plugin;
 
   /* prints infos on the batch */
-  printf("%s - ", MSG_host_get_name(MSG_host_self()));
+  /*printf("%s - ", MSG_host_get_name(MSG_host_self()));
   printf("%s\n", MSG_process_get_name(MSG_process_self()));
-  printArgs(argc, argv);
+  printArgs(argc, argv);*/
 
   for (i=1; i<argc; ++i) {
     clusters[i-1] = MSG_get_host_by_name(argv[i]);
@@ -147,29 +149,28 @@ int metaSched(int argc, char ** argv) {
   launch_plugin(&handle, &plugin, "../../lib/libwld.so", "init_input");
   jobList = plugin.create_list("./load.wld", "job");
   close_plugin(handle);
-    
-  /*** MCT ***/      
-  {
-    double time = 0;
-    job_t job;
-    /* for each job, choose the cluster where the job will be 
-       completed first */
-    while ((job=(job_t)xbt_fifo_shift(jobList)) != NULL) { 
-      winner = MCT_schedule(clusters, nbClusters, speedCoef, job);
-      /* If there is a winner, send the task to this cluster */
-      if (winner->completionT != -1) {
-        printf("Winner for job %lu is %s!\n", job->user_id, 
-               winner->cluster->name);
-        MSG_process_sleep(job->submit_time - time);
-        MSG_task_put(MSG_task_create("SB_TASK", 0, 0, job), 
-                     winner->cluster, SED_CHANNEL);
-        time = job->submit_time;
-      }
-      else {
-        printf("no winner for job %lu!\n", job->user_id); 
-      }
-      xbt_free(winner);
+  
+  double time = 0;
+  job_t job;
+  char sed_MB[256];
+  /* for each job, choose the cluster where the job will be 
+     completed first */
+  while ((job=(job_t)xbt_fifo_shift(jobList)) != NULL) { 
+    winner = MCT_schedule(clusters, nbClusters, speedCoef, job);
+    /* If there is a winner, send the task to this cluster */
+    if (winner->completionT != -1) {
+      printf("Winner for job %lu is %s!\n", job->user_id, 
+	     winner->cluster->name);
+      MSG_process_sleep(job->submit_time - time);
+      sprintf(sed_MB, "client-%s", winner->cluster->name);
+      MSG_task_send(MSG_task_create("SB_TASK", 0, 0, job), 
+		    sed_MB);
+      time = job->submit_time;
     }
+    else {
+      printf("no winner for job %lu!\n", job->user_id); 
+    }
+    xbt_free(winner);
   }
 
   xbt_fifo_free(jobList);
@@ -185,38 +186,41 @@ int metaSched(int argc, char ** argv) {
  * It is responsible for communications between these two agents
  */
 int sed(int argc, char ** argv) {
-  const m_host_t sched = MSG_get_host_by_name(argv[1]);
   const m_host_t batch = MSG_get_host_by_name(argv[2]);
   const int nbServices = argc - 4;
-  const double waitT = str2double(argv[3]);
+  //const double waitT = str2double(argv[3]);
   int services[nbServices + 1];
   xbt_fifo_t msg_stack = xbt_fifo_new();
   int i = 0;
-  xbt_ex_t ex;
-
+  MSG_error_t err;
+  m_task_t task = NULL;
+  char name[256];
+  sprintf(name, "client-%s", HOST_NAME());
+  char batch_MB[256];
+  sprintf(batch_MB, "batch-%s", HOST_NAME());
+  
   /* Print the args of the sed */
-  printf("%s - ", MSG_host_get_name(MSG_host_self()));
+  /*printf("%s - ", MSG_host_get_name(MSG_host_self()));
   printf("%s - %lf\n", MSG_process_get_name(MSG_process_self()), waitT);
-  printArgs(argc, argv);
+  printArgs(argc, argv);*/
 
   /* Services availible */
   services[nbServices] = -1;
   for (i=0; i<nbServices; ++i) { services[i] = atoi(argv[4+i]); }
-  for (i=0; services[i]!=-1; ++i) { printf("Service%d\t", services[i]); }
-  printf("\n");
+  /*for (i=0; services[i]!=-1; ++i) { printf("Service%d\t", services[i]); }
+    printf("\n");*/
 
   while (1) {
-    m_task_t task = NULL;
-    TRY {
-      MSG_task_get_with_timeout(&task, SED_CHANNEL, DBL_MAX);
-    }
-    CATCH (ex) {
+    task = NULL;
+    err = MSG_task_receive_with_timeout(&task, name, DBL_MAX);
+    if (err == MSG_TIMEOUT_FAILURE) { 
       break;
     }
+
     xbt_fifo_push(msg_stack, task);
-    while (MSG_task_Iprobe(SED_CHANNEL)) {
+    while (MSG_task_listen(name)) {
       task = NULL;
-      MSG_task_get(&task, SED_CHANNEL);
+      MSG_task_receive(&task, name);
       xbt_fifo_push(msg_stack, task);
     } 
     
@@ -225,29 +229,27 @@ int sed(int argc, char ** argv) {
       /* If the task comes from the batch, it has to be transfered
        to the metaScheduler */
       if (MSG_task_get_source(task) == batch) {
-	printf("Forward %s from Batch to the MetaScheduler\n", task->name);
-	MSG_task_async_put(task, sched, MS_CHANNEL); 
+	MSG_task_async_send(task, "metasched_MB"); 
+	continue;
       }
-      else {
-        job_t job = MSG_task_get_data(task);
-        
-        if (!job) {
-          /* Forward to the Batch */
-          MSG_task_async_put(task, batch, CLIENT_PORT);
-          continue;
-        }
-                
-        if (isAvailable(services, job->service)) {
-          /* Forward to the Batch to execute the task or to make
+      job_t job = MSG_task_get_data(task);
+      
+      if (!job) {
+	/* Forward to the Batch */
+	MSG_task_async_send(task, batch_MB);
+	continue;
+      }
+      
+      if (isAvailable(services, job->service)) {
+	/* Forward to the Batch to execute the task or to make
            some prediction */
-          MSG_task_async_put(task, batch, CLIENT_PORT);
-        }
-        else { /* Service unavailable */
-          printf("%s Service unavailable %s \n", 
-                 MSG_host_self()->name, task->name);
-          MSG_task_async_put(MSG_task_create("SB_SERVICE_KO", 0, 0, job), 
-                             sched, MS_CHANNEL); 
-        }
+	MSG_task_async_send(task, batch_MB);
+      }
+      else { /* Service unavailable */
+	printf("%s Service unavailable %s \n", 
+	       HOST_NAME(), task->name);
+	MSG_task_async_send(MSG_task_create("SB_SERVICE_KO", 0, 0, job), 
+			   "metasched_MB"); 
       }
     }
   }
@@ -259,20 +261,10 @@ int sed(int argc, char ** argv) {
 
 
 int main(int argc, char ** argv) {
-
-  const char* trace_file = NULL;
   /* initialisation */
   SB_global_init(&argc, argv);
   MSG_global_init(&argc, argv);
-    
-  /* Open the channels */
-  MSG_set_channel_number(NB_CHANNEL);
-    
-  /* trace file */
-  trace_file = SB_get_trace_file();
-  if (trace_file != NULL)
-    MSG_paje_output(trace_file);
-
+  
   /* Register functions (scheduler, computation, batch and node) */
   MSG_function_register("metaSched", metaSched);
   MSG_function_register("sed", sed);

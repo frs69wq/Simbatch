@@ -27,50 +27,51 @@
  */
 p_winner_t MCT_schedule(const m_host_t * clusters, const int nbClusters, 
                         const double * speedCoef, job_t job) {
-    int i = 0;
-    double completionT = DBL_MAX;
-    p_winner_t winner = xbt_malloc(sizeof(winner_t));
-    int failure = 0;
-
-    winner->completionT = DBL_MAX;
-    winner->job = job;
+  int i = 0;
+  double completionT = DBL_MAX;
+  p_winner_t winner = xbt_malloc(sizeof(winner_t));
+  int failure = 0;
+  char name[] = "metasched_MB";
+  char sed_MB[256];
+  
+  winner->completionT = DBL_MAX;
+  winner->job = job;
     
    
-    for (i=0; i<nbClusters; ++i) {
-        m_task_t task = NULL;
-        
-        /* Ask when the cluster will be able to execute the job */
-        MSG_task_put(MSG_task_create("SED_PRED", 0, 0, job), 
-                     clusters[i], SED_CHANNEL);
-        MSG_task_get(&task, MS_CHANNEL);
-        if (!strcmp(task->name, "SB_PRED")) { // OK
-            slot_t * slots = NULL;
-            slots = MSG_task_get_data(task);
-            completionT = slots[0]->start_time + (job->wall_time * speedCoef[i]);
-            if (completionT < winner->completionT) { 
-                winner->completionT = completionT;
-                winner->cluster = slots[0]->host;
-            }
-            xbt_free(slots);
-        }
-        else { 
-            const m_host_t sender = MSG_task_get_source(task);
-            if (!strcmp(task->name, "SB_SERVICE_KO"))
-                printf("Service unavailable on host: %s\n", sender->name);
-            else
-                printf("Unadequate resources: %s\n", sender->name);
-
-            ++failure;
-        }
-       
-        printf("\n");
-        MSG_task_destroy(task), task = NULL;
+  for (i = 0; i < nbClusters; ++i) {
+    m_task_t task = NULL;
+    
+    sprintf(sed_MB, "client-%s", clusters[i]->name);
+    /* Ask when the cluster will be able to execute the job */
+    MSG_task_send(MSG_task_create("SED_PRED", 0, 0, job), 
+		 sed_MB);
+    MSG_task_receive(&task, name);
+    if (!strcmp(task->name, "SB_PRED")) { // OK
+      slot_t * slots = NULL;
+      slots = MSG_task_get_data(task);
+      completionT = slots[0]->start_time + (job->wall_time * speedCoef[i]);
+      if (completionT < winner->completionT) { 
+	winner->completionT = completionT;
+	winner->cluster = slots[0]->host;
+      }
+      xbt_free(slots);
     }
+    else { 
+      const m_host_t sender = MSG_task_get_source(task);
+      if (!strcmp(task->name, "SB_SERVICE_KO"))
+	printf("Service unavailable on host: %s\n", sender->name);
+      else
+	printf("Unadequate resources: %s\n", sender->name);
 
-    /* No adequate resource to execute a job */
-    if (failure == nbClusters) { 
-      winner->completionT = -1;
+      ++failure;
     }
+    MSG_task_destroy(task), task = NULL;
+  }
 
-    return winner;
+  /* No adequate resource to execute a job */
+  if (failure == nbClusters) { 
+    winner->completionT = -1;
+  }
+
+  return winner;
 }
