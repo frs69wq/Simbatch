@@ -48,12 +48,17 @@ static xbt_fifo_t wld_parse(const char * wld_file, const char * name) {
     char buf[512];
     xbt_fifo_t list = NULL;
     
+#ifdef VERBOSE
+    printf ("Parsing %s...", wld_file);
+#endif
     
     /* Papa's got a brand new bag... */
-    printf ("parsing %s\n", wld_file);
     if ((f = fopen(wld_file, "r")) == NULL) {
 	fprintf (stderr, "%s:line %d, function %s, fopen failed : %s \n",\
 		 __FILE__, __LINE__, __func__, wld_file);
+#ifdef VERBOSE
+	printf ("failed\n");
+#endif
 	return NULL;
     }
     
@@ -84,6 +89,10 @@ static xbt_fifo_t wld_parse(const char * wld_file, const char * name) {
 	    }
     }
     fclose(f);
+
+#ifdef VERBOSE
+    printf ("done\n");
+#endif
     
     return list;
 }
