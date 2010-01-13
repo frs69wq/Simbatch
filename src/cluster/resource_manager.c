@@ -234,7 +234,7 @@ supervise(int argc, char **argv)
 
     //deadline will not be met
     if (job->deadline > MSG_get_clock() + sleep_duration) {
-      sleep_duration = deadline - MSG_get_clock();
+      sleep_duration = job->deadline - MSG_get_clock();
     }
 
 #ifdef LOG
