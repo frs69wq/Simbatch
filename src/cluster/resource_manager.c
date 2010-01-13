@@ -225,8 +225,16 @@ supervise(int argc, char **argv)
     }
     
     sleep_duration = job->run_time;
+
+    /* take into account the fact that the walltime can be 
+       greater than runtime and kill the job the earlier */
     if (job->wall_time < sleep_duration) {
       sleep_duration = job->wall_time;
+    }
+
+    //deadline will not be met
+    if (job->deadline > MSG_get_clock() + sleep_duration) {
+      sleep_duration = deadline - MSG_get_clock();
     }
 
 #ifdef LOG
