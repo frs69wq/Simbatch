@@ -233,7 +233,8 @@ supervise(int argc, char **argv)
     }
 
     //deadline will not be met
-    if (job->deadline > MSG_get_clock() + sleep_duration) {
+    if (job->deadline != -1 &&
+	job->deadline < MSG_get_clock() + sleep_duration) {
       sleep_duration = job->deadline - MSG_get_clock();
     }
 
