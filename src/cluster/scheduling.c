@@ -37,7 +37,8 @@ generic_reschedule(m_cluster_t cluster, plugin_scheduler_t scheduler)
     auto void reschedule(job_t job);
     void reschedule(job_t job)
     { 
-        if ((job->state) == WAITING) { 
+        if ((job->state) == WAITING &&
+	    job->deadline > MSG_get_clock()) { 
             scheduler->accept(cluster, job, scheduler->schedule(cluster, job));
         }
     }

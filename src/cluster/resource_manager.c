@@ -236,6 +236,7 @@ supervise(int argc, char **argv)
     if (job->deadline != -1 &&
 	job->deadline < MSG_get_clock() + sleep_duration) {
       sleep_duration = job->deadline - MSG_get_clock();
+      job->state = ERROR;
     }
 
 #ifdef LOG
@@ -244,27 +245,30 @@ supervise(int argc, char **argv)
 	    MSG_get_clock() + sleep_duration);
 #endif
     
-    MSG_process_sleep(sleep_duration);
-    
-    /* Receive output data */
-    if (job->output_size > 0.0) {
-      MSG_task_send(MSG_task_create("DATA_OUT", 0.0,
-				   job->output_size, NULL),
-		   node_MB);
+    //if the deadline is not already past, we start execution
+    if (job->deadline > MSG_get_clock()) {
+      MSG_process_sleep(sleep_duration);
+      
+      /* Receive output data */
+      if (job->output_size > 0.0) {
+	MSG_task_send(MSG_task_create("DATA_OUT", 0.0,
+				      job->output_size, NULL),
+		      node_MB);
 #ifdef LOG
-      fprintf(flog, "[%lf]\t%20s\tReceive output data from %s\n",
-	      MSG_get_clock(), PROCESS_NAME(),
-	      MSG_host_get_name(cluster->nodes[job->mapping[0]]));
+	fprintf(flog, "[%lf]\t%20s\tReceive output data from %s\n",
+		MSG_get_clock(), PROCESS_NAME(),
+		MSG_host_get_name(cluster->nodes[job->mapping[0]]));
 #endif
+      }
     }
     
     //Finish - ask to be in the pool again
     MSG_task_send(MSG_task_create("RM_ATTACH", 0.0, 0.0,
-				 MSG_process_self()),
-		 resource_manager_MB); 
+				  MSG_process_self()),
+		  resource_manager_MB); 
     //Tell the batch the job is finished
     MSG_task_send(MSG_task_create("SB_ACK", 0.0, 0.0, job),
-		 batch_MB);
+		  batch_MB);
   }
   xbt_free(port);
   return EXIT_SUCCESS;

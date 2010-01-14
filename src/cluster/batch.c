@@ -339,14 +339,16 @@ schedule_task(context_t self, m_task_t task, int *job_cpt)
   m_host_t sender = MSG_task_get_source(task);
     
   job->id = (*job_cpt)++;
-    
+  
 #ifdef LOG	
   fprintf(self.flog, "[%lf]\t%20s\tReceive \"%s\" from \"%s\"\n",
 	  MSG_get_clock(), PROCESS_NAME(), job->name,
 	  MSG_host_get_name(sender));
 #endif
-    
-  if (job->nb_procs <= self.cluster->nb_nodes) {
+  
+  if (job->nb_procs <= self.cluster->nb_nodes && 
+      (job->deadline == -1 ||
+       job->deadline > MSG_get_clock())) {
     /* We keep a trace of the task */
     if (job->priority >= self.cluster->priority)
       job->priority = self.cluster->priority - 1;
@@ -359,7 +361,7 @@ schedule_task(context_t self, m_task_t task, int *job_cpt)
     }
     job->mapping = xbt_malloc(job->nb_procs * sizeof(int));
     xbt_dynar_push(self.cluster->queues[job->priority], &job); 
-        
+    
     /* ask to the plugin to schedule and accept this new task. */
     self.scheduler->accept(self.cluster, job,
 			   self.scheduler->schedule(self.cluster, job));
@@ -423,7 +425,7 @@ check_ACK(context_t self, m_task_t task)
 {
   job_t job = MSG_task_get_data(task);
   int it;
-    
+  
 #ifdef LOG
   fprintf(self.flog, "[%lf]\t%20s\tReceive \"%s\" from \"%s\" \n",
 	  MSG_get_clock(), PROCESS_NAME(), task->name,
@@ -431,11 +433,11 @@ check_ACK(context_t self, m_task_t task)
   fprintf(self.flog, "[%lf]\t%20s\t%s done\n", 
 	  MSG_get_clock(), PROCESS_NAME(), job->name);
 #endif
-    
+  
   job->state = DONE;
   job->completion_time = MSG_get_clock();
   cluster_delete_done_job(self.cluster, job);
-    
+  
   it = cluster_search_job(self.cluster, job->id, self.cluster->reservations);
   if (it == -1) { 
     it = cluster_search_job(self.cluster, job->id, 
@@ -444,19 +446,21 @@ check_ACK(context_t self, m_task_t task)
   } else {
     xbt_dynar_remove_at(self.cluster->reservations, it, NULL);
   }
-    
+  
 #ifdef OUTPUT
-  fprintf(self.fout, "%-15s\t%d\t%lf\t%lf\t%lf\t%lf\t\n", job->name,
-	  job->nb_procs, job->entry_time, job->start_time + NOISE, 
-	  job->completion_time, MSG_get_clock() - job->start_time - NOISE);
-  fflush(self.fout);
+  if (job->state != ERROR) {   
+    fprintf(self.fout, "%-15s\t%d\t%lf\t%lf\t%lf\t%lf\t\n", job->name,
+	    job->nb_procs, job->entry_time, job->start_time + NOISE, 
+	    job->completion_time, MSG_get_clock() - job->start_time - NOISE);
+    fflush(self.fout);
+  }
 #endif    
-
+  
   if (job->free_on_completion) {
     xbt_free(job->mapping);
     xbt_free(job);
   }
-    
+  
   /* The system becomes stable again, we can now reschedule */
   self.scheduler->reschedule(self.cluster, self.scheduler);
 }
