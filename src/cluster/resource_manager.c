@@ -246,7 +246,7 @@ supervise(int argc, char **argv)
 #endif
     
     //if the deadline is not already past, we start execution
-    if (job->deadline > MSG_get_clock()) {
+    if (job->deadline == -1 || job->deadline > MSG_get_clock()) {
       MSG_process_sleep(sleep_duration);
       
       /* Receive output data */
