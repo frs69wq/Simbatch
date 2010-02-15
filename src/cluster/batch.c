@@ -341,7 +341,7 @@ schedule_task(context_t self, m_task_t task, int *job_cpt)
   job->id = (*job_cpt)++;
   
 #ifdef LOG	
-  fprintf(self.flog, "[%lf]\t%20s\tReceive \"%s\" from \"%s\"\n",
+  fprintf(self.flog, "[%lf]\t%20s\tReceive \"%s\" from \"%s\" for schedule\n",
 	  MSG_get_clock(), PROCESS_NAME(), job->name,
 	  MSG_host_get_name(sender));
 #endif
@@ -387,7 +387,7 @@ reserve_slot(context_t self, m_task_t task, int *job_cpt)
   job->id = (*job_cpt)++;
 	
 #ifdef LOG
-  fprintf(self.flog, "[%lf]\t%20s\tReceive \"%s\" from \"%s\"\n",
+  fprintf(self.flog, "[%lf]\t%20s\tReceive \"%s\" from \"%s\" for reservation\n",
 	  MSG_get_clock(), PROCESS_NAME(), job->name, 
 	  MSG_host_get_name(sender));
 #endif
@@ -450,7 +450,7 @@ check_ACK(context_t self, m_task_t task)
 #ifdef OUTPUT
   if (job->state != ERROR) {   
     fprintf(self.fout, "%-15s\t%d\t%lf\t%lf\t%lf\t%lf\t\n", job->name,
-	    job->nb_procs, job->entry_time, job->start_time + NOISE, 
+	    job->nb_procs, job->submit_time, job->start_time + NOISE, 
 	    job->completion_time, MSG_get_clock() - job->start_time - NOISE);
     fflush(self.fout);
   }
@@ -489,7 +489,15 @@ cancel_task(context_t self, m_task_t task)
     } else { 
       xbt_dynar_remove_at(self.cluster->reservations, it, NULL); 
     }
-        
+    
+#ifdef LOG
+    fprintf(self.flog, "[%lf]\t%20s\tReceive \"%s\" from \"%s\" \n",
+	    MSG_get_clock(), PROCESS_NAME(), task->name,
+	    MSG_process_get_name(MSG_task_get_sender(task)));
+    fprintf(self.flog, "[%lf]\t%20s\t%s cancelled\n", 
+	    MSG_get_clock(), PROCESS_NAME(), job->name);
+#endif
+
     /* The system becomes stable again, we can reschedule */
     self.scheduler->reschedule(self.cluster, self.scheduler);
     MSG_task_send(MSG_task_create("CANCEL_OK", 0.0, 0.0, NULL),
@@ -552,7 +560,7 @@ predict_schedule(context_t self, m_task_t task)
 #endif
     
 #ifdef LOG
-  fprintf(self.flog, "[%lf]\t%20s\tReceive \"%s\" from \"%s\"\n",
+  fprintf(self.flog, "[%lf]\t%20s\tReceive \"%s\" from \"%s\" for prediction\n",
 	  MSG_get_clock(), PROCESS_NAME(), job->name,
 	  MSG_host_get_name(sender));
 #endif

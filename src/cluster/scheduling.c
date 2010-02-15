@@ -34,27 +34,27 @@ generic_no_reschedule(m_cluster_t cluster, plugin_scheduler_t scheduler)
 void
 generic_reschedule(m_cluster_t cluster, plugin_scheduler_t scheduler)
 {
-    auto void reschedule(job_t job);
-    void reschedule(job_t job)
-    { 
-        if ((job->state) == WAITING &&
-	    job->deadline > MSG_get_clock()) { 
-            scheduler->accept(cluster, job, scheduler->schedule(cluster, job));
-        }
+  auto void reschedule(job_t job);
+  void reschedule(job_t job)
+  { 
+    if ((job->state) == WAITING &&
+	(job->deadline == -1 || job->deadline > MSG_get_clock())) {
+      scheduler->accept(cluster, job, scheduler->schedule(cluster, job));
     }
-
-    int i = 0;
-
-    /* remove waiting jobs */
-    cluster_clean(cluster);
+  }
+  
+  int i = 0;
+  
+  /* remove waiting jobs */
+  cluster_clean(cluster);
+  
+  /* Reschedule the tasks (just those tat are not processing) */
+  for (i = cluster->priority - 1; i>=0; i--) {
+    unsigned int cpt;
+    job_t job = NULL;
     
-    /* Reschedule the tasks (just those tat are not processing) */
-    for (i = cluster->priority - 1; i>=0; i--) {
-        unsigned int cpt;
-        job_t job = NULL;
-	
-        xbt_dynar_foreach(cluster->queues[i], cpt, job) { reschedule(job); }
-    }
+    xbt_dynar_foreach(cluster->queues[i], cpt, job) { reschedule(job); }
+  }
 }
 
 
@@ -258,7 +258,7 @@ select_n_slots(m_cluster_t cluster, xbt_dynar_t slots, int nb)
       }
     
         /* we retrieve the best bid of the market */
-    xbt_dynar_remove_at(slots, node, &(best_slots[i]));
+	xbt_dynar_remove_at(slots, node, &(best_slots[i]));
     }
     
     return best_slots;

@@ -32,57 +32,56 @@ fcfs_accept(m_cluster_t cluster, job_t job, slot_t *slots);
 plugin_scheduler_t
 init (plugin_scheduler_t p)
 {
-    p->schedule = fcfs_schedule;
-    p->reschedule = generic_reschedule;
-    p->accept = fcfs_accept;
+  p->schedule = fcfs_schedule;
+  p->reschedule = generic_reschedule;
+  p->accept = fcfs_accept;
   
-    return p;
+  return p;
 }
 
 
 static slot_t *
 fcfs_schedule(m_cluster_t cluster, job_t job)
 {
-    int i = 0;
-    slot_t *best_slots = NULL;
-    xbt_dynar_t slots = NULL;
+  int i = 0;
+  slot_t *best_slots = NULL;
+  xbt_dynar_t slots = NULL;
     
-    slots = xbt_dynar_new(sizeof(slot_t), free_slot);
+  slots = xbt_dynar_new(sizeof(slot_t), free_slot);
     
-    /* We take the slot for each queue */
-    for (i=0; i<cluster->nb_nodes; i++) {
-        slot_t s;
-        s = get_last_slot(cluster,i);
-        xbt_dynar_push(slots, &s);
-    }
+  /* We take the slot for each queue */
+  for (i=0; i<cluster->nb_nodes; i++) {
+    slot_t s;
+    s = get_last_slot(cluster,i);
+    xbt_dynar_push(slots, &s);
+  }
     
-    /* We select the n best bids (the lowest date) */
-    best_slots = select_n_slots(cluster, slots, job->nb_procs);
+  /* We select the n best bids (the lowest date) */
+  best_slots = select_n_slots(cluster, slots, job->nb_procs);
 
-    /* cleaning every strtuctures */
-    xbt_dynar_free(&slots);
+  /* cleaning every strtuctures */
+  xbt_dynar_free(&slots);
 
-    return best_slots;
+  return best_slots;
 }
 
 static void
 fcfs_accept(m_cluster_t cluster, job_t job, slot_t *slots)
 {
-    int i=0;
+  int i=0;
+  /* The start_time of the job is finally equal to the
+     worst start_time among the best */
+  job->start_time = slots[job->nb_procs-1]->start_time;
     
-    /* The start_time of the job is finally equal to the
-       worst start_time among the best */
-    job->start_time = slots[job->nb_procs-1]->start_time;
-    
-    /* we must push the task in its waiting queue(s) */
-    for (i=0; i<job->nb_procs; i++) {
-        job->mapping[i] = slots[i]->node;
-        xbt_dynar_push(cluster->waiting_queue[slots[i]->node], &job);
-    }
+  /* we must push the task in its waiting queue(s) */
+  for (i=0; i<job->nb_procs; i++) {
+    job->mapping[i] = slots[i]->node;
+    xbt_dynar_push(cluster->waiting_queue[slots[i]->node], &job);
+  }
 
-    job->completion_time = job->start_time + job->wall_time;
+  job->completion_time = job->start_time + job->wall_time;
 
-    for (i=0;i<job->nb_procs;i++)
-        xbt_free(slots[i]);
-    xbt_free(slots);
+  for (i=0;i<job->nb_procs;i++)
+    xbt_free(slots[i]);
+  xbt_free(slots);
 }

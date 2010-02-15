@@ -182,27 +182,27 @@ cluster_search_job(m_cluster_t cluster, int job_id, xbt_dynar_t dynar)
 void
 cluster_print(m_cluster_t cluster)
 {
-    int i = 0, size = 0;
+  int i = 0, size = 0;
+  
+  printf("[%lf]Affichage\n", MSG_get_clock());
+  for (i=0; i<cluster->nb_nodes; ++i) {
+    unsigned int cpt;
+    job_t job;
     
-    printf("Affichage\n");
-    for (i=0; i<cluster->nb_nodes; ++i) {
-	unsigned int cpt;
-        job_t job;
-	
-	printf("\n****** %s => %lu tasks ******\n", cluster->nodes[i]->name,
-	       xbt_dynar_length(cluster->waiting_queue[i]));
-	
-	xbt_dynar_foreach(cluster->waiting_queue[i], cpt, job) {
-            (job->state==PROCESSING)? 
-                printf("*%s ", job->name): printf("%s ", job->name);
-        }
+    printf("\n****** %s => %lu tasks ******\n", cluster->nodes[i]->name,
+	   xbt_dynar_length(cluster->waiting_queue[i]));
+    
+    xbt_dynar_foreach(cluster->waiting_queue[i], cpt, job) {
+      (job->state==PROCESSING)? 
+	printf("*%s ", job->name): printf("%s ", job->name);
     }
-    printf("\n");
-    
-    for (i = 0; i < cluster->priority; ++i) 
-	size += xbt_dynar_length(cluster->queues[i]);
-    
-    printf("\n****** bag => %d tasks ******\n\n", size);
+  }
+  printf("\n");
+  
+  for (i = 0; i < cluster->priority; ++i) 
+    size += xbt_dynar_length(cluster->queues[i]);
+  
+  printf("\n****** bag => %d tasks ******\n\n", size);
 }
 
 
