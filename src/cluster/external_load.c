@@ -109,7 +109,9 @@ int SB_external_load(int argc, char ** argv) {
 	
 	/* And the others */
 	while ((job=(job_t)xbt_fifo_shift(bag_of_tasks))) {   
+	  if ((job->submit_time - time) > 0.0 ) {
 	    MSG_process_sleep(job->submit_time - time);
+	  }
 #ifdef LOG	
 	    fprintf(flog, "[%lf]\t%20s\tSend %s to \"%s\"\n", 
 		    MSG_get_clock(), PROCESS_NAME(),\
