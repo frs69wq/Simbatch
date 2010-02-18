@@ -223,7 +223,7 @@ SB_batch(int argc, char *argv[])
     }
     
     MSG_task_send(MSG_task_create("SB_UPDATE", 0.0, 0.0, NULL), 
-		 resource_manager_MB);
+		  resource_manager_MB);
   }
     
   if (msg_stack) {
@@ -569,9 +569,6 @@ predict_schedule(context_t self, m_task_t task)
     if (job->priority >= self.cluster->priority) {
       job->priority = self.cluster->priority - 1;
     }
-    
-    job->entry_time = MSG_get_clock();
-    job->run_time += NOISE;
     
     slots = self.scheduler->schedule(self.cluster, job);
     
