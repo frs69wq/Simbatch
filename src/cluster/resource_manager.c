@@ -86,6 +86,7 @@ SB_resource_manager(int argc, char **argv)
       err = MSG_TIMEOUT_FAILURE;
     }
     else {
+      task = NULL;
       err = MSG_task_receive_with_timeout(&task, name, waiting_time);
     }
     
@@ -105,7 +106,7 @@ SB_resource_manager(int argc, char **argv)
 	      MSG_get_clock(), PROCESS_NAME(), 
 	      xbt_dynar_length(pool_of_supervisors));
 #endif
-		
+      
       /* Handle the pool of supervisors */
       if (xbt_dynar_length(pool_of_supervisors) == 0) {
 	char name[20];
@@ -154,7 +155,7 @@ SB_resource_manager(int argc, char **argv)
 	  fprintf(stderr, "[%lf]\t%20s\tUpdate\n", MSG_get_clock(), 
 		  PROCESS_NAME());
 #endif
-	} 
+	}
 	else if (!strcmp(task->name, "RM_ATTACH")) {
 	  /* A Supervisor has finished and is available again */
 	  m_process_t supervisor = (m_process_t)MSG_task_get_data(task);
@@ -169,8 +170,7 @@ SB_resource_manager(int argc, char **argv)
 		  xbt_dynar_length(pool_of_supervisors));
 #endif
 	}
-	MSG_task_destroy(task); 
-	task = NULL;
+	MSG_task_destroy(task);
       }
     }
     
