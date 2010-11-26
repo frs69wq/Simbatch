@@ -42,7 +42,7 @@ SB_node(int argc, char **argv)
   while (1) {
     /* Waiting for input comm */
     err = MSG_task_receive_with_timeout(&task, name, DBL_MAX);
-    if (err == MSG_TIMEOUT_FAILURE) {
+    if (err == MSG_TIMEOUT) {
       break;
     }
     

@@ -83,14 +83,14 @@ SB_resource_manager(int argc, char **argv)
   while (1) {
     //0.0 makes MSG_task_get_with_time_out blocking
     if (waiting_time == 0.0) {
-      err = MSG_TIMEOUT_FAILURE;
+      err = MSG_TIMEOUT;
     }
     else {
       task = NULL;
       err = MSG_task_receive_with_timeout(&task, name, waiting_time);
     }
     
-    if (err == MSG_TIMEOUT_FAILURE) {
+    if (err == MSG_TIMEOUT) {
       //if we reach DBL_MAX, we should exit 
       if (waiting_time == DBL_MAX) { 
 	xbt_fifo_free(msg_stack); 
@@ -207,7 +207,7 @@ supervise(int argc, char **argv)
   sprintf(resource_manager_MB, "resource_manager-%s", HOST_NAME());
   while (1) {
     err = MSG_task_receive_with_timeout(&task, name, DBL_MAX);
-    if (err == MSG_TIMEOUT_FAILURE) {
+    if (err == MSG_TIMEOUT) {
       break;
     }
     

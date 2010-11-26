@@ -259,7 +259,7 @@ get_task(xbt_fifo_t msg_stack)
   
   err = MSG_task_receive_with_timeout(&task, name, DBL_MAX);	
 
-  if (err == MSG_TIMEOUT_FAILURE) {
+  if (err == MSG_TIMEOUT) {
     return false;
   }
   
