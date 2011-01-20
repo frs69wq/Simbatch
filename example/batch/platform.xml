@@ -1,6 +1,7 @@
 <?xml version='1.0'?>
 <!DOCTYPE platform SYSTEM "simgrid.dtd">
-<platform version="2">
+<platform version="3">
+ <AS  id="AS0"  routing="Full">
   <host id="Batch1" power="98095000"/>
   <host id="Node1" power="76296000"/>
   <host id="Node2" power="76296000"/>
@@ -19,22 +20,23 @@
   <link id="6" bandwidth="41279125" latency="5.9904e-05"/>
   <link id="7" bandwidth="41279125" latency="5.9904e-05"/>
   
-  <route src="Batch1" dst="Batch1"><link:ctn id="loopback"/></route>
+  <route src="Batch1" dst="Batch1"><link_ctn id="loopback"/></route>
   <!-- Simple topologie -->
-  <route src="Batch1" dst="Node1"><link:ctn id="1"/></route>
-  <route src="Batch1" dst="Node2"><link:ctn id="2"/></route>
-  <route src="Batch1" dst="Node3"><link:ctn id="3"/></route>
-  <route src="Batch1" dst="Node4"><link:ctn id="4"/></route>
-  <route src="Batch1" dst="Node5"><link:ctn id="5"/></route>
-  <route src="Batch1" dst="Node6"><link:ctn id="6"/></route>
-  <route src="Batch1" dst="Node7"><link:ctn id="7"/></route>
+  <route src="Batch1" dst="Node1"><link_ctn id="1"/></route>
+  <route src="Batch1" dst="Node2"><link_ctn id="2"/></route>
+  <route src="Batch1" dst="Node3"><link_ctn id="3"/></route>
+  <route src="Batch1" dst="Node4"><link_ctn id="4"/></route>
+  <route src="Batch1" dst="Node5"><link_ctn id="5"/></route>
+  <route src="Batch1" dst="Node6"><link_ctn id="6"/></route>
+  <route src="Batch1" dst="Node7"><link_ctn id="7"/></route>
   <!-- Bi-directionnal -->
-  <route src="Node1" dst="Batch1"><link:ctn id="1"/></route>
-  <route src="Node2" dst="Batch1"><link:ctn id="2"/></route>
-  <route src="Node3" dst="Batch1"><link:ctn id="3"/></route>
-  <route src="Node4" dst="Batch1"><link:ctn id="4"/></route>
-  <route src="Node5" dst="Batch1"><link:ctn id="5"/></route>
-  <route src="Node6" dst="Batch1"><link:ctn id="6"/></route>
-  <route src="Node7" dst="Batch1"><link:ctn id="7"/></route>
+  <route src="Node1" dst="Batch1"><link_ctn id="1"/></route>
+  <route src="Node2" dst="Batch1"><link_ctn id="2"/></route>
+  <route src="Node3" dst="Batch1"><link_ctn id="3"/></route>
+  <route src="Node4" dst="Batch1"><link_ctn id="4"/></route>
+  <route src="Node5" dst="Batch1"><link_ctn id="5"/></route>
+  <route src="Node6" dst="Batch1"><link_ctn id="6"/></route>
+  <route src="Node7" dst="Batch1"><link_ctn id="7"/></route>
 	 
+ </AS>
 </platform>
