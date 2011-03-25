@@ -43,7 +43,7 @@ cluster_new(int argc, char **argv, int nb)
     /* Process organisation */
     /* no nodes... no cluster! */ 
     if (argc < 2) {
-        INFO0("No nodes are defined!");
+        XBT_INFO("No nodes are defined!");
         abort();
     }
     
@@ -58,7 +58,7 @@ cluster_new(int argc, char **argv, int nb)
 	cluster->waiting_queue[i] = xbt_dynar_new(sizeof(job_t), NULL);  
 	cluster->nodes[i] = MSG_get_host_by_name(argv[i+1]);
         if (!cluster->nodes[i]) {
-            INFO1("Unknown host %s. Stopping Now! ", argv[i+1]);
+            XBT_INFO("Unknown host %s. Stopping Now! ", argv[i+1]);
             xbt_abort();
         }
     }
