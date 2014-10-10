@@ -146,7 +146,7 @@ int metaSched(int argc, char ** argv) {
   for (i=0; i<nbClusters; ++i) { nbNodesTot += nbNodesPF[i]; }
   
   //plugin to parse the file containing the jobs
-  launch_plugin(&handle, &plugin, "../../lib/libwld.so", "init_input");
+  launch_plugin(&handle, &plugin, "/usr/local/lib/libwld.so", "init_input");
   jobList = plugin.create_list("./load.wld", "job");
   close_plugin(handle);
   

@@ -1,6 +1,6 @@
 <?xml version='1.0'?>
-<!DOCTYPE platform SYSTEM "simgrid.dtd">
-<platform version="2">
+ <!DOCTYPE platform SYSTEM "http://simgrid.gforge.inria.fr/simgrid.dtd">
+  <platform version="3">
 
   <process host="MetaSched" function="metaSched">
     <argument value="Batch0"/>

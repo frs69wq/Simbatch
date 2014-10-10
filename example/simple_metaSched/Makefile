@@ -1,10 +1,10 @@
 CC=gcc
 WARNINGS=-Wall -Wextra
-SIMGRID_HOME=${HOME}/myroot
-SIMBATCH_HOME=../..
+SIMGRID_HOME=/usr/local
+SIMBATCH_HOME=../../
 INCLUDES=-I$(SIMGRID_HOME)/include -I${SIMBATCH_HOME}/include 
-LD_PATH=-L. -L$(SIMGRID_HOME)/lib/ -L$(SIMBATCH_HOME)/lib
-LD_FLAGS=-lsimgrid -lsimbatch
+LD_PATH= -L$(SIMGRID_HOME)/lib/ 
+LD_FLAGS=-lsimgrid -lsimbatch -lwld
 OPTS=-O2 -pipe
 DEBUG= # -pg -DDEBUG
 CFLAGS=$(WARNINGS) $(OPTS) $(DEBUG)

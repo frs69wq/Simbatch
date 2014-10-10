@@ -1,7 +1,8 @@
 <?xml version='1.0'?>
-<!DOCTYPE platform SYSTEM "simgrid.dtd">
-<platform version="2">
+ <!DOCTYPE platform SYSTEM "http://simgrid.gforge.inria.fr/simgrid.dtd">
+  <platform version="3">
 
+ <AS  id="AS0"  routing="Full">
   <host id="Batch0" power="3865000000"/>
   <host id="Node0_0" power="3865000000"/>
   <host id="Node0_1" power="3865000000"/>
@@ -38,39 +39,39 @@
   <link id="M1" bandwidth="10000000000" latency="0.000001"/>
   <link id="M2" bandwidth="10000000000" latency="0.000001"/>
   
-  <route src="Batch0" dst="Batch0"><link:ctn id="loopback0"/></route>
-  <route src="Batch0" dst="Node0_0"><link:ctn id="B0_0"/></route>
-  <route src="Batch0" dst="Node0_1"><link:ctn id="B0_1"/></route>
-  <route src="Batch0" dst="Node0_2"><link:ctn id="B0_2"/></route>
-  <route src="Batch0" dst="Node0_3"><link:ctn id="B0_3"/></route>
-  <route src="Batch0" dst="Node0_4"><link:ctn id="B0_4"/></route>
-  <route src="Node0_0" dst="Batch0"><link:ctn id="B0_0"/></route>
-  <route src="Node0_1" dst="Batch0"><link:ctn id="B0_1"/></route>
-  <route src="Node0_2" dst="Batch0"><link:ctn id="B0_2"/></route>
-  <route src="Node0_3" dst="Batch0"><link:ctn id="B0_3"/></route>
-  <route src="Node0_4" dst="Batch0"><link:ctn id="B0_4"/></route>
-  <route src="Batch1" dst="Batch1"><link:ctn id="loopback1"/></route>  
-  <route src="Batch1" dst="Node1_0"><link:ctn id="B1_0"/></route>
-  <route src="Batch1" dst="Node1_1"><link:ctn id="B1_1"/></route>
-  <route src="Batch1" dst="Node1_2"><link:ctn id="B1_2"/></route>
-  <route src="Batch1" dst="Node1_3"><link:ctn id="B1_3"/></route>
-  <route src="Batch1" dst="Node1_4"><link:ctn id="B1_4"/></route>
-  <route src="Node1_0" dst="Batch1"><link:ctn id="B1_0"/></route>
-  <route src="Node1_1" dst="Batch1"><link:ctn id="B1_1"/></route>
-  <route src="Node1_2" dst="Batch1"><link:ctn id="B1_2"/></route>
-  <route src="Node1_3" dst="Batch1"><link:ctn id="B1_3"/></route>
-  <route src="Node1_4" dst="Batch1"><link:ctn id="B1_4"/></route>
-  <route src="Batch2" dst="Batch2"><link:ctn id="loopback2"/></route>
-  <route src="Batch2" dst="Node2_0"><link:ctn id="B2_0"/></route>
-  <route src="Batch2" dst="Node2_1"><link:ctn id="B2_1"/></route>
-  <route src="Node2_0" dst="Batch2"><link:ctn id="B2_0"/></route>
-  <route src="Node2_1" dst="Batch2"><link:ctn id="B2_1"/></route>
-  <route src="MetaSched" dst="Batch0"><link:ctn id="M0"/></route>
-  <route src="MetaSched" dst="Batch1"><link:ctn id="M1"/></route>
-  <route src="MetaSched" dst="Batch2"><link:ctn id="M2"/></route>
-  <route src="Batch0" dst="MetaSched"><link:ctn id="M0"/></route>
-  <route src="Batch1" dst="MetaSched"><link:ctn id="M1"/></route>
-  <route src="Batch2" dst="MetaSched"><link:ctn id="M2"/></route>
-
+  <route src="Batch0" dst="Batch0"><link_ctn id="loopback0"/></route>
+  <route src="Batch0" dst="Node0_0"><link_ctn id="B0_0"/></route>
+  <route src="Batch0" dst="Node0_1"><link_ctn id="B0_1"/></route>
+  <route src="Batch0" dst="Node0_2"><link_ctn id="B0_2"/></route>
+  <route src="Batch0" dst="Node0_3"><link_ctn id="B0_3"/></route>
+  <route src="Batch0" dst="Node0_4"><link_ctn id="B0_4"/></route>
+  <route src="Node0_0" dst="Batch0"><link_ctn id="B0_0"/></route>
+  <route src="Node0_1" dst="Batch0"><link_ctn id="B0_1"/></route>
+  <route src="Node0_2" dst="Batch0"><link_ctn id="B0_2"/></route>
+  <route src="Node0_3" dst="Batch0"><link_ctn id="B0_3"/></route>
+  <route src="Node0_4" dst="Batch0"><link_ctn id="B0_4"/></route>
+  <route src="Batch1" dst="Batch1"><link_ctn id="loopback1"/></route>  
+  <route src="Batch1" dst="Node1_0"><link_ctn id="B1_0"/></route>
+  <route src="Batch1" dst="Node1_1"><link_ctn id="B1_1"/></route>
+  <route src="Batch1" dst="Node1_2"><link_ctn id="B1_2"/></route>
+  <route src="Batch1" dst="Node1_3"><link_ctn id="B1_3"/></route>
+  <route src="Batch1" dst="Node1_4"><link_ctn id="B1_4"/></route>
+  <route src="Node1_0" dst="Batch1"><link_ctn id="B1_0"/></route>
+  <route src="Node1_1" dst="Batch1"><link_ctn id="B1_1"/></route>
+  <route src="Node1_2" dst="Batch1"><link_ctn id="B1_2"/></route>
+  <route src="Node1_3" dst="Batch1"><link_ctn id="B1_3"/></route>
+  <route src="Node1_4" dst="Batch1"><link_ctn id="B1_4"/></route>
+  <route src="Batch2" dst="Batch2"><link_ctn id="loopback2"/></route>
+  <route src="Batch2" dst="Node2_0"><link_ctn id="B2_0"/></route>
+  <route src="Batch2" dst="Node2_1"><link_ctn id="B2_1"/></route>
+  <route src="Node2_0" dst="Batch2"><link_ctn id="B2_0"/></route>
+  <route src="Node2_1" dst="Batch2"><link_ctn id="B2_1"/></route>
+  <route src="MetaSched" dst="Batch0"><link_ctn id="M0"/></route>
+  <route src="MetaSched" dst="Batch1"><link_ctn id="M1"/></route>
+  <route src="MetaSched" dst="Batch2"><link_ctn id="M2"/></route>
+  <route src="Batch0" dst="MetaSched"><link_ctn id="M0"/></route>
+  <route src="Batch1" dst="MetaSched"><link_ctn id="M1"/></route>
+  <route src="Batch2" dst="MetaSched"><link_ctn id="M2"/></route>
+ </AS>
 </platform>
 
