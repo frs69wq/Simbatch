@@ -41,7 +41,7 @@ p_winner_t MCT_schedule(const msg_host_t * clusters, const int nbClusters,
   for (i = 0; i < nbClusters; ++i) {
     msg_task_t task = NULL;
     
-    sprintf(sed_MB, "client-%s", MSG_get_host_name(clusters[i]));
+    sprintf(sed_MB, "client-%s", MSG_host_get_name(clusters[i]));
     /* Ask when the cluster will be able to execute the job */
     MSG_task_send(MSG_task_create("SED_PRED", 0, 0, job), 
 		 sed_MB);
