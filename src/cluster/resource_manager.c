@@ -62,13 +62,13 @@ SB_resource_manager(int argc, char **argv)
   m_cluster_t cluster = (m_cluster_t) MSG_host_get_data(MSG_host_self());
   unsigned int cpt_supervisors = 0;
   double waiting_time = DBL_MAX;
-  xbt_dynar_t pool_of_supervisors = xbt_dynar_new(sizeof(m_process_t), 
+  xbt_dynar_t pool_of_supervisors = xbt_dynar_new(sizeof(msg_process_t), 
 						  NULL);
   xbt_fifo_t msg_stack = xbt_fifo_new();
   job_t job = NULL;
-  m_task_t task = NULL;
+  msg_task_t task = NULL;
   char name[256];
-  MSG_error_t err = MSG_OK;
+  msg_error_t err = MSG_OK;
   
 #ifdef LOG
   FILE * flog = config_get_log_file(HOST_NAME());
@@ -98,7 +98,7 @@ SB_resource_manager(int argc, char **argv)
       }
       
       //otherwise, there is a task to execute
-      m_process_t supervisor;
+      msg_process_t supervisor;
       unsigned int  *port = NULL;
       job->state = PROCESSING;
 #ifdef DEBUG
@@ -158,7 +158,7 @@ SB_resource_manager(int argc, char **argv)
 	}
 	else if (!strcmp(task->name, "RM_ATTACH")) {
 	  /* A Supervisor has finished and is available again */
-	  m_process_t supervisor = (m_process_t)MSG_task_get_data(task);
+	  msg_process_t supervisor = (msg_process_t)MSG_task_get_data(task);
 #ifdef LOG
 	  fprintf(flog, "[%lf]\t%20s\tAttach %s\n", MSG_get_clock(),
 		  PROCESS_NAME(), MSG_process_get_name(supervisor));
@@ -193,9 +193,9 @@ supervise(int argc, char **argv)
   char name[256];
   char batch_MB[256];
   char resource_manager_MB[256];
-  m_task_t task = NULL;
+  msg_task_t task = NULL;
   job_t job = NULL;
-  MSG_error_t err = MSG_OK;
+  msg_error_t err = MSG_OK;
   double sleep_duration;
   
 #ifdef LOG

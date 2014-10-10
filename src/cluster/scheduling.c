@@ -293,7 +293,7 @@ print_slot(slot_t *slots, int size)
     for (i=0 ; i<size; ++i) {
 	printf("node : %d, idx: %d, start_time : %lf, duration : %lf, host: %s\n", 
             slots[i]->node+1, slots[i]->position, slots[i]->start_time,
-            slots[i]->duration, slots[i]->host->name);
+            slots[i]->duration, MSG_host_get_name(slots[i]->host));
     }
 }
 

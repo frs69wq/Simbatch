@@ -26,9 +26,9 @@
 int
 SB_node(int argc, char **argv)
 { 
-  m_task_t task = NULL;
+  msg_task_t task = NULL;
   char name[256];
-  MSG_error_t err = MSG_OK;
+  msg_error_t err = MSG_OK;
   
   sprintf(name, "Node-%s", HOST_NAME());
 

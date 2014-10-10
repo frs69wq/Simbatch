@@ -21,12 +21,12 @@
 typedef struct _winner {
     job_t job;
     double completionT;
-    m_host_t cluster;
+    msg_host_t cluster;
 } winner_t, * p_winner_t;
 
 
 
-p_winner_t MCT_schedule(const m_host_t * clusters, const int nbClusters, 
+p_winner_t MCT_schedule(const msg_host_t * clusters, const int nbClusters, 
                         const double * speedCoef, job_t job);
 
 #endif

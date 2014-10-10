@@ -20,7 +20,7 @@
 #include "utils.h"
 
 typedef struct _async_param_t { 
-    m_task_t task;
+    msg_task_t task;
     char * mailbox;
 } _async_param_t;
 
@@ -32,13 +32,13 @@ xbt_fifo_alphabetically_sort(xbt_fifo_t fifo)
     
     int 
     stringCmp(const void *t1, const void *t2) { 
-        return strcmp((*((m_task_t *)t1))->name, (*((m_task_t *)t2))->name);
+        return strcmp((*((msg_task_t *)t1))->name, (*((msg_task_t *)t2))->name);
     }
 
     int i = 0;
-    m_task_t *messages = (m_task_t *)xbt_fifo_to_array(fifo);
+    msg_task_t *messages = (msg_task_t *)xbt_fifo_to_array(fifo);
     
-    qsort(messages, xbt_fifo_size(fifo), sizeof(m_task_t), stringCmp);
+    qsort(messages, xbt_fifo_size(fifo), sizeof(msg_task_t), stringCmp);
     for (i=0; i<xbt_fifo_size(fifo); ++i) {
         /* ok, it's a bit dirty */
         xbt_fifo_shift(fifo);
@@ -62,8 +62,8 @@ _MSG_task_send(int argc, char **argv)
 }
 
 
-m_process_t
-MSG_task_async_send(m_task_t task, char * mailbox)
+msg_process_t
+MSG_task_async_send(msg_task_t task, char * mailbox)
 {
     /* can't use a nested function for this :( */
     _async_param_t *param = xbt_malloc(sizeof(*param));

@@ -25,7 +25,7 @@
 /*
  * Returns the best choice (according to MCT) to execute a task
  */
-p_winner_t MCT_schedule(const m_host_t * clusters, const int nbClusters, 
+p_winner_t MCT_schedule(const msg_host_t * clusters, const int nbClusters, 
                         const double * speedCoef, job_t job) {
   int i = 0;
   double completionT = DBL_MAX;
@@ -39,9 +39,9 @@ p_winner_t MCT_schedule(const m_host_t * clusters, const int nbClusters,
     
    
   for (i = 0; i < nbClusters; ++i) {
-    m_task_t task = NULL;
+    msg_task_t task = NULL;
     
-    sprintf(sed_MB, "client-%s", clusters[i]->name);
+    sprintf(sed_MB, "client-%s", MSG_get_host_name(clusters[i]));
     /* Ask when the cluster will be able to execute the job */
     MSG_task_send(MSG_task_create("SED_PRED", 0, 0, job), 
 		 sed_MB);
@@ -57,11 +57,11 @@ p_winner_t MCT_schedule(const m_host_t * clusters, const int nbClusters,
       xbt_free(slots);
     }
     else { 
-      const m_host_t sender = MSG_task_get_source(task);
+      const msg_host_t sender = MSG_task_get_source(task);
       if (!strcmp(task->name, "SB_SERVICE_KO"))
-	printf("Service unavailable on host: %s\n", sender->name);
+	printf("Service unavailable on host: %s\n", MSG_host_get_name(sender));
       else
-	printf("Unadequate resources: %s\n", sender->name);
+	printf("Unadequate resources: %s\n", MSG_host_get_name(sender));
 
       ++failure;
     }

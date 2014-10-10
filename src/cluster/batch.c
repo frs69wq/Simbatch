@@ -56,28 +56,28 @@ void
 handle_task(context_t self, xbt_fifo_t msg_stack, int *job_cpt);
 
 void
-schedule_task(context_t self, m_task_t task, int *job_cpt);
+schedule_task(context_t self, msg_task_t task, int *job_cpt);
 
 void
-reserve_slot(context_t self, m_task_t task, int *job_cpt);
+reserve_slot(context_t self, msg_task_t task, int *job_cpt);
 
 void
-check_ACK(context_t self, m_task_t task);
+check_ACK(context_t self, msg_task_t task);
 
 void
-cancel_task(context_t self, m_task_t task);
+cancel_task(context_t self, msg_task_t task);
 
 void
 answer_to_DIET(context_t self);
 
 void
-predict_schedule(context_t self, m_task_t task);
+predict_schedule(context_t self, msg_task_t task);
 
 void
-eval_HPF(context_t self, m_task_t task);
+eval_HPF(context_t self, msg_task_t task);
 
 void
-init_pf(context_t self, m_task_t task);
+init_pf(context_t self, msg_task_t task);
 
 
 extern unsigned long int DIET_PARAM[2];
@@ -92,7 +92,7 @@ SB_batch(int argc, char *argv[])
 {
   const char *workload_file, *parser_name;
   int job_cpt = 0;
-  m_process_t resource_manager = NULL;
+  msg_process_t resource_manager = NULL;
   xbt_fifo_t msg_stack = NULL;
   context_t self;
     
@@ -110,7 +110,7 @@ SB_batch(int argc, char *argv[])
   m_cluster_t cluster = NULL;
   pluginInfo_t plugin = NULL;
   plugin_scheduler_t scheduler = NULL;
-  m_process_t wld_process = NULL;
+  msg_process_t wld_process = NULL;
     
   /**************** Configuration ******************/  
     
@@ -251,8 +251,8 @@ SB_batch(int argc, char *argv[])
 int
 get_task(xbt_fifo_t msg_stack)
 {
-  m_task_t task = NULL;
-  MSG_error_t err;
+  msg_task_t task = NULL;
+  msg_error_t err;
   char name[256];
 
   sprintf(name, "batch-%s", HOST_NAME());
@@ -292,7 +292,7 @@ handle_task(context_t self, xbt_fifo_t msg_stack, int *job_cpt)
 {
   /* retrieve messages from the stack */
   while (xbt_fifo_size(msg_stack)) {
-    m_task_t task = xbt_fifo_shift(msg_stack); 
+    msg_task_t task = xbt_fifo_shift(msg_stack); 
         
     if (!strcmp(task->name, "SB_TASK")) {
       /* handle task. */
@@ -333,10 +333,10 @@ handle_task(context_t self, xbt_fifo_t msg_stack, int *job_cpt)
 
 
 void
-schedule_task(context_t self, m_task_t task, int *job_cpt)
+schedule_task(context_t self, msg_task_t task, int *job_cpt)
 {
   job_t job = MSG_task_get_data(task);
-  m_host_t sender = MSG_task_get_source(task);
+  msg_host_t sender = MSG_task_get_source(task);
     
   job->id = (*job_cpt)++;
   
@@ -375,10 +375,10 @@ schedule_task(context_t self, m_task_t task, int *job_cpt)
 
 
 void
-reserve_slot(context_t self, m_task_t task, int *job_cpt)
+reserve_slot(context_t self, msg_task_t task, int *job_cpt)
 {
   job_t job = MSG_task_get_data(task);
-  m_host_t sender = MSG_task_get_source(task);
+  msg_host_t sender = MSG_task_get_source(task);
   slot_t * slot = NULL;
   int it = 0;
   char sender_MB[256];
@@ -421,7 +421,7 @@ reserve_slot(context_t self, m_task_t task, int *job_cpt)
 
 
 void
-check_ACK(context_t self, m_task_t task)
+check_ACK(context_t self, msg_task_t task)
 {
   job_t job = MSG_task_get_data(task);
   int it;
@@ -467,10 +467,10 @@ check_ACK(context_t self, m_task_t task)
 
 
 void
-cancel_task(context_t self, m_task_t task)
+cancel_task(context_t self, msg_task_t task)
 {
   job_t job = MSG_task_get_data(task);
-  m_host_t sender = MSG_task_get_source(task);
+  msg_host_t sender = MSG_task_get_source(task);
   int it;
   char sender_MB[256];
   sprintf(sender_MB, "client-%s", MSG_host_get_name(sender));
@@ -546,10 +546,10 @@ answer_to_DIET(context_t self)
 
 
 void
-predict_schedule(context_t self, m_task_t task)
+predict_schedule(context_t self, msg_task_t task)
 {
   job_t job = MSG_task_get_data(task);
-  m_host_t sender = MSG_task_get_source(task);
+  msg_host_t sender = MSG_task_get_source(task);
   slot_t * slots = NULL;
   char sender_MB[256];
   sprintf(sender_MB, "client-%s", MSG_host_get_name(sender));
@@ -582,14 +582,14 @@ predict_schedule(context_t self, m_task_t task)
 
 
 void
-eval_HPF(context_t self, m_task_t task)
+eval_HPF(context_t self, msg_task_t task)
 {
   job_t job = MSG_task_get_data(task);
-  m_host_t sender = MSG_task_get_source(task);
+  msg_host_t sender = MSG_task_get_source(task);
   char sender_MB[256];
   double host_speed = 0;
   double * weight = xbt_malloc(sizeof(double));
-  m_task_t HPF_value = NULL;
+  msg_task_t HPF_value = NULL;
   
   sprintf(sender_MB, "client-%s", MSG_host_get_name(sender));
   fprintf(stdout, "Heuristique\n");
@@ -613,9 +613,9 @@ eval_HPF(context_t self, m_task_t task)
 
 
 void
-init_pf(context_t self, m_task_t task)
+init_pf(context_t self, msg_task_t task)
 {
-  m_host_t sender = MSG_task_get_source(task);
+  msg_host_t sender = MSG_task_get_source(task);
   int * answer = xbt_malloc(sizeof(int));
   char sender_MB [256];
   

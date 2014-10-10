@@ -189,7 +189,7 @@ cluster_print(m_cluster_t cluster)
     unsigned int cpt;
     job_t job;
     
-    printf("\n****** %s => %lu tasks ******\n", cluster->nodes[i]->name,
+    printf("\n****** %s => %lu tasks ******\n", MSG_host_get_name(cluster->nodes[i]),
 	   xbt_dynar_length(cluster->waiting_queue[i]));
     
     xbt_dynar_foreach(cluster->waiting_queue[i], cpt, job) {

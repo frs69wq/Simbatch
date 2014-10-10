@@ -40,7 +40,7 @@ typedef enum state_t {
 
 /**
  * Job structure.
- * Simbatch defines a job strutures to add informations to simbatch m_task_t
+ * Simbatch defines a job strutures to add informations to simbatch msg_task_t
  * types.
  */
 typedef struct _job {
@@ -62,7 +62,7 @@ typedef struct _job {
   unsigned int service;   /*<! Service that can execute the job. */
   int * mapping;      /*<! Proc affected for the job. */
   state_t state;      /*<! Current state of a job. */
-  m_host_t source;    /*<! The m_host_t which send the task. */
+  msg_host_t source;    /*<! The msg_host_t which send the task. */
   int free_on_completion; /*<! Job to free when completed */
   void * data;        /*<! some datas */
 } * job_t;
@@ -79,7 +79,7 @@ typedef struct _slot {
   unsigned int position; /*<! Position in the waiting queue. */
   double start_time;     /*<! Start time of the slot.*/
   double duration;       /*<! Slot duration. */
-  m_host_t host;         /*<! Usefull for a metascheduler. */
+  msg_host_t host;         /*<! Usefull for a metascheduler. */
   void * data;           /*<! Could be usefull. */
 } slot, * slot_t;
 

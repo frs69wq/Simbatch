@@ -65,7 +65,7 @@ int isAvailable(const int services[], const  int service) {
 /*
  * Speed ratio between clusters to have the fastest one
  */
-double * getSpeedCoef(const m_host_t * clusters, const int nbClusters) {
+double * getSpeedCoef(const msg_host_t * clusters, const int nbClusters) {
   double * speedCoef = NULL;
   double maxSpeed = 0;
   int i=0;
@@ -91,10 +91,10 @@ double * getSpeedCoef(const m_host_t * clusters, const int nbClusters) {
  * Makes a first call to the batch to obtian infos such as
  * the number of nodes on the cluster
  */
-int * getNbNodesPF(const m_host_t * clusters, const int nbClusters) {
+int * getNbNodesPF(const msg_host_t * clusters, const int nbClusters) {
   int i = 0;
   int * clusterInfo = xbt_malloc(sizeof(int) * nbClusters);
-  m_task_t task = NULL;
+  msg_task_t task = NULL;
   int * data;
   char cluster_MB[256];
   char name[256] = "metasched_MB";
@@ -122,7 +122,7 @@ int * getNbNodesPF(const m_host_t * clusters, const int nbClusters) {
 int metaSched(int argc, char ** argv) {
   const int nbClusters = argc - 1;
   int * nbNodesPF;
-  m_host_t clusters[nbClusters];
+  msg_host_t clusters[nbClusters];
   xbt_fifo_t jobList = NULL;
   p_winner_t winner = NULL;
   double * speedCoef = NULL;
@@ -160,9 +160,9 @@ int metaSched(int argc, char ** argv) {
     /* If there is a winner, send the task to this cluster */
     if (winner->completionT != -1) {
       printf("Winner for job %lu is %s!\n", job->user_id, 
-	     winner->cluster->name);
+	     MSG_host_get_name(winner->cluster));
       MSG_process_sleep(job->submit_time - time);
-      sprintf(sed_MB, "client-%s", winner->cluster->name);
+      sprintf(sed_MB, "client-%s", MSG_host_get_name(winner->cluster));
       MSG_task_send(MSG_task_create("SB_TASK", 0, 0, job), 
 		    sed_MB);
       time = job->submit_time;
@@ -186,14 +186,14 @@ int metaSched(int argc, char ** argv) {
  * It is responsible for communications between these two agents
  */
 int sed(int argc, char ** argv) {
-  const m_host_t batch = MSG_get_host_by_name(argv[2]);
+  const msg_host_t batch = MSG_get_host_by_name(argv[2]);
   const int nbServices = argc - 4;
   //const double waitT = str2double(argv[3]);
   int services[nbServices + 1];
   xbt_fifo_t msg_stack = xbt_fifo_new();
   int i = 0;
-  MSG_error_t err;
-  m_task_t task = NULL;
+  msg_error_t err;
+  msg_task_t task = NULL;
   char name[256];
   sprintf(name, "client-%s", HOST_NAME());
   char batch_MB[256];
@@ -213,7 +213,7 @@ int sed(int argc, char ** argv) {
   while (1) {
     task = NULL;
     err = MSG_task_receive_with_timeout(&task, name, DBL_MAX);
-    if (err == MSG_TIMEOUT_FAILURE) { 
+    if (err == MSG_TIMEOUT) { 
       break;
     }
 
@@ -263,7 +263,7 @@ int sed(int argc, char ** argv) {
 int main(int argc, char ** argv) {
   /* initialisation */
   SB_global_init(&argc, argv);
-  MSG_global_init(&argc, argv);
+  MSG_init(&argc, argv);
   
   /* Register functions (scheduler, computation, batch and node) */
   MSG_function_register("metaSched", metaSched);
@@ -277,7 +277,6 @@ int main(int argc, char ** argv) {
   MSG_main();
 
   SB_clean();
-  MSG_clean();
 
   return EXIT_SUCCESS;
 }
