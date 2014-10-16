@@ -18,7 +18,7 @@
 
 int main(int argc, char ** argv) {
     SB_global_init(&argc, argv);
-    MSG_global_init(&argc, argv);
+    MSG_init(&argc, argv);
     
     /* The batch */
     MSG_function_register("SB_batch", SB_batch);
@@ -33,7 +33,6 @@ int main(int argc, char ** argv) {
     
     /* Clean everything up */
     SB_clean();
-    MSG_clean();
 
     return EXIT_SUCCESS;
 }
