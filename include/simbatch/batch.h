@@ -3,6 +3,7 @@
 /* written by Jean-Sebastien Gay and Ghislain Charrier, ENS Lyon.           */
 /*                                                                          */
 /* Copyright (c) 2007, Simbatch Team. All rights reserved.                  */
+/* Copyright (c) 2014 The SimGrid team. All rights reserved.              */
 /*                                                                          */
 /* This program is free software; you can redistribute it and/or modify it  */
 /* under the terms of the license (GNU LGPL) which comes with this package. */
